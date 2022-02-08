@@ -521,8 +521,9 @@ ctcrw_interpolation <- function(data,
                                 site,
                                 type,
                                 timestep = '20 min',
-                                showPlots = T,
-                                theta = c(8,2)
+                                showPlots = TRUE,
+                                theta = c(8,2),
+                                quiet = FALSE
 ) {
 
   # Generate custom laea projection centered on colony
@@ -554,11 +555,19 @@ ctcrw_interpolation <- function(data,
   interp_loc$ID <- interp_loc$tripID
   interp_loc <- interp_loc[,c('Bird', 'ID', 'time', 'ColDist')]
 
-  crwOut <- momentuHMM::crawlWrap(obsData = interp_loc,
+  if (quiet == TRUE) {
+  invisible(capture.output(crwOut <- momentuHMM::crawlWrap(obsData = interp_loc,
                                   timeStep = timestep,
                                   theta = theta,
                                   fixPar = c(NA,NA),
-                                  method = 'Nelder-Mead')
+                                  method = 'Nelder-Mead')))
+  } else {
+    crwOut <- momentuHMM::crawlWrap(obsData = interp_loc,
+                                    timeStep = timestep,
+                                    theta = theta,
+                                    fixPar = c(NA,NA),
+                                    method = 'Nelder-Mead')
+  }
 
   pred <- data.frame(crwOut$crwPredict) %>%
     dplyr::filter(locType == 'p') %>%
