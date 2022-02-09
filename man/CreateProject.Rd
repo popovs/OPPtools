@@ -26,8 +26,8 @@ CreateProject(
 }
 \value{
 This function creates the desired project subdirectories and readmes,
- as well as a standard .gitignore file files. It will not overwrite the file
- however if it does not exist. It does not return anything.
+as well as a standard .gitignore file files. It will not overwrite the file
+however if it does not exist. It does not return anything.
 }
 \description{
 This function creates the standard project organization structure for CIDA
