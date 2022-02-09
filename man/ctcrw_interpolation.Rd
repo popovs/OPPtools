@@ -7,7 +7,7 @@
 ctcrw_interpolation(
   data,
   site,
-  type,
+  type = "Complete",
   timestep,
   interpolateGaps = TRUE,
   showPlots = TRUE,
