@@ -13,7 +13,7 @@ prep_pathtrack(data)
 This simple function processes Pathtrack data that has
 been exported from Pathtrack Host software for Movebank
 upload. It removes any records in Pathtrack data that
-have `null` latitude or longitude values.
-Unlike `prep_ecotone()`, this function makes no assumptions
+have \code{null} latitude or longitude values.
+Unlike \code{prep_ecotone()}, this function makes no assumptions
 on the bird's location when latitude/longitude are null.
 }

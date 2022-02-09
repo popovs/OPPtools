@@ -30,3 +30,4 @@ Suggests:
     knitr,
     maps,
     mapview
+Roxygen: list(markdown = TRUE)
