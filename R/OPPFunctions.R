@@ -551,8 +551,7 @@ opp_get_trips <- function(data,
 #'                                 theta = c(8,2)
 #')
 #'@export
-#'
-#'
+
 ctcrw_interpolation <- function(data,
                                 site,
                                 type = "Complete",
@@ -612,6 +611,7 @@ ctcrw_interpolation <- function(data,
   pred_longlat <- sp::spTransform(pred, sp::CRS('+proj=longlat'))
   pred$Longitude <- sp::coordinates(pred_longlat)[,1]
   pred$Latitude <- sp::coordinates(pred_longlat)[,2]
+  pred$Type <- type
 
   # re-calculate distance from colony for all interpolated locations
   if (nrow(site_loc) == 1)  pred$ColDist <- sp::spDistsN1(pred, site_loc)
@@ -660,4 +660,79 @@ ctcrw_interpolation <- function(data,
   }
 
   return(out)
+}
+
+
+# -----
+
+#' Calculate trip summaries
+#'
+#' @description `sum_trips` quickly calculates summary information
+#' such as maximum distance from the colony, trip start time,
+#' trip end time, and trip duration for each individual trip ID.
+#' The function accepts outputs from either `opp_get_trips` or
+#' `ctcrw_interpolation`. If interpolated data are provided, the
+#' output provides a summary of interpolated trips.
+#'
+#'
+#'@param data Trip data ouptut from opp_get_trips() or ctcrw_interpolation().
+#'
+#'@examples
+#'my_data <- opp_download_data(study = c(1247096889),login = NULL, start_month = NULL,
+#'                             end_month = NULL,season = NULL)
+#'
+#'my_track2kba <- opp2KBA(data = my_data)
+#'
+#'my_trips <- opp_get_trips(data = my_track2kba, innerBuff  = 5, returnBuff = 20,
+#'                          duration  = 2, gapLimit = 100, missingLocs = 0.2,
+#'                          showPlots = TRUE)
+#'
+#'my_interp <- ctcrw_interpolation(data = my_trips,
+#'                                 site = my_track2kba$site,
+#'                                 type = c('Complete','Incomplete'),
+#'                                 timestep = '10 min',
+#'                                 showPlots = T,
+#'                                 theta = c(8,2)
+#')
+#'
+#'sum_trips(my_trips)
+#'sum_trips(my_interp)
+#'
+#'@export
+
+sum_trips <- function(data) {
+  # This is an improved version of track2KBA::tripSummary using data.table
+  # TO-DO: add support to calc total_distance & direction for outputs
+
+  # First check if output is from opp_get_trips vs. ctcrw_interpolation
+  if (class(data) == "SpatialPointsDataFrame") {
+
+    # If it's the output from opp_get_trips, just run the vanilla track2KBA tripSummary function
+    tripSum <- data.table::setDT(data@data)[, .(n_locs = .N, departure = min(DateTime), return = max(DateTime), max_dist_km = (max(ColDist))/1000, complete = unique(Type)), by = list(ID, tripID)]
+    tripSum$duration <- as.numeric(tripSum$return - tripSum$departure)
+    tripSum <- tripSum %>% dplyr::select(ID, tripID, n_locs, departure, return, duration, max_dist_km, complete)
+
+  } else if (class(data) == "list") {
+    # If it's the output from ctcrw_interpolation, calc trip summaries internally
+    raw_trips <- data$data@data
+    interp_trips <- data$interp@data
+
+    # For now since interp does not return trip type, assuming
+    # it's all "complete trip"
+    tripSum <- data.table::setDT(interp_trips)[, .(interp_n_locs = .N, departure = min(DateTime), return = max(DateTime), max_dist_km = (max(ColDist))/1000, complete = "Complete"), by = list(ID, tripID)]
+    tripSum$duration <- as.numeric(tripSum$return - tripSum$departure)
+
+    raw_n_locs <- data.table::setDT(raw_trips)[tripID != -1, .(raw_n_locs = .N), by = list(ID, tripID)]
+    raw_n_locs$ID <- as.character(raw_n_locs$ID)
+
+    tripSum <- merge(tripSum, raw_n_locs, by = c("ID", "tripID"))
+
+    tripSum <- tripSum %>% dplyr::select(ID, tripID, raw_n_locs, interp_n_locs, departure, return, duration, max_dist_km, complete)
+    message("Trip summary provided for interpolated data.")
+
+  } else {
+    message("Error: Cannot calculate trip summary. Input data must be the output from either opp_get_trips or ctcrw_interpolation.")
+  }
+
+  return(tripSum)
 }
