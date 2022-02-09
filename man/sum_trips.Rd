@@ -10,11 +10,11 @@ sum_trips(data)
 \item{data}{Trip data ouptut from opp_get_trips() or ctcrw_interpolation().}
 }
 \description{
-`sum_trips` quickly calculates summary information
+\code{sum_trips} quickly calculates summary information
 such as maximum distance from the colony, trip start time,
 trip end time, and trip duration for each individual trip ID.
-The function accepts outputs from either `opp_get_trips` or
-`ctcrw_interpolation`. If interpolated data are provided, the
+The function accepts outputs from either \code{opp_get_trips} or
+\code{ctcrw_interpolation}. If interpolated data are provided, the
 output provides a summary of interpolated trips.
 }
 \examples{

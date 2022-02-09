@@ -707,19 +707,19 @@ sum_trips <- function(data) {
   # First check if output is from opp_get_trips vs. ctcrw_interpolation
   if (class(data) == "SpatialPointsDataFrame") {
 
-    # If it's the output from opp_get_trips, just run the vanilla track2KBA tripSummary function
+    # If it's the output from opp_get_trips
     tripSum <- data.table::setDT(data@data)[, .(n_locs = .N, departure = min(DateTime), return = max(DateTime), max_dist_km = (max(ColDist))/1000, complete = unique(Type)), by = list(ID, tripID)]
     tripSum$duration <- as.numeric(tripSum$return - tripSum$departure)
     tripSum <- tripSum %>% dplyr::select(ID, tripID, n_locs, departure, return, duration, max_dist_km, complete)
 
   } else if (class(data) == "list") {
-    # If it's the output from ctcrw_interpolation, calc trip summaries internally
+    # If it's the output from ctcrw_interpolation
     raw_trips <- data$data@data
     interp_trips <- data$interp@data
 
     # For now since interp does not return trip type, assuming
     # it's all "complete trip"
-    tripSum <- data.table::setDT(interp_trips)[, .(interp_n_locs = .N, departure = min(DateTime), return = max(DateTime), max_dist_km = (max(ColDist))/1000, complete = "Complete"), by = list(ID, tripID)]
+    tripSum <- data.table::setDT(interp_trips)[, .(interp_n_locs = .N, departure = min(DateTime), return = max(DateTime), max_dist_km = (max(ColDist))/1000, complete = unique(Type)), by = list(ID, tripID)]
     tripSum$duration <- as.numeric(tripSum$return - tripSum$departure)
 
     raw_n_locs <- data.table::setDT(raw_trips)[tripID != -1, .(raw_n_locs = .N), by = list(ID, tripID)]
@@ -750,6 +750,8 @@ sum_trips <- function(data) {
 #' @param lat Vector of latitudes
 #' @param lonlat If TRUE, coordinates should be in degrees; else they should represent planar ('Euclidean') space (e.g. units of meters)
 #' @returns A vector of distances in meters.
+#'
+#' @export
 
 getDist <- function(lon, lat, lonlat = TRUE) {
 
@@ -765,5 +767,4 @@ getDist <- function(lon, lat, lonlat = TRUE) {
                                    lonlat = T))
   }
   out
-  #' @export getDist
 }
