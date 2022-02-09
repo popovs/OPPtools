@@ -2,16 +2,17 @@
 % Please edit documentation in R/OPPFunctions.R
 \name{ctcrw_interpolation}
 \alias{ctcrw_interpolation}
-\title{Interpolate GPS locations at a set time interval using a continuous time correlated
-random walk (ctcrw) model}
+\title{Interpolate GPS locations at a set time interval}
 \usage{
 ctcrw_interpolation(
   data,
   site,
   type = "Complete",
-  timestep = "20 min",
-  showPlots = T,
-  theta = c(8, 2)
+  timestep,
+  interpolateGaps = TRUE,
+  showPlots = TRUE,
+  theta = c(8, 2),
+  quiet = FALSE
 )
 }
 \arguments{
@@ -23,11 +24,17 @@ format as site information returned by OPPtools::opp2KBA or track2KBA::move2KBA.
 \item{type}{List indicating the types of trips to include in interpolation.
 Possible values are: 'Complete', 'Incomplete', 'Gappy', and 'Non-trip'. Default is 'Complete'.}
 
-\item{timestep}{string indicating time step for track interpolation, eg. '10 min', '1 hour', '1 day'}
+\item{timestep}{String indicating time step for track interpolation, eg. '10 min', '1 hour', '1 day'}
+
+\item{interpolateGaps}{Logical. Should interpolation include locations identified
+as gaps by OPPtools:opp_get_trips. Default is TRUE.}
 
 \item{showPlots}{TRUE/FALSE should plots of interpolated tracks against original data be produced}
 
-\item{theta}{starting values for ctcrw parameter optimization, see ?crawl::crwMLE for details}
+\item{theta}{Starting values for ctcrw parameter optimization, see ?crawl::crwMLE for details}
+
+\item{quiet}{Logical. Suppresses print messages from crawl::crwMLE, which is useful when running the
+function in an Rmd document. Default is FALSE.}
 }
 \description{
 This function is a wrapper for momentuHMM::crawlWrap(), which
@@ -47,13 +54,15 @@ my_data <- opp_download_data(study = c(1247096889),login = NULL, start_month = N
 my_track2kba <- opp2KBA(data = my_data)
 
 my_trips <- opp_get_trips(data = my_track2kba, innerBuff  = 5, returnBuff = 20,
-                         duration  = 2, gapLimit = 100, missingLocs = 0.2,
+                         duration  = 2, gapLimit = 100, gapTime = 2, gapDist = 5,
                          showPlots = TRUE)
+
 
 my_interp <- ctcrw_interpolation(data = my_trips,
                                 site = my_track2kba$site,
                                 type = c('Complete','Incomplete'),
                                 timestep = '10 min',
+                                interpolateGaps = TRUE,
                                 showPlots = T,
                                 theta = c(8,2)
 )
