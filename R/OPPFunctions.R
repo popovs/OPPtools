@@ -736,3 +736,34 @@ sum_trips <- function(data) {
 
   return(tripSum)
 }
+
+# ----
+
+#' Calculate the distance between consecutive points
+#'
+#' @description Wrapper for raster::pointDistance that only requires input of a
+#' vector of longitudes and a vector of latitudes. Default calculation assumes
+#' data are in decimal degrees. If not, then set lonlat = FALSE. Compatible with
+#' tidyverse.
+#'
+#' @param lon Vector of longitudes
+#' @param lat Vector of latitudes
+#' @param lonlat If TRUE, coordinates should be in degrees; else they should represent planar ('Euclidean') space (e.g. units of meters)
+#' @returns A vector of distances in meters.
+
+getDist <- function(lon, lat, lonlat = TRUE) {
+
+  dd <- data.frame(lon = lon, lat = lat)
+
+  if (nrow(dd) < 2) {
+    out <- rep(NA, nrow(dd))
+  } else {
+
+    out <- c(NA,
+             raster::pointDistance(dd[2:nrow(dd),c("lon","lat")],
+                                   dd[1:(nrow(dd)-1),c("lon","lat")],
+                                   lonlat = T))
+  }
+  out
+  #' @export getDist
+}
