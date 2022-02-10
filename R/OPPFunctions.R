@@ -499,11 +499,9 @@ opp_get_trips <- function(data,
         )
 
       print(p)
-      message('Press [enter] to see next plot')
-      readline('')
-
-
+      #readline('')
     }
+    message('Use back arrow in plot pane to browse all plots')
   }
   return(trips)
 }
@@ -553,11 +551,13 @@ opp_get_trips <- function(data,
 #'@export
 
 ctcrw_interpolation <- function(data,
-                                site,
-                                type = "Complete",
-                                timestep = '20 min',
-                                showPlots = T,
-                                theta = c(8,2)
+  site,
+  type,
+  timestep,
+  interpolateGaps = TRUE,
+  showPlots = TRUE,
+  theta = c(8, 2),
+  quiet = FALSE
 ) {
 
   # Generate custom laea projection centered on colony
@@ -653,10 +653,10 @@ ctcrw_interpolation <- function(data,
         )
 
       print(p)
-      message('Press [enter] to see next plot')
-      readline('')
-
+      #readline('')
     }
+    message('Use back arrow in plot pane to browse all plots')
+
   }
 
   return(out)
