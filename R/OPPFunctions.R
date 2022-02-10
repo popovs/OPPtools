@@ -495,13 +495,16 @@ opp_get_trips <- function(data,
         ggplot2::scale_color_viridis_d() +
         ggplot2::theme_light() +
         ggplot2::theme(
-          text = ggplot2::element_text(size = 10)
+          text = ggplot2::element_text(size = 9),
+          axis.text.x = ggplot2::element_text(size = 7)
+
         )
 
       print(p)
       #readline('')
     }
     message('Use back arrow in plot pane to browse all plots')
+
   }
   return(trips)
 }
