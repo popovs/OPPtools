@@ -589,7 +589,6 @@ ctcrw_interpolation <- function(data,
                                 theta = c(8, 2),
                                 quiet = FALSE
 ) {
-
   # Generate custom laea projection centered on colony
   myCRS <- paste0(
     '+proj=laea',
@@ -617,19 +616,34 @@ ctcrw_interpolation <- function(data,
   interp_loc$time <- interp_loc$DateTime
   interp_loc$Bird <- interp_loc$ID
   interp_loc$ID <- interp_loc$tripID
+  if (interpolateGaps == FALSE)   {
+    interp_loc$ID <- paste0(interp_loc$tripID,'.',interp_loc$TripSection)
+    tt <- table(interp_loc$ID)
+    interp_loc <- subset(interp_loc, !(interp_loc$ID %in% names(tt)[tt < 3]))
+  }
   interp_loc <- interp_loc[,c('Bird', 'ID', 'time', 'ColDist')]
 
-  crwOut <- momentuHMM::crawlWrap(obsData = interp_loc,
-                                  timeStep = timestep,
-                                  theta = theta,
-                                  fixPar = c(NA,NA),
-                                  method = 'Nelder-Mead')
+  if (quiet == TRUE) {
+    invisible(capture.output(crwOut <- momentuHMM::crawlWrap(obsData = interp_loc,
+                                                             timeStep = timestep,
+                                                             theta = theta,
+                                                             fixPar = c(NA,NA),
+                                                             method = 'Nelder-Mead')))
+  } else {
+    crwOut <- momentuHMM::crawlWrap(obsData = interp_loc,
+                                    timeStep = timestep,
+                                    theta = theta,
+                                    fixPar = c(NA,NA),
+                                    method = 'Nelder-Mead')
+  }
 
   pred <- data.frame(crwOut$crwPredict) %>%
     dplyr::filter(locType == 'p') %>%
     dplyr::select(Bird, ID, time, ColDist, mu.x, mu.y, se.mu.x, se.mu.y) %>%
     tidyr::separate('ID', c('Bird', NA), sep = '_', remove = FALSE) %>%
     dplyr::rename(tripID = ID, ID = Bird, DateTime = time)
+
+  if (interpolateGaps == F) pred <- tidyr::separate(pred, 'tripID', c('tripID', NA), sep = '[.]', remove = FALSE)
 
   pred <- sp::SpatialPointsDataFrame(coords = pred[,c('mu.x', 'mu.y')],
                                      data = pred[,c('ID', 'tripID', 'DateTime', 'ColDist',
@@ -641,7 +655,6 @@ ctcrw_interpolation <- function(data,
   pred_longlat <- sp::spTransform(pred, sp::CRS('+proj=longlat'))
   pred$Longitude <- sp::coordinates(pred_longlat)[,1]
   pred$Latitude <- sp::coordinates(pred_longlat)[,2]
-  pred$Type <- type
 
   # re-calculate distance from colony for all interpolated locations
   if (nrow(site_loc) == 1)  pred$ColDist <- sp::spDistsN1(pred, site_loc)
@@ -679,7 +692,8 @@ ctcrw_interpolation <- function(data,
         ggplot2::scale_x_datetime(date_labels = '%b-%d') +
         ggplot2::theme_light() +
         ggplot2::theme(
-          text = ggplot2::element_text(size = 8)
+          text = ggplot2::element_text(size = 9),
+          axis.text.x = ggplot2::element_text(size = 7)
         )
 
       print(p)
@@ -688,7 +702,6 @@ ctcrw_interpolation <- function(data,
     message('Use back arrow in plot pane to browse all plots')
 
   }
-
   return(out)
 }
 
