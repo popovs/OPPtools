@@ -526,12 +526,13 @@ opp_get_trips <- function(data,
         ggplot2::theme(
           text = ggplot2::element_text(size = 9),
           axis.text.x = ggplot2::element_text(size = 7)
-          )
+        )
 
       print(p)
-      message('Press [enter] to see next plot')
-      readline('')
+      #readline('')
     }
+    message('Use back arrow in plot pane to browse all plots')
+
   }
   return(trips)
 }
@@ -705,10 +706,10 @@ ctcrw_interpolation <- function(data,
         )
 
       print(p)
-      message('Press [enter] to see next plot')
-      readline('')
-
+      #readline('')
     }
+    message('Use back arrow in plot pane to browse all plots')
+
   }
 
   return(out)
