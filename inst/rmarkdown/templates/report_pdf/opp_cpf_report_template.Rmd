@@ -1,0 +1,128 @@
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(OPPtools)
+library(dplyr)
+library(flextable)
+
+mb_login <- move::movebankLogin('allison.patterson', 'djYgXmbct87mYL4')
+
+
+
+title <- dat$report_title
+report_date <- as.character(Sys.Date())
+project <- dat$mb_project_num
+spp <- dat$spp
+minDist <- dat$minDist
+maxDist <- dat$maxDist
+minDur <- dat$minDur
+gapTime <- dat$gapTime
+gapDist <-  dat$gapDist
+interpolateGaps <- dat$interpolateGaps
+timestep <- dat$timestep
+
+study_data <- move::getMovebankStudy(study = project, login = mb_login)
+dep_data <- move::getMovebankReferenceTable(study = project, login = mb_login)
+
+my_data <- opp_download_data(study = c(project),
+                             login = mb_login,
+                             start_month = NULL,
+                             end_month = NULL,
+                             season = NULL
+)
+
+```
+---
+title: `r title`
+author: "Allison Patterson and Sarah Popov"
+date: `r report_date`
+output: pdf_document
+---
+
+### Project summary
+
+`r spp`s (*`r study_data$taxon_ids`*) were tracked at the breeding colony on 
+Triangle Island, BC (`r study_data$main_location_lat` N,	`r abs(study_data$main_location_lat)` W). 
+There have been `r study_data$number_of_deployments` GPS deployments on `r study_data$number_of_individuals` unique individuals between `r as.Date(study_data$timestamp_first_deployed_location)` and `r as.Date(study_data$timestamp_last_deployed_location)`.
+
+
+Data are stored on Movebank in project `r as.character(project)`, with the study name:
+`r study_data$name`.
+
+
+```{r get_data, echo=FALSE, message=FALSE, warning=FALSE}
+
+my_data <- opp_download_data(study = c(project),
+                             login = mb_login,
+                             start_month = NULL,
+                             end_month = NULL,
+                             season = NULL
+)
+
+my_track2kba <- opp2KBA(data = my_data)
+
+```
+
+#### Defining foraging trips
+
+Foraging trips were identified as any continuous track at least `r minDist` km from the colony, which lasted for a minimum of `r minDur` hours. Trips were considered incomplete if the trips started or ended more than `r maxDist` km from the colony. Trips were considered 'gappy' if there were gaps between successive locations greater than `r gapTime` hours, and the bird travelled farther than `r gapDist` km during that time. 
+
+The figures below show trips from each deployment, as defined by the criteria described above.
+
+```{r trips, echo=FALSE, message=FALSE, warning=FALSE}
+my_trips <- opp_get_trips(data = my_track2kba, 
+                          innerBuff = minDist, 
+                          returnBuff = maxDist,
+                          duration  = minDur, 
+                          gapLimit = 100, 
+                          #missingLocs = gapPer,
+                          gapTime = 2,
+                          gapDist = 5,
+                          showPlots = T, 
+                          plotsPerPage = 4)
+```
+
+#### Trip summary
+
+`r spp` foraging trips by trip type.
+
+```{r summary, echo=FALSE, message=FALSE, warning=FALSE}
+
+ft <- my_trips@data %>%
+  filter(Type != 'Non-trip') %>% 
+  group_by(ID, tripID, Type) %>% 
+  mutate(
+    duration = as.numeric(difftime(max(DateTime), min(DateTime), units = 'hours'))
+  ) %>% 
+  group_by(Type) %>%
+  summarize(
+    `Number of trips` = length(unique(tripID)),
+    `Number of locations` = n(),
+    `Median duration (hrs)` = round(median(duration), 1),
+    `Median trip distance (km)` = round(median(max(ColDist))/1000, 1)
+    ) %>% flextable::flextable(cwidth =1.25) 
+
+ft
+  
+```
+
+
+#### Track interpolation
+
+Locations within complete, incomplete, and gappy trips were interpolated at a `r timestep` interval using a continuous time correlated random walk model. Figures below show the raw GPS locations (violet) overlain with the interpolated locations (green). Gaps in tracks during a trip, as defined above, were `r ifelse(interpolateGaps == F, 'not','')` interpolated.
+
+
+```{r interpolation, echo=FALSE, message=FALSE, warning=FALSE}
+
+my_interp <- ctcrw_interpolation(data = my_trips, 
+                                site = my_track2kba$site,
+                                type = c('Complete','Incomplete','Gappy'),
+                                timestep = '10 min',
+                                interpolateGaps = F,
+                                showPlots = T,
+                                theta = c(8,2),
+                                quiet = TRUE
+)
+
+```
