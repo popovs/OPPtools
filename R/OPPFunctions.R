@@ -529,9 +529,9 @@ opp_get_trips <- function(data,
           )
 
       print(p)
-      message('Press [enter] to see next plot')
-      readline('')
+      #readline('')
     }
+    message('Use back arrow in plot pane to browse all plots')
   }
   return(trips)
 }
@@ -705,10 +705,10 @@ ctcrw_interpolation <- function(data,
         )
 
       print(p)
-      message('Press [enter] to see next plot')
-      readline('')
-
+      #readline('')
     }
+    message('Use back arrow in plot pane to browse all plots')
+
   }
 
   return(out)
