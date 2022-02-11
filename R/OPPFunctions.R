@@ -762,10 +762,10 @@ sum_trips <- function(data) {
 
     # For now since interp does not return trip type, assuming
     # it's all "complete trip"
-    tripSum <- data.table::setDT(interp_trips)[, .(interp_n_locs = .N, departure = min(DateTime), return = max(DateTime), max_dist_km = (max(ColDist))/1000, complete = unique(Type)), by = list(ID, tripID)]
+    tripSum <- data.table::setDT(interp_trips)[, .(interp_n_locs = .N, departure = min(DateTime), return = max(DateTime), max_dist_km = (max(ColDist))/1000), by = list(ID, tripID)]
     tripSum$duration <- as.numeric(tripSum$return - tripSum$departure)
 
-    raw_n_locs <- data.table::setDT(raw_trips)[tripID != -1, .(raw_n_locs = .N), by = list(ID, tripID)]
+    raw_n_locs <- data.table::setDT(raw_trips)[tripID != -1, .(raw_n_locs = .N, complete = unique(Type)), by = list(ID, tripID)]
     raw_n_locs$ID <- as.character(raw_n_locs$ID)
 
     tripSum <- merge(tripSum, raw_n_locs, by = c("ID", "tripID"))
