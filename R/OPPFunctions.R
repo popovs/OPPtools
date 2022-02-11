@@ -875,6 +875,64 @@ opp_kernel <- function(data,
 
 # -----
 
+#' Create a base grid for bbmm kernel calculations
+#'
+#' This helper function takes the output from either opp_get_trips
+#' or ctcrw_interpolation and produces a base grid from the trips.
+#' Grid resolution is provided in meters. If ctcrw_interpolation
+#' output is provided, by default the extents are calculated from
+#' the raw (non-interpolated) data.
+#'
+#' @param data Output from either opp_get_trips or ctcrw_interpolation.
+#' @param m Numeric. Resolution in meters of grid cells.
+#' @param interpolated Logical (T/F). If output from ctcrw_interpolation is provided, should the raw or interpolated data be used for calculating the grid extent? This parameter is ignored if opp_get_trips data is provided.
+#'
+#' @export
+
+createGrid <- function(data,
+                       m = 1000,
+                       interpolated = FALSE){
+
+  # Check data inputs
+  if (interpolated == TRUE) {
+    # If interpolated is TRUE, pull out interp df from
+    # ctcrw_interpolation output
+    kd_data <- data$interp
+  } else if (interpolated == FALSE & (class(data) == "list")) {
+    # If interpolated is FALSE, but the output provided
+    # is still a ctcwr_interpolation output (i.e. a "list")
+    kd_data <- data$data
+  } else {
+    # Otherwise assume the output is from opp_get_trips,
+    # i.e. a single SpatialPointsDataFrame
+    kd_data <- data
+  }
+
+  # Data health check
+  if (sp::is.projected(kd_data) == FALSE) {
+    stop("Data must be the output from either opp_get_trips or ctcrw_interpolation.")
+  }
+
+  bounds <- sf::st_as_sf(kd_data) %>%
+    #st_transform(crs = colCRS) %>%
+    sf::st_bbox()
+
+  x <- seq(bounds[["xmin"]] - 100000,
+           bounds[["xmax"]] + 100000,
+           by = m)
+  y <- seq(bounds[["ymin"]] - 100000,
+           bounds[["ymax"]] + 100000,
+           by = m)
+  xy <- expand.grid(x=x,y=y)
+  sp::coordinates(xy) <- ~x+y # bit of a mess mixing sp & sf, not ideal
+  sp::proj4string(xy) <- kd_data@proj4string
+  sp::gridded(xy) <- TRUE # make into a spatialPixels object
+
+  return(xy)
+}
+
+# -----
+
 #' Calculate the distance between consecutive points
 #'
 #' @description Wrapper for raster::pointDistance that only requires input of a
