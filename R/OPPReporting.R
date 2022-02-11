@@ -3,8 +3,8 @@
 #' @description This function passes a table of parameters to an RMarkdown template to generate summary
 #' reports on tracking data analysis.
 #'
-#' @param analysis_table Data frame that proivdes all values needed for the RMarkdown template, see details.
-#' Defaults to the cpr_report_params data object that is contained within OPPTools.
+#' @param analysis_table Data frame that provides all values needed for the RMarkdown template, see details.
+#' Defaults to the cpf_report_params data object that is contained within OPPTools.
 #' @param login Stored Movebank login credentials if provided, otherwise function
 #'will prompt users to enter credentials.
 #' @param output_dir Name of of the directory where reports should be saved.
@@ -37,4 +37,3 @@ opp_reports_cpf <- function(analysis_table = cpf_report_params,login = NULL, out
   }
 }
 
-opp_reports_cpf()
