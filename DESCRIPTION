@@ -19,7 +19,8 @@ Imports:
     sp,
     rgdal,
     momentuHMM,
-    ggplot2
+    ggplot2,
+    data.table
 License: CC0
 Encoding: UTF-8
 LazyData: true
