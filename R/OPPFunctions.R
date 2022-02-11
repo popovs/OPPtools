@@ -568,16 +568,20 @@ opp_get_trips <- function(data,
 #'my_track2kba <- opp2KBA(data = my_data)
 #'
 #'my_trips <- opp_get_trips(data = my_track2kba, innerBuff  = 5, returnBuff = 20,
-#'                          duration  = 2, gapLimit = 100, missingLocs = 0.2,
+#'                          duration  = 2, gapLimit = 100, gapTime = 2, gapDist = 5,
 #'                          showPlots = TRUE)
 #'
+#'
+#'
 #'my_interp <- ctcrw_interpolation(data = my_trips,
-#'                                 site = my_track2kba$site,
-#'                                 type = c('Complete','Incomplete'),
-#'                                 timestep = '10 min',
-#'                                 showPlots = T,
-#'                                 theta = c(8,2)
+#'                    site = my_track2kba$site,
+#'                    type = c('Complete','Incomplete','Gappy'),
+#'                    timestep = '10 min',
+#'                    interpolateGaps = T,
+#'                    showPlots = T,
+#'                    theta = c(8,2)
 #')
+#'
 #'@export
 
 ctcrw_interpolation <- function(data,
