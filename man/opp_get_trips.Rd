@@ -9,8 +9,8 @@ opp_get_trips(
   innerBuff,
   returnBuff,
   duration,
-  gapTime,
-  gapDist,
+  gapTime = 1,
+  gapDist = 5,
   gapLimit = 100,
   showPlots = TRUE,
   plotsPerPage = 4

@@ -458,8 +458,8 @@ opp_get_trips <- function(data,
                           returnBuff, # (km) outer buffer to capture incomplete return trips
                           duration, # (hrs) minimum trip duration
                           # missingLocs = 0.2, # Percentage of trip duration that a gap in consecutive locations should not exceed
-                          gapTime,
-                          gapDist,
+                          gapTime = 1,
+                          gapDist = 5,
                           gapLimit = 100,
                           showPlots = TRUE,
                           plotsPerPage = 4
@@ -839,21 +839,23 @@ opp_kernel <- function(data,
   # For now, only support for href
   # Code taken from track2KBA::findScales
   if (smoother == "href") {
-    IDs <- unique(kd_data$ID)
-    href_list <- vector(mode = "list", length(IDs))
-    href_list <- lapply(move::split(kd_data, kd_data$ID), function(x) {
-      xy <- sp::coordinates(x)
-      varx <- stats::var(xy[, 1])
-      vary <- stats::var(xy[, 2])
-      sdxy <- sqrt(0.5 * (varx + vary))
-      n <- nrow(xy)
-      ex <- (-1/6)
-      href <- sdxy * (n^ex)
-      return(href)
-    })
-    hrefs <- do.call(rbind, href_list)
-    href <- median(na.omit(hrefs))
-    href <- round(href/1000, 2)
+    # IDs <- unique(kd_data$ID)
+    # href_list <- vector(mode = "list", length(IDs))
+    # href_list <- lapply(move::split(kd_data, kd_data$ID), function(x) {
+    #   xy <- sp::coordinates(x)
+    #   varx <- stats::var(xy[, 1])
+    #   vary <- stats::var(xy[, 2])
+    #   sdxy <- sqrt(0.5 * (varx + vary))
+    #   n <- nrow(xy)
+    #   ex <- (-1/6)
+    #   href <- sdxy * (n^ex)
+    #   return(href)
+    # })
+    # hrefs <- do.call(rbind, href_list)
+    # href <- median(na.omit(hrefs))
+    # href <- round(href/1000, 2)
+
+    href <- opp_href(data = kd_data)
   }
 
   # Calculate kernel
@@ -871,6 +873,41 @@ opp_kernel <- function(data,
     message("Kernels calculated for raw tracks.")
   }
 
+}
+
+# -----
+
+#' Calculate median href for kernel density estimates
+#'
+#' @param data SpatialPointsDataFrame containing projected tracking data,
+#' with an ID field indicating unique trips
+#'
+#'
+#' @export
+
+opp_href <- function(data) {
+
+  # Data health check
+  if (sp::is.projected(data) == FALSE) {
+    stop("Trips data must be in an equal-area projected coordinate system.")
+  }
+
+  IDs <- unique(data$ID)
+  href_list <- vector(mode = "list", length(IDs))
+  href_list <- lapply(move::split(data, data$ID), function(x) {
+    xy <- sp::coordinates(x)
+    varx <- stats::var(xy[, 1])
+    vary <- stats::var(xy[, 2])
+    sdxy <- sqrt(0.5 * (varx + vary))
+    n <- nrow(xy)
+    ex <- (-1/6)
+    href <- sdxy * (n^ex)
+    return(href)
+  })
+  hrefs <- do.call(rbind, href_list)
+  href <- median(na.omit(hrefs))
+  href <- round(href/1000, 2)
+  return(href)
 }
 
 # -----
