@@ -737,7 +737,94 @@ sum_trips <- function(data) {
   return(tripSum)
 }
 
-# ----
+# -----
+
+#' Calculate traditional kernel density estimates
+#'
+#' @description This function is a wrapper of track2KBA::estSpaceUse
+#' (which itself is a wrapper of adehabitatHR::kernelUD) to
+#' and calculates a traditional kernel density estimates
+#' on a given set of trips. The function accepts outputs
+#' from either opp_get_trips or ctcrw_interpolation.
+#' If provided an output from ctcrw_interpolation, the function
+#' will calculate kernels using the interpolated tracks by default.
+#' This behavior can be changed by setting `interpolated = FALSE`.
+#' The default kernel smoother is calculated using the href method.
+#' The default UD level is 50%.
+#'
+#' @param data Tracks to calculate kernels on. Accepts output from either opp_get_trips or ctcrw_interpolation.
+#' @param interpolated Logical (T/F). If provided an output from ctcrw_interpolation, should the interpolated tracks
+#' be used for kernel calculation? Default TRUE. This parameter is ignored if the function is provided data from opp_get_tracks.
+#' @param smoother Smoother value used in kernel calculations. By default uses the calculated href value of the tracks.
+#' @param res Grid resolution in sq km to use for kernel calculations.
+#'
+#' @export
+
+opp_kernel <- function(data,
+                       interpolated = TRUE,
+                       smoother = "href",
+                       res = NULL,
+                       ...) {
+
+  # Check data inputs
+  if (interpolated == TRUE) {
+    # If interpolated is TRUE, pull out interp df from
+    # ctcrw_interpolation output
+    kd_data <- data$interp
+  } else if (interpolated == FALSE & (class(data) == "list")) {
+    # If interpolated is FALSE, but the output provided
+    # is still a ctcwr_interpolation output (i.e. a "list")
+    kd_data <- data$data
+  } else {
+    # Otherwise assume the output is from opp_get_trips,
+    # i.e. a single SpatialPointsDataFrame
+    kd_data <- data
+  }
+
+  # Data health check
+  if (sp::is.projected(kd_data) == FALSE) {
+    stop("Trips data must be in an equal-area projected coordinate system.")
+  }
+
+  # Calculate smoother
+  # For now, only support for href
+  # Code taken from track2KBA::findScales
+  if (smoother == "href") {
+    IDs <- unique(kd_data$ID)
+    href_list <- vector(mode = "list", length(IDs))
+    href_list <- lapply(move::split(kd_data, kd_data$ID), function(x) {
+      xy <- sp::coordinates(x)
+      varx <- stats::var(xy[, 1])
+      vary <- stats::var(xy[, 2])
+      sdxy <- sqrt(0.5 * (varx + vary))
+      n <- nrow(xy)
+      ex <- (-1/6)
+      href <- sdxy * (n^ex)
+      return(href)
+    })
+    hrefs <- do.call(rbind, href_list)
+    href <- median(na.omit(hrefs))
+    href <- round(href/1000, 2)
+  }
+
+  # Calculate kernel
+  # This part of the function simply makes a call to
+  # track2KBA::estSpaceUse
+  out <- track2KBA::estSpaceUse(tracks = kd_data,
+                                scale = href,
+                                levelUD = ud_level,
+                                res = res)
+
+  return(out)
+  if (interpolated == TRUE) {
+    message("Kernels calculated for interpolated tracks.")
+  } else {
+    message("Kernels calculated for raw tracks.")
+  }
+
+}
+
+# -----
 
 #' Calculate the distance between consecutive points
 #'
