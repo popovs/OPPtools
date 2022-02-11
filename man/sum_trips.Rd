@@ -24,15 +24,16 @@ my_data <- opp_download_data(study = c(1247096889),login = NULL, start_month = N
 my_track2kba <- opp2KBA(data = my_data)
 
 my_trips <- opp_get_trips(data = my_track2kba, innerBuff  = 5, returnBuff = 20,
-                         duration  = 2, gapLimit = 100, missingLocs = 0.2,
+                         duration  = 2, gapLimit = 100, gapTime = 2, gapDist = 2,
                          showPlots = TRUE)
 
 my_interp <- ctcrw_interpolation(data = my_trips,
                                 site = my_track2kba$site,
-                                type = c('Complete','Incomplete'),
+                                type = c('Complete','Gappy'),
                                 timestep = '10 min',
                                 showPlots = T,
-                                theta = c(8,2)
+                                theta = c(8,2),
+                                quiet = TRUE
 )
 
 sum_trips(my_trips)
