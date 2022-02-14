@@ -54,7 +54,7 @@ my_trips <- opp_get_trips(data = my_track2kba, innerBuff  = 5, returnBuff = 20,
 
 
 
-ctcrw_interpolation(data = my_trips,
+my_interp <- ctcrw_interpolation(data = my_trips,
                    site = my_track2kba$site,
                    type = c('Complete','Incomplete','Gappy'),
                    timestep = '10 min',
