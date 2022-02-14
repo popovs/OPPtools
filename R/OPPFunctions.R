@@ -1049,6 +1049,47 @@ opp_bbmm <- function(data, # Output from either opp_get_trips or ctcrw_interpola
 
 # -----
 
+#' Stack kernel UD objects into a population level kernel
+#'
+#' @description This function accepts a list of estUDm objects
+#' as output by either opp_kernel or opp_bbmm, then rasterizes
+#' and stacks them to produce a population-level kernel. An optional
+#' list of weights can be supplied to emphasize certain tracks over others.
+#'
+#' @param data List of estUDm objects. Output from either opp_kernel or opp_bbmm.
+#' @param weights Optional list of weights.
+#'
+#' @export
+
+ud_stack <- function(data, weights) {
+
+  # Data health check
+  if (class(data) != "estUDm") {
+    stop("Kernel data must be class estUDm (outputs from either opp_kernel or opp_bbmm).")
+  }
+
+  # Prepare raster stack
+  raster_stack <- lapply(data, function(x) (raster::raster(as(x, "SpatialPixelsDataFrame"))))
+  raster_stack <- raster::stack(raster_stack)
+
+  # If weights provided, apply weights
+  if (!missing(weights)) {
+    # Data health check
+    if (length(weights) != length(data)) {
+      stop("Length of supplied weights list does not match number of kernels.")
+    }
+
+    raster_stack <- raster_stack * weights
+
+  }
+
+  pop_raster <- raster::calc(raster_stack, fun = mean)
+
+  return(pop_raster)
+}
+
+# -----
+
 #' Calculate the distance between consecutive points
 #'
 #' @description Wrapper for raster::pointDistance that only requires input of a
