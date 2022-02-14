@@ -4,7 +4,7 @@
 \alias{createGrid}
 \title{Create a base grid for kernel calculations}
 \usage{
-createGrid(data, res = 1, extendGrid = 10, interpolated = FALSE)
+createGrid(data, res = 1, extendGrid = 10, interpolated = TRUE)
 }
 \arguments{
 \item{data}{Output from either ctcrw_interpolation.}

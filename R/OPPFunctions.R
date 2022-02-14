@@ -942,11 +942,26 @@ opp_href <- function(data) {
 createGrid <- function(data,
                        res = 1,
                        extendGrid = 10,
-                       interpolated = FALSE){
+                       interpolated = TRUE){
 
   # Data health check
   if (sp::is.projected(data) == FALSE) {
     stop("Data must be the output from ctcrw_interpolation.")
+  }
+
+  # Check data inputs
+  if (interpolated == TRUE) {
+    # If interpolated is TRUE, pull out interp df from
+    # ctcrw_interpolation output
+    data <- data$interp
+  } else if (interpolated == FALSE & (class(data) == "list")) {
+    # If interpolated is FALSE, but the output provided
+    # is still a ctcwr_interpolation output (i.e. a "list")
+    data <- data$data
+  } else {
+    # Otherwise assume the output is from opp_get_trips,
+    # i.e. a single SpatialPointsDataFrame
+    data <- data
   }
 
   bounds <- sp::bbox(data)
