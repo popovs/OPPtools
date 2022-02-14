@@ -27,7 +27,7 @@ be used for kernel calculation? Default TRUE. This parameter is ignored if the f
 \description{
 This function is a wrapper of track2KBA::estSpaceUse
 (which itself is a wrapper of adehabitatHR::kernelUD) to
-and calculates a traditional kernel density estimates
+calculate a traditional kernel density estimates
 on a given set of trips. The function accepts outputs
 from either opp_get_trips or ctcrw_interpolation.
 If provided an output from ctcrw_interpolation, the function
