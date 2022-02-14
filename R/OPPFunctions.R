@@ -597,7 +597,7 @@ ctcrw_interpolation <- function(data,
   myCRS <- paste0(
     '+proj=laea',
     ' +lat_0=', mean(site$Latitude),
-    ' +lon_0=', mean(site$Latitude)
+    ' +lon_0=', mean(site$Longitude)
   )
 
   # Create SpatialPoints object for colony
@@ -811,9 +811,10 @@ sum_trips <- function(data) {
 
 opp_kernel <- function(data,
                        interpolated = TRUE,
+                       extendGrid = 20,
                        smoother = "href",
-                       res = NULL,
-                       ...) {
+                       res = 1) {
+
 
   # Check data inputs
   if (interpolated == TRUE) {
@@ -839,32 +840,41 @@ opp_kernel <- function(data,
   # For now, only support for href
   # Code taken from track2KBA::findScales
   if (smoother == "href") {
-    # IDs <- unique(kd_data$ID)
-    # href_list <- vector(mode = "list", length(IDs))
-    # href_list <- lapply(move::split(kd_data, kd_data$ID), function(x) {
-    #   xy <- sp::coordinates(x)
-    #   varx <- stats::var(xy[, 1])
-    #   vary <- stats::var(xy[, 2])
-    #   sdxy <- sqrt(0.5 * (varx + vary))
-    #   n <- nrow(xy)
-    #   ex <- (-1/6)
-    #   href <- sdxy * (n^ex)
-    #   return(href)
-    # })
-    # hrefs <- do.call(rbind, href_list)
-    # href <- median(na.omit(hrefs))
-    # href <- round(href/1000, 2)
-
     href <- opp_href(data = kd_data)
   }
 
-  # Calculate kernel
-  # This part of the function simply makes a call to
-  # track2KBA::estSpaceUse
-  out <- track2KBA::estSpaceUse(tracks = kd_data,
-                                scale = href,
-                                levelUD = ud_level,
-                                res = res)
+  my_grid <- createGrid(data = kd_data, res = res,
+                         extendGrid = extendGrid,
+                         interpolated = interpolated)
+
+
+  tracks <- kd_data
+  tracks@data <- tracks@data %>% dplyr::select(ID)
+
+  # Checking if all or any tracks have less than 5 locations. Tracks with less than 5 locations are not run
+  validIDs <- names(which(table(tracks$ID) > 5))
+  tracks <- tracks[(tracks@data$ID %in% validIDs), ]
+  tracks@data$ID <- droplevels(as.factor(tracks@data$ID))
+  out <- adehabitatHR::kernelUD(tracks ,
+                                        h = (href * 1000),
+                                        grid = my_grid,
+                                        same4all = F)
+
+  tryCatch({
+    KDE_sp <- adehabitatHR::getverticeshr(out, percent = 99,
+                                          unin = "m", unout = "km2")
+  }, error = function(e) {
+    stop(paste("The grid is too small to allow the estimation of a complete home-range.
+            Please use a larger value than", extendGrid, "km for extendGrid."), call. = FALSE)
+  })
+
+  # # Calculate kernel
+  # # This part of the function simply makes a call to
+  # # track2KBA::estSpaceUse
+  # out <- track2KBA::estSpaceUse(tracks = kd_data,
+  #                               scale = href,
+  #                               levelUD = ud_level,
+  #                               res = res)
 
   return(out)
   if (interpolated == TRUE) {
@@ -908,6 +918,51 @@ opp_href <- function(data) {
   href <- median(na.omit(hrefs))
   href <- round(href/1000, 2)
   return(href)
+
+}
+
+# -----
+
+#' Create a base grid for kernel calculations
+#'
+#' This helper function takes the output from either opp_get_trips
+#' or ctcrw_interpolation and produces a base grid from the trips.
+#' Grid resolution is provided in meters. If ctcrw_interpolation
+#' output is provided, by default the extents are calculated from
+#' the raw (non-interpolated) data.
+#'
+#' @param data Output from either ctcrw_interpolation.
+#' @param res Numeric. Resolution in km of grid cells.
+#' @param extendGrid Numeric. Distance (km) to expand grid beyond the bounding box of tracking data.
+#' @param interpolated Logical (T/F). If output from ctcrw_interpolation is provided, should the raw or interpolated data be used for calculating the grid extent? This parameter is ignored if opp_get_trips data is provided.
+#'
+#' @export
+
+createGrid <- function(data,
+                       res = 1,
+                       extendGrid = 10,
+                       interpolated = FALSE){
+
+  # Data health check
+  if (sp::is.projected(data) == FALSE) {
+    stop("Data must be the output from ctcrw_interpolation.")
+  }
+
+  bounds <- sp::bbox(data)
+
+  x <- seq(floor(bounds[1,1] - (extendGrid * 1000)),
+           ceiling(bounds[1,2] + (extendGrid * 1000)),
+           by = res * 1000)
+  y <- seq(floor(bounds[2,1] - (extendGrid * 1000)),
+           ceiling(bounds[2,2] + (extendGrid * 1000)),
+           by = res * 1000)
+  xy <- expand.grid(x=x,y=y)
+  sp::coordinates(xy) <- ~x+y # bit of a mess mixing sp & sf, not ideal
+  sp::proj4string(xy) <- data@proj4string
+  sp::gridded(xy) <- TRUE # make into a spatialPixels object
+
+  return(xy)
+
 }
 
 # -----
