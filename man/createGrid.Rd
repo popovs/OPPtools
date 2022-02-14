@@ -2,14 +2,14 @@
 % Please edit documentation in R/OPPFunctions.R
 \name{createGrid}
 \alias{createGrid}
-\title{Create a base grid for bbmm kernel calculations}
+\title{Create a base grid for kernel calculations}
 \usage{
-createGrid(data, m = 1000, interpolated = FALSE)
+createGrid(data, res = 1, extendGrid = 10000, interpolated = FALSE)
 }
 \arguments{
 \item{data}{Output from either opp_get_trips or ctcrw_interpolation.}
 
-\item{m}{Numeric. Resolution in meters of grid cells.}
+\item{res}{Numeric. Resolution in km of grid cells.}
 
 \item{interpolated}{Logical (T/F). If output from ctcrw_interpolation is provided, should the raw or interpolated data be used for calculating the grid extent? This parameter is ignored if opp_get_trips data is provided.}
 }
