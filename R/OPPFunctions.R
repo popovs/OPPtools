@@ -802,6 +802,7 @@ sum_trips <- function(data) {
 #' The default UD level is 50%.
 #'
 #' @param data Tracks to calculate kernels on. Accepts output from either opp_get_trips or ctcrw_interpolation.
+#' @param extendGrid Numeric. Distance (km) to expand grid beyond the bounding box of tracking data. Default 10km.
 #' @param interpolated Logical (T/F). If provided an output from ctcrw_interpolation, should the interpolated tracks
 #' be used for kernel calculation? Default TRUE. This parameter is ignored if the function is provided data from opp_get_tracks.
 #' @param smoother Smoother value used in kernel calculations. By default uses the calculated href value of the tracks.
@@ -811,7 +812,7 @@ sum_trips <- function(data) {
 
 opp_kernel <- function(data,
                        interpolated = TRUE,
-                       extendGrid = 20,
+                       extendGrid = 10,
                        smoother = "href",
                        res = 1) {
 
@@ -933,7 +934,7 @@ opp_href <- function(data) {
 #'
 #' @param data Output from either ctcrw_interpolation.
 #' @param res Numeric. Resolution in km of grid cells.
-#' @param extendGrid Numeric. Distance (km) to expand grid beyond the bounding box of tracking data.
+#' @param extendGrid Numeric. Distance (km) to expand grid beyond the bounding box of tracking data. Default 10km.
 #' @param interpolated Logical (T/F). If output from ctcrw_interpolation is provided, should the raw or interpolated data be used for calculating the grid extent? This parameter is ignored if opp_get_trips data is provided.
 #'
 #' @export

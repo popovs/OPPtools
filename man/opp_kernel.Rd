@@ -4,13 +4,21 @@
 \alias{opp_kernel}
 \title{Calculate traditional kernel density estimates}
 \usage{
-opp_kernel(data, interpolated = TRUE, smoother = "href", res = NULL, ...)
+opp_kernel(
+  data,
+  interpolated = TRUE,
+  extendGrid = 10,
+  smoother = "href",
+  res = 1
+)
 }
 \arguments{
 \item{data}{Tracks to calculate kernels on. Accepts output from either opp_get_trips or ctcrw_interpolation.}
 
 \item{interpolated}{Logical (T/F). If provided an output from ctcrw_interpolation, should the interpolated tracks
 be used for kernel calculation? Default TRUE. This parameter is ignored if the function is provided data from opp_get_tracks.}
+
+\item{extendGrid}{Numeric. Distance (km) to expand grid beyond the bounding box of tracking data. Default 10km.}
 
 \item{smoother}{Smoother value used in kernel calculations. By default uses the calculated href value of the tracks.}
 
