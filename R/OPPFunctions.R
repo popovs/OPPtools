@@ -1090,6 +1090,31 @@ ud_stack <- function(data, weights) {
 
 # -----
 
+#' Extract 50% and 99% volume contours from kernels
+#'
+#' @description This function allows the user to reclassify utilization distribution kernels
+#' to highlight two specified kernel volumes. By default, this function classifies the 50%
+#' and 99% kernel volumes.
+#'
+#' @export
+
+ud_vol <- function(data, lowerVol = 50, upperVol = 99) {
+  # In case people pass args without explicitely specifying which is which
+  if (lowerVol > upperVol) {
+    u <- lowerVol
+    l <- upperVol
+  } else {
+    u <- upperVol
+    l <- lowerVol
+  }
+
+  u <- u/100
+  l <- l/100
+  raster::calc(raster::stack(spatialEco::raster.vol(data, p=u), spatialEco::raster.vol(data, p=l)), fun = sum)
+}
+
+# -----
+
 #' Calculate the distance between consecutive points
 #'
 #' @description Wrapper for raster::pointDistance that only requires input of a
