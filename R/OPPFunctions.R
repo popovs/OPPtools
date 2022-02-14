@@ -792,7 +792,7 @@ sum_trips <- function(data) {
 #'
 #' @description This function is a wrapper of track2KBA::estSpaceUse
 #' (which itself is a wrapper of adehabitatHR::kernelUD) to
-#' and calculates a traditional kernel density estimates
+#' calculate a traditional kernel density estimates
 #' on a given set of trips. The function accepts outputs
 #' from either opp_get_trips or ctcrw_interpolation.
 #' If provided an output from ctcrw_interpolation, the function
@@ -978,6 +978,85 @@ createGrid <- function(data,
   sp::gridded(xy) <- TRUE # make into a spatialPixels object
 
   return(xy)
+
+}
+
+# -----
+
+#' Calculate Brownian Bridge Movement Model (bbmm) kernels
+#'
+#' @description This function is a wrapper of adehabitatHR::kernelbb
+#' and calculates Brownian Bridge Movement Model (bbmm) kernels for
+#' a given set of tracks.
+#'
+#' @param data Trips, as output by either opp_get_trips or ctcrw_interpolation.
+#' @param sig2 Numeric. `sig2` parameter in the bbmm model, typically expressed as GPS error in meters.
+#' @param bridgeSmooth Numeric. Parameter to over-smooth bbmm kernels.
+#' @param res Numeric. Resolution in km of base kernel grid.
+#' @param extendGrid Numeric. Distance (km) to expand grid beyond the bounding box of tracking data. Default 10km.
+#' @param useGappy Logical (T/F). Should "Gappy" trips as identified by opp_get_trips be included in bbmm? Default TRUE. If FALSE, only trips identified as "Complete" are used. Note this parameter is ignore if using interpolated data, where by definition the gaps have been interpolated over.
+#' @param interpolated Logical (T/F). If an output from ctcrw_interpolation is provided, should the interpolated data be used? Default is FALSE, as bbmm methods do not rely on even sampling interval. This parameter is ignored if a different input is provided.
+#' @param showLiker Logical (T/F). Show plot outputs from adehabitatHR::liker (used to calculate bbmm `sig1` parameter)? Default FALSE.
+
+opp_bbmm <- function(data, # Output from either opp_get_trips or ctcrw_interpolation
+                     sig2 = 20, # GPS error
+                     bridgeSmooth = 1, # parameter to over-smooth sig1 values, to make larger KDE patches
+                     res, # resolution in km of bbmm kernel grid
+                     extendGrid = 10, # Numeric. Distance (km) to expand grid beyond the bounding box of tracking data. Default 10km.
+                     useGappy = TRUE, # should "Gappy" trips as identified by opp_get_trips be included in bbmm? Default TRUE. If FALSE, only trips identified as "Complete" are used. Note this parameter is ignore if using interpolated data, where by definition the gaps have been interpolated over.
+                     interpolated = FALSE, # use interpolated data? default is FALSE, as bbmm methods do not rely on even sampling interval
+                     showLiker = FALSE, # show plot outputs from adehabitatHR::liker? Default FALSE.
+                     ...) {
+  # Check data inputs
+  if (interpolated == TRUE) {
+    # If interpolated is TRUE, pull out interp df from
+    # ctcrw_interpolation output
+    kd_data <- data$interp
+  } else if (interpolated == FALSE & (class(data) == "list")) {
+    # If interpolated is FALSE, but the output provided
+    # is still a ctcwr_interpolation output (i.e. a "list")
+    kd_data <- data$data
+  } else {
+    # Otherwise assume the output is from opp_get_trips,
+    # i.e. a single SpatialPointsDataFrame
+    kd_data <- data
+  }
+
+  # This only calculates bbmm on complete trips
+  if (useGappy == TRUE) {
+    kd_data <- kd_data[kd_data$Type %in% c("Complete", "Gappy"), ]
+  } else {
+    kd_data <- kd_data[kd_data$Type == "Complete", ]
+  }
+
+  # Convert data to ltraj object for kernelbb functions
+  kd_data.ltraj <- adehabitatLT::as.ltraj(xy = sp::coordinates(kd_data),
+                                          date =  kd_data$DateTime,
+                                          id = kd_data$ID,
+                                          burst = kd_data$tripID)
+
+  # Set brownian bridge parameters
+  # First step is to estimate the sig1 parameter
+  sig1 <- adehabitatHR::liker(kd_data.ltraj,
+                              sig2 = sig2,
+                              rangesig1 = c(0,300),
+                              byburst = TRUE,
+                              plotit = showLiker)
+  sig1 <- unname(unlist(lapply(sig1, function(x) x$sig1)))
+  sig1 <- sig1 * bridgeSmooth
+
+  # Create base grid for bbmm kernel
+  xy <- createGrid(kd_data,
+                   res = res
+  )
+
+  # Calculate bbmm
+  bbmm <- adehabitatHR::kernelbb(kd_data.ltraj,
+                                 sig1 = sig1,
+                                 sig2 = sig2,
+                                 grid = xy)
+
+  return(bbmm)
 
 }
 
