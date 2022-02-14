@@ -20,7 +20,8 @@ Imports:
     rgdal,
     momentuHMM,
     ggplot2,
-    data.table
+    data.table,
+    spatialEco
 License: CC0
 Encoding: UTF-8
 LazyData: true
