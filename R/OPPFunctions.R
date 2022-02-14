@@ -845,8 +845,7 @@ opp_kernel <- function(data,
   }
 
   my_grid <- createGrid(data = kd_data, res = res,
-                         extendGrid = extendGrid,
-                         interpolated = interpolated)
+                         extendGrid = extendGrid)
 
 
   tracks <- kd_data
@@ -941,27 +940,11 @@ opp_href <- function(data) {
 
 createGrid <- function(data,
                        res = 1,
-                       extendGrid = 10,
-                       interpolated = TRUE){
+                       extendGrid = 10){
 
   # Data health check
   if (sp::is.projected(data) == FALSE) {
     stop("Data must be the output from ctcrw_interpolation.")
-  }
-
-  # Check data inputs
-  if (interpolated == TRUE) {
-    # If interpolated is TRUE, pull out interp df from
-    # ctcrw_interpolation output
-    data <- data$interp
-  } else if (interpolated == FALSE & (class(data) == "list")) {
-    # If interpolated is FALSE, but the output provided
-    # is still a ctcwr_interpolation output (i.e. a "list")
-    data <- data$data
-  } else {
-    # Otherwise assume the output is from opp_get_trips,
-    # i.e. a single SpatialPointsDataFrame
-    data <- data
   }
 
   bounds <- sp::bbox(data)
@@ -995,7 +978,7 @@ createGrid <- function(data,
 #' @param res Numeric. Resolution in km of base kernel grid.
 #' @param extendGrid Numeric. Distance (km) to expand grid beyond the bounding box of tracking data. Default 10km.
 #' @param useGappy Logical (T/F). Should "Gappy" trips as identified by opp_get_trips be included in bbmm? Default TRUE. If FALSE, only trips identified as "Complete" are used. Note this parameter is ignore if using interpolated data, where by definition the gaps have been interpolated over.
-#' @param interpolated Logical (T/F). If an output from ctcrw_interpolation is provided, should the interpolated data be used? Default is FALSE, as bbmm methods do not rely on even sampling interval. This parameter is ignored if a different input is provided.
+#' @param interpolated Logical (T/F). If an output from ctcrw_interpolation is provided, should the interpolated data be used? Default is TRUE.
 #' @param showLiker Logical (T/F). Show plot outputs from adehabitatHR::liker (used to calculate bbmm `sig1` parameter)? Default FALSE.
 
 opp_bbmm <- function(data, # Output from either opp_get_trips or ctcrw_interpolation
@@ -1004,7 +987,7 @@ opp_bbmm <- function(data, # Output from either opp_get_trips or ctcrw_interpola
                      res, # resolution in km of bbmm kernel grid
                      extendGrid = 10, # Numeric. Distance (km) to expand grid beyond the bounding box of tracking data. Default 10km.
                      useGappy = TRUE, # should "Gappy" trips as identified by opp_get_trips be included in bbmm? Default TRUE. If FALSE, only trips identified as "Complete" are used. Note this parameter is ignore if using interpolated data, where by definition the gaps have been interpolated over.
-                     interpolated = FALSE, # use interpolated data? default is FALSE, as bbmm methods do not rely on even sampling interval
+                     interpolated = TRUE, # use interpolated data? default is FALSE, as bbmm methods do not rely on even sampling interval
                      showLiker = FALSE, # show plot outputs from adehabitatHR::liker? Default FALSE.
                      ...) {
   # Check data inputs

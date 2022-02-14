@@ -11,7 +11,7 @@ opp_bbmm(
   res,
   extendGrid = 10,
   useGappy = TRUE,
-  interpolated = FALSE,
+  interpolated = TRUE,
   showLiker = FALSE,
   ...
 )
@@ -29,7 +29,7 @@ opp_bbmm(
 
 \item{useGappy}{Logical (T/F). Should "Gappy" trips as identified by opp_get_trips be included in bbmm? Default TRUE. If FALSE, only trips identified as "Complete" are used. Note this parameter is ignore if using interpolated data, where by definition the gaps have been interpolated over.}
 
-\item{interpolated}{Logical (T/F). If an output from ctcrw_interpolation is provided, should the interpolated data be used? Default is FALSE, as bbmm methods do not rely on even sampling interval. This parameter is ignored if a different input is provided.}
+\item{interpolated}{Logical (T/F). If an output from ctcrw_interpolation is provided, should the interpolated data be used? Default is TRUE.}
 
 \item{showLiker}{Logical (T/F). Show plot outputs from adehabitatHR::liker (used to calculate bbmm \code{sig1} parameter)? Default FALSE.}
 }
