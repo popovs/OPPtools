@@ -591,7 +591,7 @@ ctcrw_interpolation <- function(data,
                                 interpolateGaps = TRUE,
                                 showPlots = TRUE,
                                 theta = c(8, 2),
-                                quiet = FALSE
+                                quiet = TRUE
 ) {
   # Generate custom laea projection centered on colony
   myCRS <- paste0(
@@ -625,7 +625,7 @@ ctcrw_interpolation <- function(data,
     tt <- table(interp_loc$ID)
     interp_loc <- subset(interp_loc, !(interp_loc$ID %in% names(tt)[tt < 3]))
   }
-  interp_loc <- interp_loc[,c('Bird', 'ID', 'time', 'ColDist')]
+  interp_loc <- interp_loc[,c('Bird', 'ID', 'time', 'ColDist', 'Type')]
 
   if (quiet == TRUE) {
     invisible(capture.output(crwOut <- momentuHMM::crawlWrap(obsData = interp_loc,
@@ -643,15 +643,17 @@ ctcrw_interpolation <- function(data,
 
   pred <- data.frame(crwOut$crwPredict) %>%
     dplyr::filter(locType == 'p') %>%
-    dplyr::select(Bird, ID, time, ColDist, mu.x, mu.y, se.mu.x, se.mu.y) %>%
+    dplyr::select(Bird, ID, time, ColDist, mu.x, mu.y, se.mu.x, se.mu.y, Type) %>%
     tidyr::separate('ID', c('Bird', NA), sep = '_', remove = FALSE) %>%
     dplyr::rename(tripID = ID, ID = Bird, DateTime = time)
+
+  pred$Type <- zoo::na.locf(pred$Type)
 
   if (interpolateGaps == F) pred <- tidyr::separate(pred, 'tripID', c('tripID', NA), sep = '[.]', remove = FALSE)
 
   pred <- sp::SpatialPointsDataFrame(coords = pred[,c('mu.x', 'mu.y')],
                                      data = pred[,c('ID', 'tripID', 'DateTime', 'ColDist',
-                                                    'mu.x', 'mu.y',
+                                                    'Type', 'mu.x', 'mu.y',
                                                     'se.mu.x', 'se.mu.y')],
                                      proj4string = sp::CRS(myCRS)
   )
@@ -980,6 +982,8 @@ createGrid <- function(data,
 #' @param useGappy Logical (T/F). Should "Gappy" trips as identified by opp_get_trips be included in bbmm? Default TRUE. If FALSE, only trips identified as "Complete" are used. Note this parameter is ignore if using interpolated data, where by definition the gaps have been interpolated over.
 #' @param interpolated Logical (T/F). If an output from ctcrw_interpolation is provided, should the interpolated data be used? Default is TRUE.
 #' @param showLiker Logical (T/F). Show plot outputs from adehabitatHR::liker (used to calculate bbmm `sig1` parameter)? Default FALSE.
+#'
+#' @export
 
 opp_bbmm <- function(data, # Output from either opp_get_trips or ctcrw_interpolation
                      sig2 = 20, # GPS error
