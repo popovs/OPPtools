@@ -301,3 +301,56 @@ CIDA_drive_path <- function(path = ""){
 
   return(file.path(temp_path, path))
 }
+
+# -----
+
+#' Defines a bounding box at a specified zoom level around a set of coordinates
+#' @description This function returns a bounding box at a user defined zoom level
+#' centered on the mean value of a set of coordinates.
+#' @param locs An sf or sp points object. The bounding box will be centered on the mean value of
+#' these points
+#' @param zoom_level Numeric. Specifies how zoomed in the bounding box should be, eg. 1 = whole world and 4 = 1/4 of world
+#' @references Code adapted from: https://www.r-bloggers.com/2019/04/zooming-in-on-maps-with-sf-and-ggplot2/
+#'
+#' @returns an object with class "bbox" containing four values: xmin, ymin, xmax, and ymax.
+#' Values will be in units of locs (either decimal degrees or meters).
+#' @export
+
+
+bbox_at_zoom <- function(locs, zoom_level = 7) {
+
+  if (!(class(locs)[1] %in% c('sf','sp'))) stop('locs must be an sf or sp points object')
+
+  if (class(locs)[1] == 'sp') {
+    convert_sp <- T
+    locs <- as(locs, 'sf')
+  }
+
+  if (st_is(locs, "POINT")[1] == F) stop('locs must be an sf or sp points object')
+
+  zoom_to <- sf::st_coordinates(locs) %>%
+    as.data.frame() %>%
+    summarize(
+      X = mean(X),
+      Y = mean(Y)
+    ) %>% st_as_sf(coords = c('X','Y'), crs = sf::st_crs(locs))
+
+  if (st_is_longlat(zoom_to) == T) {
+    lon_span <- 360/2^zoom_level
+    lat_span <- 180/2^zoom_level
+  } else {
+    C <- 40075016.686   # ~ circumference of Earth in meters
+    lon_span <- C / 2^zoom_level
+    lat_span <- C / 2^(zoom_level+1)
+  }
+
+  cc <- sf::st_coordinates(zoom_to)
+
+  lon_bounds <- c(cc[,1] - lon_span / 2, cc[,1] + lon_span / 2)
+  lat_bounds <- c(cc[,2] - lat_span / 2, cc[,2] + lat_span / 2)
+
+  bb <- st_bbox(c(xmin = lon_bounds[1], xmax = lon_bounds[2],
+                  ymax = lat_bounds[1], ymin = lat_bounds[2]), crs = st_crs(orig_crs))
+
+  return(bb)
+}
