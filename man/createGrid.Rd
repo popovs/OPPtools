@@ -4,14 +4,22 @@
 \alias{createGrid}
 \title{Create a base grid for kernel calculations}
 \usage{
+<<<<<<< HEAD
 createGrid(data, res = 1, extendGrid = 10, interpolated = FALSE)
+=======
+createGrid(data, res = 1, extendGrid = 10)
+>>>>>>> vignette
 }
 \arguments{
 \item{data}{Output from either ctcrw_interpolation.}
 
 \item{res}{Numeric. Resolution in km of grid cells.}
 
+<<<<<<< HEAD
 \item{extendGrid}{Numeric. Distance (km) to expand grid beyond the bounding box of tracking data.}
+=======
+\item{extendGrid}{Numeric. Distance (km) to expand grid beyond the bounding box of tracking data. Default 10km.}
+>>>>>>> vignette
 
 \item{interpolated}{Logical (T/F). If output from ctcrw_interpolation is provided, should the raw or interpolated data be used for calculating the grid extent? This parameter is ignored if opp_get_trips data is provided.}
 }

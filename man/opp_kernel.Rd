@@ -7,7 +7,11 @@
 opp_kernel(
   data,
   interpolated = TRUE,
+<<<<<<< HEAD
   extendGrid = 20,
+=======
+  extendGrid = 10,
+>>>>>>> vignette
   smoother = "href",
   res = 1
 )
@@ -18,6 +22,8 @@ opp_kernel(
 \item{interpolated}{Logical (T/F). If provided an output from ctcrw_interpolation, should the interpolated tracks
 be used for kernel calculation? Default TRUE. This parameter is ignored if the function is provided data from opp_get_tracks.}
 
+\item{extendGrid}{Numeric. Distance (km) to expand grid beyond the bounding box of tracking data. Default 10km.}
+
 \item{smoother}{Smoother value used in kernel calculations. By default uses the calculated href value of the tracks.}
 
 \item{res}{Grid resolution in sq km to use for kernel calculations.}
@@ -25,7 +31,7 @@ be used for kernel calculation? Default TRUE. This parameter is ignored if the f
 \description{
 This function is a wrapper of track2KBA::estSpaceUse
 (which itself is a wrapper of adehabitatHR::kernelUD) to
-and calculates a traditional kernel density estimates
+calculate a traditional kernel density estimates
 on a given set of trips. The function accepts outputs
 from either opp_get_trips or ctcrw_interpolation.
 If provided an output from ctcrw_interpolation, the function

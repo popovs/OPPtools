@@ -591,7 +591,7 @@ ctcrw_interpolation <- function(data,
                                 interpolateGaps = TRUE,
                                 showPlots = TRUE,
                                 theta = c(8, 2),
-                                quiet = FALSE
+                                quiet = TRUE
 ) {
   # Generate custom laea projection centered on colony
   myCRS <- paste0(
@@ -625,7 +625,7 @@ ctcrw_interpolation <- function(data,
     tt <- table(interp_loc$ID)
     interp_loc <- subset(interp_loc, !(interp_loc$ID %in% names(tt)[tt < 3]))
   }
-  interp_loc <- interp_loc[,c('Bird', 'ID', 'time', 'ColDist')]
+  interp_loc <- interp_loc[,c('Bird', 'ID', 'time', 'ColDist', 'Type')]
 
   if (quiet == TRUE) {
     invisible(capture.output(crwOut <- momentuHMM::crawlWrap(obsData = interp_loc,
@@ -643,15 +643,17 @@ ctcrw_interpolation <- function(data,
 
   pred <- data.frame(crwOut$crwPredict) %>%
     dplyr::filter(locType == 'p') %>%
-    dplyr::select(Bird, ID, time, ColDist, mu.x, mu.y, se.mu.x, se.mu.y) %>%
+    dplyr::select(Bird, ID, time, ColDist, mu.x, mu.y, se.mu.x, se.mu.y, Type) %>%
     tidyr::separate('ID', c('Bird', NA), sep = '_', remove = FALSE) %>%
     dplyr::rename(tripID = ID, ID = Bird, DateTime = time)
+
+  pred$Type <- zoo::na.locf(pred$Type)
 
   if (interpolateGaps == F) pred <- tidyr::separate(pred, 'tripID', c('tripID', NA), sep = '[.]', remove = FALSE)
 
   pred <- sp::SpatialPointsDataFrame(coords = pred[,c('mu.x', 'mu.y')],
                                      data = pred[,c('ID', 'tripID', 'DateTime', 'ColDist',
-                                                    'mu.x', 'mu.y',
+                                                    'Type', 'mu.x', 'mu.y',
                                                     'se.mu.x', 'se.mu.y')],
                                      proj4string = sp::CRS(myCRS)
   )
@@ -792,7 +794,7 @@ sum_trips <- function(data) {
 #'
 #' @description This function is a wrapper of track2KBA::estSpaceUse
 #' (which itself is a wrapper of adehabitatHR::kernelUD) to
-#' and calculates a traditional kernel density estimates
+#' calculate a traditional kernel density estimates
 #' on a given set of trips. The function accepts outputs
 #' from either opp_get_trips or ctcrw_interpolation.
 #' If provided an output from ctcrw_interpolation, the function
@@ -802,6 +804,7 @@ sum_trips <- function(data) {
 #' The default UD level is 50%.
 #'
 #' @param data Tracks to calculate kernels on. Accepts output from either opp_get_trips or ctcrw_interpolation.
+#' @param extendGrid Numeric. Distance (km) to expand grid beyond the bounding box of tracking data. Default 10km.
 #' @param interpolated Logical (T/F). If provided an output from ctcrw_interpolation, should the interpolated tracks
 #' be used for kernel calculation? Default TRUE. This parameter is ignored if the function is provided data from opp_get_tracks.
 #' @param smoother Smoother value used in kernel calculations. By default uses the calculated href value of the tracks.
@@ -811,7 +814,7 @@ sum_trips <- function(data) {
 
 opp_kernel <- function(data,
                        interpolated = TRUE,
-                       extendGrid = 20,
+                       extendGrid = 10,
                        smoother = "href",
                        res = 1) {
 
@@ -844,8 +847,7 @@ opp_kernel <- function(data,
   }
 
   my_grid <- createGrid(data = kd_data, res = res,
-                         extendGrid = extendGrid,
-                         interpolated = interpolated)
+                         extendGrid = extendGrid)
 
 
   tracks <- kd_data
@@ -933,15 +935,14 @@ opp_href <- function(data) {
 #'
 #' @param data Output from either ctcrw_interpolation.
 #' @param res Numeric. Resolution in km of grid cells.
-#' @param extendGrid Numeric. Distance (km) to expand grid beyond the bounding box of tracking data.
+#' @param extendGrid Numeric. Distance (km) to expand grid beyond the bounding box of tracking data. Default 10km.
 #' @param interpolated Logical (T/F). If output from ctcrw_interpolation is provided, should the raw or interpolated data be used for calculating the grid extent? This parameter is ignored if opp_get_trips data is provided.
 #'
 #' @export
 
 createGrid <- function(data,
                        res = 1,
-                       extendGrid = 10,
-                       interpolated = FALSE){
+                       extendGrid = 10){
 
   # Data health check
   if (sp::is.projected(data) == FALSE) {
@@ -963,6 +964,153 @@ createGrid <- function(data,
 
   return(xy)
 
+}
+
+# -----
+
+#' Calculate Brownian Bridge Movement Model (bbmm) kernels
+#'
+#' @description This function is a wrapper of adehabitatHR::kernelbb
+#' and calculates Brownian Bridge Movement Model (bbmm) kernels for
+#' a given set of tracks.
+#'
+#' @param data Trips, as output by either opp_get_trips or ctcrw_interpolation.
+#' @param sig2 Numeric. `sig2` parameter in the bbmm model, typically expressed as GPS error in meters.
+#' @param bridgeSmooth Numeric. Parameter to over-smooth bbmm kernels.
+#' @param res Numeric. Resolution in km of base kernel grid.
+#' @param extendGrid Numeric. Distance (km) to expand grid beyond the bounding box of tracking data. Default 10km.
+#' @param useGappy Logical (T/F). Should "Gappy" trips as identified by opp_get_trips be included in bbmm? Default TRUE. If FALSE, only trips identified as "Complete" are used. Note this parameter is ignore if using interpolated data, where by definition the gaps have been interpolated over.
+#' @param interpolated Logical (T/F). If an output from ctcrw_interpolation is provided, should the interpolated data be used? Default is TRUE.
+#' @param showLiker Logical (T/F). Show plot outputs from adehabitatHR::liker (used to calculate bbmm `sig1` parameter)? Default FALSE.
+#'
+#' @export
+
+opp_bbmm <- function(data, # Output from either opp_get_trips or ctcrw_interpolation
+                     sig2 = 20, # GPS error
+                     bridgeSmooth = 1, # parameter to over-smooth sig1 values, to make larger KDE patches
+                     res, # resolution in km of bbmm kernel grid
+                     extendGrid = 10, # Numeric. Distance (km) to expand grid beyond the bounding box of tracking data. Default 10km.
+                     useGappy = TRUE, # should "Gappy" trips as identified by opp_get_trips be included in bbmm? Default TRUE. If FALSE, only trips identified as "Complete" are used. Note this parameter is ignore if using interpolated data, where by definition the gaps have been interpolated over.
+                     interpolated = TRUE, # use interpolated data? default is FALSE, as bbmm methods do not rely on even sampling interval
+                     showLiker = FALSE, # show plot outputs from adehabitatHR::liker? Default FALSE.
+                     ...) {
+  # Check data inputs
+  if (interpolated == TRUE) {
+    # If interpolated is TRUE, pull out interp df from
+    # ctcrw_interpolation output
+    kd_data <- data$interp
+  } else if (interpolated == FALSE & (class(data) == "list")) {
+    # If interpolated is FALSE, but the output provided
+    # is still a ctcwr_interpolation output (i.e. a "list")
+    kd_data <- data$data
+  } else {
+    # Otherwise assume the output is from opp_get_trips,
+    # i.e. a single SpatialPointsDataFrame
+    kd_data <- data
+  }
+
+  # This only calculates bbmm on complete trips
+  if (useGappy == TRUE) {
+    kd_data <- kd_data[kd_data$Type %in% c("Complete", "Gappy"), ]
+  } else {
+    kd_data <- kd_data[kd_data$Type == "Complete", ]
+  }
+
+  # Convert data to ltraj object for kernelbb functions
+  kd_data.ltraj <- adehabitatLT::as.ltraj(xy = sp::coordinates(kd_data),
+                                          date =  kd_data$DateTime,
+                                          id = kd_data$ID,
+                                          burst = kd_data$tripID)
+
+  # Set brownian bridge parameters
+  # First step is to estimate the sig1 parameter
+  sig1 <- adehabitatHR::liker(kd_data.ltraj,
+                              sig2 = sig2,
+                              rangesig1 = c(0,300),
+                              byburst = TRUE,
+                              plotit = showLiker)
+  sig1 <- unname(unlist(lapply(sig1, function(x) x$sig1)))
+  sig1 <- sig1 * bridgeSmooth
+
+  # Create base grid for bbmm kernel
+  xy <- createGrid(kd_data,
+                   res = res
+  )
+
+  # Calculate bbmm
+  bbmm <- adehabitatHR::kernelbb(kd_data.ltraj,
+                                 sig1 = sig1,
+                                 sig2 = sig2,
+                                 grid = xy)
+
+  return(bbmm)
+
+}
+
+# -----
+
+#' Stack kernel UD objects into a population level kernel
+#'
+#' @description This function accepts a list of estUDm objects
+#' as output by either opp_kernel or opp_bbmm, then rasterizes
+#' and stacks them to produce a population-level kernel. An optional
+#' list of weights can be supplied to emphasize certain tracks over others.
+#'
+#' @param data List of estUDm objects. Output from either opp_kernel or opp_bbmm.
+#' @param weights Optional list of weights.
+#'
+#' @export
+
+ud_stack <- function(data, weights) {
+
+  # Data health check
+  if (class(data) != "estUDm") {
+    stop("Kernel data must be class estUDm (outputs from either opp_kernel or opp_bbmm).")
+  }
+
+  # Prepare raster stack
+  raster_stack <- lapply(data, function(x) (raster::raster(as(x, "SpatialPixelsDataFrame"))))
+  raster_stack <- raster::stack(raster_stack)
+
+  # If weights provided, apply weights
+  if (!missing(weights)) {
+    # Data health check
+    if (length(weights) != length(data)) {
+      stop("Length of supplied weights list does not match number of kernels.")
+    }
+
+    raster_stack <- raster_stack * weights
+
+  }
+
+  pop_raster <- raster::calc(raster_stack, fun = mean)
+
+  return(pop_raster)
+}
+
+# -----
+
+#' Extract 50% and 99% volume contours from kernels
+#'
+#' @description This function allows the user to reclassify utilization distribution kernels
+#' to highlight two specified kernel volumes. By default, this function classifies the 50%
+#' and 99% kernel volumes.
+#'
+#' @export
+
+ud_vol <- function(data, lowerVol = 50, upperVol = 99) {
+  # In case people pass args without explicitely specifying which is which
+  if (lowerVol > upperVol) {
+    u <- lowerVol
+    l <- upperVol
+  } else {
+    u <- upperVol
+    l <- lowerVol
+  }
+
+  u <- u/100
+  l <- l/100
+  raster::calc(raster::stack(spatialEco::raster.vol(data, p=u), spatialEco::raster.vol(data, p=l)), fun = sum)
 }
 
 # -----
