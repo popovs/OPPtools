@@ -693,7 +693,7 @@ ctcrw_interpolation <- function(data,
         ggplot2::geom_point(data = intdat, ggplot2::aes(x = DateTime, y = ColDist/1000), size = 0.9, col = pal[3], shape = 1) +
         ggplot2::facet_wrap(facets = . ~ ID, nrow = 2, scales = 'free') +
         ggplot2::labs(x = 'Time', y = 'Distance from colony (km)') +
-        ggplot2::scale_x_datetime(date_labels = '%b-%d') +
+        #ggplot2::scale_x_datetime(date_labels = '%b-%d') +
         ggplot2::theme_light() +
         ggplot2::theme(
           text = ggplot2::element_text(size = 9),
