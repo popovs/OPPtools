@@ -1,10 +1,10 @@
-mb_project_num,report_title,file_name,spp,minDist,maxDist,minDur,gapTime,gapDist,interpolateGaps,timestep,gridRes,gridExtend
-1279263376,"Cassin's auklet - Triangle Island, BC",CAAU - Triangle Island,Cassin's auklet,5,20,2,2,5,FALSE,10 min,1,30
-1247096889,"Tufted puffin - Triangle Island, BC",TUPU - Triangle Island,Tufted puffin,5,20,2,2,5,FALSE,10 min,1,30
-1895716931,"Ancient murrelet - George Island, BC",ANMU - George Island,Ancient murrelet,5,20,2,2,5,FALSE,20 min,1,30
-1897273090,"Ancient murrelet - Ramsay Island, BC",ANMU - Ramsay Island,Ancient murrelet,5,20,2,2,5,FALSE,20 min,1,30
-1903294479,"Rhinocerous auklet - Lucy Island, BC",RHAU - Lucy Island,Rhinocersous auklet,5,20,2,2,5,FALSE,10 min,1,30
-1904543040,"Rhinocerous auklet - Pine Island, BC",RHAU - Pine Island,Rhinocersous auklet,5,20,2,2,5,FALSE,10 min,1,30
-1904565280,"Rhinocerous auklet - Protection Island, WA",RHAU - Protection Island,Rhinocersous auklet,5,20,2,2,5,FALSE,10 min,1,30
-1903075528,"Rhinocerous auklet - SGang Gwaay, BC",RHAU - SGang Gwaay,Rhinocersous auklet,5,20,2,2,5,FALSE,10 min,1,30
-1901463730,"Rhinocerous auklet - Triangle Island, BC",RHAU - Triangle Island,Rhinocersous auklet,5,20,2,2,5,FALSE,10 min,1,30
+mb_project_num,report_title,file_name,spp,breeding_pairs,minDist,maxDist,minDur,gapTime,gapDist,interpolateGaps,timestep,gridRes,gridExtend
+1279263376,"Cassin's auklet - Triangle Island, BC",CAAU - Triangle Island,Cassin's auklet,,5,20,2,2,5,FALSE,10 min,1,30
+1247096889,"Tufted puffin - Triangle Island, BC",TUPU - Triangle Island,Tufted puffin,,5,20,2,2,5,FALSE,10 min,1,30
+1895716931,"Ancient murrelet - George Island, BC",ANMU - George Island,Ancient murrelet,17000,5,20,2,2,5,FALSE,20 min,1,30
+1897273090,"Ancient murrelet - Ramsay Island, BC",ANMU - Ramsay Island,Ancient murrelet,18000 ,5,20,2,2,5,FALSE,20 min,1,30
+1903294479,"Rhinocerous auklet - Lucy Island, BC",RHAU - Lucy Island,Rhinocersous auklet,,5,20,2,2,5,FALSE,10 min,1,30
+1904543040,"Rhinocerous auklet - Pine Island, BC",RHAU - Pine Island,Rhinocersous auklet,,5,20,2,2,5,FALSE,10 min,1,30
+1904565280,"Rhinocerous auklet - Protection Island, WA",RHAU - Protection Island,Rhinocersous auklet,,5,20,2,2,5,FALSE,10 min,1,30
+1903075528,"Rhinocerous auklet - SGang Gwaay, BC",RHAU - SGang Gwaay,Rhinocersous auklet,,5,20,2,2,5,FALSE,10 min,1,30
+1901463730,"Rhinocerous auklet - Triangle Island, BC",RHAU - Triangle Island,Rhinocersous auklet,,5,20,2,2,5,FALSE,10 min,1,30
