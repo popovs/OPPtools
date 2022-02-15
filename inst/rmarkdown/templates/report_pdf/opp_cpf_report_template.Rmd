@@ -6,10 +6,6 @@ library(OPPtools)
 library(dplyr)
 library(flextable)
 
-mb_login <- move::movebankLogin('allison.patterson', 'djYgXmbct87mYL4')
-
-
-
 title <- dat$report_title
 report_date <- as.character(Sys.Date())
 project <- dat$mb_project_num
@@ -156,6 +152,7 @@ n_tracks <- length(unique(my_interp$interp$ID))
 
 # Report will end here if there are fewer than 20 tracks in the dataset
 if (n_tracks < 20) knitr::knit_exit()
+
 ```
 
 #### Calculating kernel density estimates
@@ -175,13 +172,13 @@ if (n_tracks > 10) {
   ra50 <- invisible((track2KBA::repAssess(tracks = my_interp$interp, 
                                           KDE = my_ud, 
                                           level = 50, 
-                                          iteration = 2, 
+                                          iteration = 10, 
                                           avgMethod = "weighted")))
   
   ra95 <- invisible((track2KBA::repAssess(tracks = my_interp$interp, 
                                           KDE = my_ud, 
                                           level = 95, 
-                                          iteration = 2, 
+                                          iteration = 10, 
                                           avgMethod = "weighted")))
 }
 
