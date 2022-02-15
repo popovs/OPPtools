@@ -319,9 +319,9 @@ CIDA_drive_path <- function(path = ""){
 
 bbox_at_zoom <- function(locs, zoom_level = 7) {
 
-  if (!(class(locs)[1] %in% c('sf','sp'))) stop('locs must be an sf or sp points object')
+  if (!(class(locs)[1] %in% c('sf','SpatialPointsDataFrame'))) stop('locs must be an sf or sp points object')
 
-  if (class(locs)[1] == 'sp') {
+  if (class(locs)[1] == 'SpatialPointsDataFrame') {
     convert_sp <- T
     locs <- as(locs, 'sf')
   }
