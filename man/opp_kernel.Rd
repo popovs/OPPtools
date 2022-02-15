@@ -4,7 +4,13 @@
 \alias{opp_kernel}
 \title{Calculate traditional kernel density estimates}
 \usage{
-opp_kernel(data, interpolated = TRUE, smoother = "href", res = NULL, ...)
+opp_kernel(
+  data,
+  interpolated = TRUE,
+  extendGrid = 20,
+  smoother = "href",
+  res = 1
+)
 }
 \arguments{
 \item{data}{Tracks to calculate kernels on. Accepts output from either opp_get_trips or ctcrw_interpolation.}
