@@ -17,6 +17,7 @@ gapTime <- dat$gapTime
 gapDist <-  dat$gapDist
 interpolateGaps <- dat$interpolateGaps
 timestep <- dat$timestep
+if(is.na(dat$breeding_pairs[i])) popSize <- NULL else popSize <- dat$breeding_pairs[i]*2
 
 study_data <- move::getMovebankStudy(study = project, login = mb_login)
 dep_data <- move::getMovebankReferenceTable(study = project, login = mb_login)
@@ -167,7 +168,6 @@ my_ud <- opp_kernel(data = my_interp,
                     extendGrid = 30,
                     res = 1)
 
-
 if (n_tracks > 10) {
   ra50 <- invisible((track2KBA::repAssess(tracks = my_interp$interp, 
                                           KDE = my_ud, 
@@ -182,7 +182,41 @@ if (n_tracks > 10) {
                                           avgMethod = "weighted")))
 }
 
+my_area_50 <- track2KBA::findSite(my_ud, represent = ra50$out, 
+                                     popSize = popSize,
+                                     levelUD = 50, polyOut = T, thresh = 10)
+
+my_area_95 <- track2KBA::findSite(my_ud, represent = ra95$out, 
+                                     popSize = popSize,
+                                     levelUD = 95, polyOut = T, thresh = 10)
+
 ```
 
-Kernel density estimates were calculated for each individual track using the median *'href'* smoothing parameter, `r h` km. Track representativeness was calculated using the track2KBA package. For core use areas, with utilization distribution of 50%, tracks were `r signif(ra50$out, 3)`% representative. At the home range level, with utilization distribution of 95%, tracks were `r signif(ra95$out, 3)`% representative.
+Kernel density estimates were calculated for each individual track using the median *'href'* smoothing parameter, `r h` km. Track representativeness was calculated using the track2KBA package. For core use areas, with utilization distribution of 50%, inclusivity was `r signif(ra50$out, 3)`% At the home range level, with utilization distribution of 95%, inclusivity was `r signif(ra95$out, 3)`%.
 
+```{r map_kernel_95, echo=FALSE, message=FALSE, warning=FALSE, fig.cap= "Estimated number of birds with a home range (95% utilization distribution) that predictably overlaps areas around the (orange point)."}
+
+map95 <- opp_map_keyareas(track2KBA_UD = my_area_95, 
+                         center = my_track2kba$site, 
+                         show_site = T, 
+                         zoom = 6,
+                         coast_scale = 10,
+                         viridis_option = "D")
+
+map95
+
+```
+
+
+```{r map_kernel_50, echo=FALSE, message=FALSE, warning=FALSE, fig.cap= "Estimated number of birds with a core range (50% utilization distribution) that predictably overlaps areas around the breeding colony (orange point)."}
+
+map50 <- opp_map_keyareas(track2KBA_UD = my_area_50, 
+                         center = my_track2kba$site, 
+                         show_site = T, 
+                         zoom = 6,
+                         coast_scale = 10,
+                         viridis_option = "D")
+
+map50
+
+```
