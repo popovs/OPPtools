@@ -7,11 +7,7 @@
 opp_kernel(
   data,
   interpolated = TRUE,
-<<<<<<< HEAD
-  extendGrid = 20,
-=======
   extendGrid = 10,
->>>>>>> vignette
   smoother = "href",
   res = 1
 )
