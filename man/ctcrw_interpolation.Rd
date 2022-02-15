@@ -13,7 +13,7 @@ ctcrw_interpolation(
   interpolateGaps = TRUE,
   showPlots = TRUE,
   theta = c(8, 2),
-  quiet = FALSE
+  quiet = TRUE
 )
 }
 \arguments{
