@@ -126,3 +126,66 @@ my_interp <- ctcrw_interpolation(data = my_trips,
 )
 
 ```
+
+
+#### Trip summaries
+This table provides summary statistics for each trip included in the analysis. Including a comparison of the number of GPS fixes relative to the interpolated locations.
+
+```{r trip_summary, echo=FALSE, message=FALSE, warning=FALSE}
+
+my_trip_summary <- OPPtools::sum_trips(my_interp) %>% 
+  dplyr::mutate(duration = signif(duration, 3),
+         max_dist_km = signif(max_dist_km, 3),
+         departure = as.Date(departure)) %>% 
+  dplyr::select(tripID, raw_n_locs, interp_n_locs, departure, duration, max_dist_km, complete) %>% 
+  dplyr::rename(`Trip ID` = tripID,
+         `GPS fixes` = raw_n_locs,
+         `Interpolated locations` = interp_n_locs,
+         `Start date` = departure,
+         `Maximum distance (km)` = max_dist_km,
+         `Duration (hrs)` = duration,
+         Type = complete) %>% 
+  flextable::flextable(cwidth =c(1.25, 1, 1, 1.5, 1, 1, 1)) 
+
+n_tracks <- length(unique(my_interp$interp$ID))
+
+```
+
+
+```{r short report, echo=FALSE, message=FALSE, warning=FALSE}
+
+# Report will end here if there are fewer than 20 tracks in the dataset
+if (n_tracks < 20) knitr::knit_exit()
+```
+
+#### Calculating kernel density estimates
+
+```{r kernel_ud, echo=FALSE, message=FALSE, warning=FALSE, fig.show='hide'}
+
+h <- opp_href(my_interp$interp)
+
+my_ud <- opp_kernel(data = my_interp,
+                    interpolated = TRUE,
+                    smoother = "href",
+                    extendGrid = 30,
+                    res = 1)
+
+
+if (n_tracks > 10) {
+  ra50 <- invisible((track2KBA::repAssess(tracks = my_interp$interp, 
+                                          KDE = my_ud, 
+                                          level = 50, 
+                                          iteration = 2, 
+                                          avgMethod = "weighted")))
+  
+  ra95 <- invisible((track2KBA::repAssess(tracks = my_interp$interp, 
+                                          KDE = my_ud, 
+                                          level = 95, 
+                                          iteration = 2, 
+                                          avgMethod = "weighted")))
+}
+
+```
+
+Kernel density estimates were calculated for each individual track using the median *'href'* smoothing parameter, `r h` km. Track representativeness was calculated using the track2KBA package. For core use areas, with utilization distribution of 50%, tracks were `r signif(ra50$out, 3)`% representative. At the home range level, with utilization distribution of 95%, tracks were `r signif(ra95$out, 3)`% representative.
+
