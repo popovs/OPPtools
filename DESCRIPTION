@@ -31,5 +31,6 @@ Suggests:
     rmarkdown,
     knitr,
     maps,
-    mapview
+    mapview,
+    rnaturalearth
 Roxygen: list(markdown = TRUE)

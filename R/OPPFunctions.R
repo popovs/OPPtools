@@ -1144,3 +1144,77 @@ getDist <- function(lon, lat, lonlat = TRUE) {
   }
   out
 }
+
+
+# -----
+
+#' Maps result from track2KBA::findSite()
+#'
+#' Produces a more attractive version of the map from track2KBA::findSite() and
+#' track2KBA::mapSite().
+#'
+#' @param track2KBA_UD Polygon output from track2KBA::findSite()
+#' @param center Data frame containing columns 'Longitude' and 'Latitude' in decimal degrees,
+#' for plotting the colony or nest locations.
+#' @param show_site Logical indicating if polygon conatining potential important sites
+#' identified by track2KBA::findSite() should be plotted.
+#' @param coast_scale Mapping resolution for the coastline basemap. Must be one of: 10 - high resolution,
+#' 50 - medium resolution, 110 = low resolution.
+#' @param zoom Integer from 1:16, indicating the zoom level for map.
+#' @param viridis_option A character string indicating the colormap option to
+#' use. Four options are available: "magma" (or "A"), "inferno" (or "B"), "plasma" (or "C"), "viridis" (or "D", the default option) and "cividis" (or "E").
+#' @returns A ggplot object
+#'
+#' @export
+
+opp_map_keyareas <- function(track2KBA_UD,
+                            center,
+                            show_site = T,
+                            zoom = 6.5,
+                            coast_scale = 50,
+                            viridis_option = "D") {
+
+  world <- rnaturalearth::ne_countries(scale = coast_scale, returnclass = 'sf')
+  temp <- track2KBA_UD[track2KBA_UD$N_animals > 0,]
+
+  if (!(coast_scale %in% c(10, 50, 110))) stop('coast_scale must be one of 10, 50, or 110')
+
+  if (max(temp$N_animals) < 1) {
+    temp$N_animals <- temp$N_animals * 100
+    scale_lab <- 'Percent of\npopulation (%)'
+  } else {
+    scale_lab <- 'Number of birds'
+  }
+
+  center <- sf::st_as_sf(center, coords = c('Longitude', 'Latitude'), crs = sf::st_crs(temp))
+  bb <- bbox_at_zoom(locs = center, zoom_level = zoom)
+
+  p <- ggplot2::ggplot() +
+    ggplot2::geom_sf(data =temp, ggplot2::aes(fill = N_animals,
+                                              col = N_animals))  +
+    ggplot2::geom_sf(data = world, fill = grey(0.9)) +
+    ggplot2::geom_sf(data = center, fill = "dark orange",
+                     color = "black",
+                     pch = 21,
+                     size = 2.5) +
+    ggplot2::coord_sf(xlim = bb[c(1,3)],
+                      ylim = bb[c(2,4)],
+                      expand = T) +
+    ggplot2::scale_fill_viridis_c(option = viridis_option, lim = c(0, NA)) +
+    ggplot2::scale_colour_viridis_c(option = viridis_option, lim = c(0, NA)) +
+    ggplot2::theme_light() +
+    ggplot2::theme(text = ggplot2::element_text(size = 10)) +
+    ggplot2::labs(colour = scale_lab, fill = scale_lab)
+
+  if (show_site == T) {
+    core_site <- temp[temp$potentialSite == T,] %>%
+      sf::st_union()
+    p <- p +
+      ggplot2::geom_sf(data =core_site, fill = 'transparent', col = 'red', size = 1) +
+      ggplot2::coord_sf(xlim = bb[c(1,3)],
+                        ylim = bb[c(2,4)],
+                        expand = T)
+
+  }
+  p
+}
