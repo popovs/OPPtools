@@ -143,10 +143,36 @@ kde <- opp_kernel(interp,
 
 ## 2. BBMM KDE
 
-# Assess representativeness
+```{r bbmm kernel}
+bb_kde <- opp_bbmm(interp,
+                   res = 1)
+```
 
+## More fun with kernels
 
-#
+With either of our kernels, we can use the `ud_stack` function if we are interested in taking a look at a population-level raster. `ud_stack` accepts a `weights` argument if you want to weigh certain tracks as more important than others in your stack. In this example, we will weight our bbmm kernels by number of locations in a track. We want longer tracks (that go farther from the colony) to have more importance in our population level kernel.
 
+```{r ud_stack}
+# Using a combination of aggregate and sum_trips, 
+# let's pull out the number of locations per animal
+n_locs <- aggregate(interp_n_locs ~ ID, data = sum_trips(interp), sum)[[2]]
+
+# Stack our bbmm kernels, weighted by n_locs
+pop_bbmm <- ud_stack(bb_kde, n_locs)
+
+# Might be nice to compare to non-weighted
+
+# Now we can visualize
+mapview::mapview(pop_bbmm)
+```
+
+A common workflow for rasterized UDs typically involves extracting the 50% and 99% volume contours. With the `ud_vol` function, we can specify which contours we want to extract and reclassify the raster to show our two contour values:
+
+```{r ud vol}
+# By default, the two volume levels are 50% and 99%, but these can be changed if desired.
+pop_vols <- ud_vol(pop_bbmm)
+
+raster::plot(pop_vols)
+```
 
 
