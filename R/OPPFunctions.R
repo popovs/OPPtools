@@ -482,6 +482,7 @@ opp_get_trips <- function(data,
   trips_type <- trips@data %>%
     dplyr::group_by(ID, tripID) %>%
     dplyr::mutate(
+      tripdur = as.numeric(difftime(max(DateTime), min(DateTime), units = 'hour')),
       dt = as.numeric(difftime(DateTime, dplyr::lag(DateTime), units = 'hour')),
       dt = ifelse(is.na(dt), 0, dt),
       dist = getDist(lon = Longitude, lat = Latitude),
@@ -496,11 +497,17 @@ opp_get_trips <- function(data,
       Type = ifelse(tripID == -1, 'Non-trip', Type),
       Type = ifelse(n < 3, 'Non-trip', Type),
       Type = ifelse(is.na(Type), 'Complete', Type)
+    ) %>%
+    dplyr::ungroup() %>%
+    dplyr::mutate(
+      tripID = ifelse(tripdur < duration | n < 3, -1, tripID),
+      Type = ifelse(tripdur < duration, 'Non-trip', Type),
     )
 
   trips$DiffTime <- trips_type$dt
   trips$DiffDist <- trips_type$dist
   trips$Type <- trips_type$Type
+  trips$tripID <- trips_type$tripID
   trips$TripSection <- trips_type$trip_section
 
   bb <- unique(trips_type$ID)
@@ -559,6 +566,8 @@ opp_get_trips <- function(data,
 #'Possible values are: 'Complete', 'Incomplete', 'Gappy', and 'Non-trip'. Default is 'Complete'.
 #'@param timestep string indicating time step for track interpolation, eg. '10 min', '1 hour', '1 day'
 #'@param showPlots TRUE/FALSE should plots of interpolated tracks against original data be produced
+#'@param plotsPerPage Numeric indicating the number of individuals to include
+#' in a single plot. Defaults to 4.
 #'@param theta starting values for ctcrw parameter optimization, see ?crawl::crwMLE for details
 #'
 #'@examples
@@ -579,6 +588,7 @@ opp_get_trips <- function(data,
 #'                    timestep = '10 min',
 #'                    interpolateGaps = T,
 #'                    showPlots = T,
+#'                    plotsPerPage = 2,
 #'                    theta = c(8,2)
 #')
 #'
@@ -590,6 +600,7 @@ ctcrw_interpolation <- function(data,
                                 timestep,
                                 interpolateGaps = TRUE,
                                 showPlots = TRUE,
+                                plotsPerPage = 4,
                                 theta = c(8, 2),
                                 quiet = TRUE
 ) {
@@ -680,22 +691,36 @@ ctcrw_interpolation <- function(data,
 
   if (showPlots == T) {
     bb <- unique(pred$ID)
-    idx <- seq(1,length(bb), by = 4)
+    idx <- seq(1,length(bb), by = plotsPerPage)
     pal <- hcl.colors(4, "viridis")
 
     for (i in idx) {
 
-      intdat <- pred[pred$ID %in% bb[i:(i+3)],]@data
-      obsdat <- orig_loc[orig_loc$ID %in% bb[i:(i+3)],]@data
+      intdat <- pred[pred$ID %in% bb[i:(i + plotsPerPage - 1)],]@data
+      intdat$Type <- 'Interpolated'
+      obsdat <- orig_loc[orig_loc$ID %in% bb[i:(i + plotsPerPage - 1)],]@data
+      obsdat$Type <- 'Raw'
 
-      p <- ggplot2::ggplot(obsdat, ggplot2::aes(x = DateTime, y = ColDist/1000)) +
-        ggplot2::geom_line(linetype = 3, col = pal[1]) +
-        ggplot2::geom_point(size = 1.5, col = pal[1])  +
-        ggplot2::geom_line(data = intdat, ggplot2::aes(x = DateTime, y = ColDist/1000, group = tripID), linetype = 3, col = pal[3]) +
-        ggplot2::geom_point(data = intdat, ggplot2::aes(x = DateTime, y = ColDist/1000), size = 0.9, col = pal[3], shape = 1) +
+      plotdat <- rbind(intdat[,c('ID','DateTime','ColDist','Type', 'tripID')],
+                       obsdat[,c('ID','DateTime','ColDist','Type', 'tripID')])
+      plotdat$Type <- factor(plotdat$Type, levels = c('Interpolated', 'Raw'))
+
+      pl <- c('Raw' = pal[1], 'Interpolated' = pal[3])
+      lt <- c('Raw' =3, 'Interpolated' = 2)
+
+      p <- ggplot2::ggplot(plotdat, ggplot2::aes(x = DateTime, y = ColDist/1000)) +
+        ggplot2::geom_line(data = plotdat[plotdat$Type == 'Raw',],
+                           ggplot2::aes(col = Type, linetype = Type)) +
+        ggplot2::geom_point(data = plotdat[plotdat$Type == 'Raw',],
+                            ggplot2::aes(col = Type), size = 1.5, shape = 1) +
+        ggplot2::geom_line(data = plotdat[plotdat$Type == 'Interpolated',],
+                           ggplot2::aes(col = Type, linetype = Type, group = tripID)) +
+        ggplot2::geom_point(data = plotdat[plotdat$Type == 'Interpolated',],
+                            ggplot2::aes(col = Type), size = 1.5, shape = 1) +
         ggplot2::facet_wrap(facets = . ~ ID, nrow = 2, scales = 'free') +
         ggplot2::labs(x = 'Time', y = 'Distance from colony (km)') +
-        #ggplot2::scale_x_datetime(date_labels = '%b-%d') +
+        ggplot2::scale_colour_manual(values = pl) +
+        ggplot2::scale_linetype_manual(values = lt) +
         ggplot2::theme_light() +
         ggplot2::theme(
           text = ggplot2::element_text(size = 9),
@@ -724,7 +749,7 @@ ctcrw_interpolation <- function(data,
 #' output provides a summary of interpolated trips.
 #'
 #'
-#'@param data Trip data ouptut from opp_get_trips() or ctcrw_interpolation().
+#'@param data Trip data output from opp_get_trips() or ctcrw_interpolation().
 #'
 #'@examples
 #'my_data <- opp_download_data(study = c(1247096889),login = NULL, start_month = NULL,
@@ -759,8 +784,8 @@ sum_trips <- function(data) {
   if (class(data) == "SpatialPointsDataFrame") {
 
     # If it's the output from opp_get_trips
-    tripSum <- data.table::setDT(data@data)[, .(n_locs = .N, departure = min(DateTime), return = max(DateTime), max_dist_km = (max(ColDist))/1000, complete = unique(Type)), by = list(ID, tripID)]
-    tripSum$duration <- as.numeric(tripSum$return - tripSum$departure)
+    tripSum <- data.table::setDT(data@data)[tripID != -1, .(n_locs = .N, departure = min(DateTime), return = max(DateTime), max_dist_km = (max(ColDist))/1000, complete = unique(Type)), by = list(ID, tripID)]
+    tripSum$duration <- as.numeric(difftime(tripSum$return, tripSum$departure, units = 'hours'))
     tripSum <- tripSum %>% dplyr::select(ID, tripID, n_locs, departure, return, duration, max_dist_km, complete)
 
   } else if (class(data) == "list") {
@@ -771,7 +796,7 @@ sum_trips <- function(data) {
     # For now since interp does not return trip type, assuming
     # it's all "complete trip"
     tripSum <- data.table::setDT(interp_trips)[, .(interp_n_locs = .N, departure = min(DateTime), return = max(DateTime), max_dist_km = (max(ColDist))/1000), by = list(ID, tripID)]
-    tripSum$duration <- as.numeric(tripSum$return - tripSum$departure)
+    tripSum$duration <- as.numeric(difftime(tripSum$return, tripSum$departure, units = 'hours'))
 
     raw_n_locs <- data.table::setDT(raw_trips)[tripID != -1, .(raw_n_locs = .N, complete = unique(Type)), by = list(ID, tripID)]
     raw_n_locs$ID <- as.character(raw_n_locs$ID)
@@ -847,7 +872,7 @@ opp_kernel <- function(data,
   }
 
   my_grid <- createGrid(data = kd_data, res = res,
-                         extendGrid = extendGrid)
+                        extendGrid = extendGrid)
 
 
   tracks <- kd_data
@@ -858,9 +883,9 @@ opp_kernel <- function(data,
   tracks <- tracks[(tracks@data$ID %in% validIDs), ]
   tracks@data$ID <- droplevels(as.factor(tracks@data$ID))
   out <- adehabitatHR::kernelUD(tracks ,
-                                        h = (href * 1000),
-                                        grid = my_grid,
-                                        same4all = F)
+                                h = (href * 1000),
+                                grid = my_grid,
+                                same4all = F)
 
   tryCatch({
     KDE_sp <- adehabitatHR::getverticeshr(out, percent = 99,
@@ -1168,11 +1193,11 @@ getDist <- function(lon, lat, lonlat = TRUE) {
 #' @export
 
 opp_map_keyareas <- function(track2KBA_UD,
-                            center,
-                            show_site = T,
-                            zoom = 6.5,
-                            coast_scale = 50,
-                            viridis_option = "D") {
+                             center,
+                             show_site = T,
+                             zoom = 6.5,
+                             coast_scale = 50,
+                             viridis_option = "D") {
 
   world <- rnaturalearth::ne_countries(scale = coast_scale, returnclass = 'sf')
   temp <- track2KBA_UD[track2KBA_UD$N_animals > 0,]
@@ -1217,4 +1242,66 @@ opp_map_keyareas <- function(track2KBA_UD,
 
   }
   p
+}
+
+# -----
+
+#' Explore how different values of minDist influence total number of trips
+#'
+#' Calculates the number of trips that go farther than returnBuff for a range of
+#' minimum distance values that a bird must travel from the colony to be considered in a trip.
+#' This is useful for ensuring that the minimum trip distance separates all long trips.
+
+#'
+#' @param data Polygon output from track2KBA::findSite()
+#' @param minDist_range Vector of ditances (km) from the colony to calculate how
+#' minimum distance influences total number of long foraging trips.
+#' Used to label trips as 'Non-trip'. Defaults to 5
+#' @param returnBuff Outer distance (km) to capture trips that start and end
+#' away from the colony. Used to label trips as 'Incomplete' and for assessing the
+#' effect of minDist on total number of trips. Defaults to 20.
+#' @param duration Minimum trip duration (hrs)
+#' @param gapTime Time (hrs) between successive locations at which trips will be flagged as 'Gappy'.
+#' Used in connection with gapDist, such that locations must be farther apart in
+#' both time and space to be considered a gap.
+#' @param gapDist Distance (km) between successive locations at which trips will be flagged as 'Gappy'.
+#' Used in connection with gapTime, such that locations must be farther apart in
+#' both time and space to be considered a gap.
+#' @param gapLimit Maximum time between points to be considered too large to be
+#' a contiguous tracking event. Can be used to ensure that deployments on the
+#' same animal in different years do not get combined into extra long trips.
+#' Defaults to 100 days.
+#'
+#' @details With lower sampling frequency or if GPS fixes are not taken at or near the colony,
+#' multiple foraging trips may be combined if minDist is too small. Look for the
+#' minDist value where the number of trips begins to asymptote. Selected values should
+#' be confirmed by calling opp_get_trips directly with showPlots = TRUE.
+#'
+#' @export
+
+opp_find_minDist <- function(data,
+                             minDist_range = 1:10,
+                             returnBuff = 20,
+                             duration  = 1,
+                             gapLimit = 100,
+                             gapTime = 1,
+                             gapDist = 10) {
+
+  out <- data.frame(dist = minDist_range,
+                    trips = NA)
+
+  for (j in 1:nrow(out)) {
+    my_trips <- opp_get_trips(data = data,
+                              innerBuff  = out$dist[j],
+                              returnBuff = returnBuff,
+                              duration  = duration,
+                              gapLimit = gapLimit,
+                              gapTime = gapTime,
+                              gapDist = gapDist,
+                              showPlots = F)
+    tt <- sum_trips(my_trips)
+    out$trips[j] <- (nrow(tt[tt$max_dist_km > returnBuff]))
+  }
+
+  out
 }
