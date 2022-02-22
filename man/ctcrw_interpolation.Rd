@@ -12,6 +12,7 @@ ctcrw_interpolation(
   timestep,
   interpolateGaps = TRUE,
   showPlots = TRUE,
+  plotsPerPage = 4,
   theta = c(8, 2),
   quiet = TRUE
 )
@@ -28,6 +29,9 @@ Possible values are: 'Complete', 'Incomplete', 'Gappy', and 'Non-trip'. Default 
 \item{timestep}{string indicating time step for track interpolation, eg. '10 min', '1 hour', '1 day'}
 
 \item{showPlots}{TRUE/FALSE should plots of interpolated tracks against original data be produced}
+
+\item{plotsPerPage}{Numeric indicating the number of individuals to include
+in a single plot. Defaults to 4.}
 
 \item{theta}{starting values for ctcrw parameter optimization, see ?crawl::crwMLE for details}
 }
@@ -60,6 +64,7 @@ my_interp <- ctcrw_interpolation(data = my_trips,
                    timestep = '10 min',
                    interpolateGaps = T,
                    showPlots = T,
+                   plotsPerPage = 2,
                    theta = c(8,2)
 )
 
