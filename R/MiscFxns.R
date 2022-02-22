@@ -326,16 +326,16 @@ bbox_at_zoom <- function(locs, zoom_level = 7) {
     locs <- as(locs, 'sf')
   }
 
-  if (st_is(locs, "POINT")[1] == F) stop('locs must be an sf or sp points object')
+  if (sf::st_is(locs, "POINT")[1] == F) stop('locs must be an sf or sp points object')
 
   zoom_to <- sf::st_coordinates(locs) %>%
     as.data.frame() %>%
     summarize(
       X = mean(X),
       Y = mean(Y)
-    ) %>% st_as_sf(coords = c('X','Y'), crs = sf::st_crs(locs))
+    ) %>% sf::st_as_sf(coords = c('X','Y'), crs = sf::st_crs(locs))
 
-  if (st_is_longlat(zoom_to) == T) {
+  if (sf::st_is_longlat(zoom_to) == T) {
     lon_span <- 360/2^zoom_level
     lat_span <- 180/2^zoom_level
   } else {
@@ -349,8 +349,8 @@ bbox_at_zoom <- function(locs, zoom_level = 7) {
   lon_bounds <- c(cc[,1] - lon_span / 2, cc[,1] + lon_span / 2)
   lat_bounds <- c(cc[,2] - lat_span / 2, cc[,2] + lat_span / 2)
 
-  bb <- st_bbox(c(xmin = lon_bounds[1], xmax = lon_bounds[2],
-                  ymax = lat_bounds[1], ymin = lat_bounds[2]), crs = st_crs(orig_crs))
+  bb <- sf::st_bbox(c(xmin = lon_bounds[1], xmax = lon_bounds[2],
+                  ymax = lat_bounds[1], ymin = lat_bounds[2]), crs = sf::st_crs(locs))
 
   return(bb)
 }

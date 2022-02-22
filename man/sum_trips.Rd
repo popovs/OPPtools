@@ -7,7 +7,7 @@
 sum_trips(data)
 }
 \arguments{
-\item{data}{Trip data ouptut from opp_get_trips() or ctcrw_interpolation().}
+\item{data}{Trip data output from opp_get_trips() or ctcrw_interpolation().}
 }
 \description{
 \code{sum_trips} quickly calculates summary information
