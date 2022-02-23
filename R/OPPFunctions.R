@@ -832,7 +832,8 @@ sum_trips <- function(data) {
 #' @param extendGrid Numeric. Distance (km) to expand grid beyond the bounding box of tracking data. Default 10km.
 #' @param interpolated Logical (T/F). If provided an output from ctcrw_interpolation, should the interpolated tracks
 #' be used for kernel calculation? Default TRUE. This parameter is ignored if the function is provided data from opp_get_tracks.
-#' @param smoother Smoother value used in kernel calculations. By default uses the calculated href value of the tracks.
+#' @param smoother Smoother value used in kernel calculations, either a numeric value or 'href' or 'step'. By default uses
+#' the calculated href value of the tracks. Using 'step' will use the median step length across tracks.
 #' @param res Grid resolution in sq km to use for kernel calculations.
 #'
 #' @export
@@ -865,15 +866,17 @@ opp_kernel <- function(data,
   }
 
   # Calculate smoother
-  # For now, only support for href
   # Code taken from track2KBA::findScales
   if (smoother == "href") {
-    href <- opp_href(data = kd_data)
+    s <- opp_href(data = kd_data)
   }
+
+  if (is.numeric(smoother)) s <- smoother
+
+  if (is.null(s)) stop("smoother must be a numeric value, 'step', or 'href'.")
 
   my_grid <- createGrid(data = kd_data, res = res,
                         extendGrid = extendGrid)
-
 
   tracks <- kd_data
   tracks@data <- tracks@data %>% dplyr::select(ID)
@@ -883,7 +886,7 @@ opp_kernel <- function(data,
   tracks <- tracks[(tracks@data$ID %in% validIDs), ]
   tracks@data$ID <- droplevels(as.factor(tracks@data$ID))
   out <- adehabitatHR::kernelUD(tracks ,
-                                h = (href * 1000),
+                                h = (s * 1000),
                                 grid = my_grid,
                                 same4all = F)
 
@@ -892,7 +895,7 @@ opp_kernel <- function(data,
                                           unin = "m", unout = "km2")
   }, error = function(e) {
     stop(paste("The grid is too small to allow the estimation of a complete home-range.
-            Please use a larger value than", extendGrid, "km for extendGrid."), call. = FALSE)
+            Please use a larger value than", extendGrid, "km for extendGrid, try a larger value for the smoother, or a smaller grid resolution."), call. = FALSE)
   })
 
   # # Calculate kernel
@@ -910,6 +913,37 @@ opp_kernel <- function(data,
     message("Kernels calculated for raw tracks.")
   }
 
+}
+
+# -----
+
+#' Calculate median step length for kernel density estimates
+#'
+#' @param data SpatialPointsDataFrame containing projected tracking data,
+#' with an ID field indicating unique trips
+#'
+#'
+#' @export
+
+opp_step <- function(data) {
+
+  # Data health check
+  if (sp::is.projected(data) == FALSE) {
+    stop("Trips data must be in an equal-area projected coordinate system.")
+  }
+
+ out <- data@data %>%
+    dplyr::group_by(ID) %>%
+    dplyr::summarise(
+      dist = getDist(lon = Longitude, lat = Latitude),
+      med_step = median(dist, na.rm = T)
+    ) %>%
+    dplyr::ungroup() %>%
+    dplyr::summarise(
+      step = round(median(med_step)/1000, 2)
+    )
+
+ out$step
 }
 
 # -----
