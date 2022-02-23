@@ -1,0 +1,4 @@
+name: OPP Diagnostic Report
+description: >
+   Trip parameters and sensitivity analyses for a chosen species, to be shared prior to continuing any formal analyses.
+create_dir: FALSE
