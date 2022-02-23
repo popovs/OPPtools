@@ -265,7 +265,6 @@ colCRS <- function(data) {
 #' using opp_download_data to visualize tracks.
 #'
 #' @param data Movebank data as returned by opp_download_data.
-#' @param interactive Logical (T/F), do you want to explore tracks with an interative map? Default FALSE.
 #'
 #' @examples
 #' data(murres)
@@ -273,8 +272,7 @@ colCRS <- function(data) {
 #'
 #' @export
 
-opp_map <- function(data,
-                    interactive = FALSE) {
+opp_map <- function(data) {
 
   # Check if maps installed
   # maps is used to add simple land features to map
@@ -284,12 +282,12 @@ opp_map <- function(data,
   }
   # Check if mapview is installed
   # mapview is used for interactive mode
-  if (interactive == TRUE){
-    if (!requireNamespace("mapview", quietly = TRUE)) {
-      stop("Packages \"mapview\"is needed. Please install it.",
-           call. = FALSE)
-    }
-  }
+  # if (interactive == TRUE){
+  #   if (!requireNamespace("mapview", quietly = TRUE)) {
+  #     stop("Packages \"mapview\"is needed. Please install it.",
+  #          call. = FALSE)
+  #   }
+  # }
 
   # Trim down dataset
   site <- unique(data[,c("deploy_on_longitude", "deploy_on_latitude")])
@@ -330,11 +328,13 @@ opp_map <- function(data,
     ggplot2::ylab("Latitude") +
     ggplot2::xlab("Longitude")
 
-  if(interactive == FALSE){
-    print(trackplot)
-  } else {
-    mapview::mapview(raw_tracks, zcol = "deployment_id")
-  }
+  print(trackplot)
+
+  # if(interactive == FALSE){
+  #   print(trackplot)
+  # } else {
+  #   mapview::mapview(raw_tracks, zcol = "deployment_id")
+  # }
 
 }
 

@@ -4,12 +4,10 @@
 \alias{opp_map}
 \title{Plot raw tracks from Movebank download}
 \usage{
-opp_map(data, interactive = FALSE)
+opp_map(data)
 }
 \arguments{
 \item{data}{Movebank data as returned by opp_download_data.}
-
-\item{interactive}{Logical (T/F), do you want to explore tracks with an interative map? Default FALSE.}
 }
 \description{
 Quickly plot Movebank data downloaded

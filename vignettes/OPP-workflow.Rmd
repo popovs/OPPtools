@@ -71,12 +71,6 @@ The `opp_map` function allows you to quickly plot up your raw Movebank tracks to
 opp_map(murres)
 ```
 
-You can also plot with an interactive mode to further explore:
-
-```{r interactive map}
-opp_map(murres, interactive = TRUE)
-```
-
 Another useful thing to examine prior to continuing the workflow is a simple plot of time traveled vs. distance from colony for each bird. Looking at this will allow you to make informed decisions on minimum and maximum distances traveled during individual foraging trips in addition to time elapsed during foraging trips.
 
 ```{r plot time vs distance}
