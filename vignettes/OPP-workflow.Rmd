@@ -21,6 +21,8 @@ knitr::opts_chunk$set(
   dpi = 300,
   comment = "#>"
 )
+
+library(OPPtools)
 ```
 
 This package contains analysis tools for processing seabird tracking data collected under Canada's Oceans Protection Plan. The workflow aims to identify at-sea trips for central place foraging seabirds, then use those trips to estimate key areas of use while the birds are at sea. Key areas are estimated using two approaches: a traditional kernel density estimation and a Brownian Bridge Movement Model (BBMM) based kernel density estimation.
@@ -35,11 +37,19 @@ The `OPPtools` package can be downloaded and installed from Github if you have p
 # Install OPPtools
 # install.packages("devtools")
 devtools::install_github('popovs/OPPtools')
+
+library(OPPtools)
 ```
 
 # Data preparation
 
-The workflow in this package is designed to work smoothly with data stored on Movebank. In order to download data, you will need to provide your Movebank credentials. 
+The workflow in this package is designed to work smoothly with data stored on Movebank. In order to download data, you will need to provide your Movebank credentials. `OPPtools` has an optional convenience function, `opp_movebank_key`, that allows you to securely store an encrypted copy of your Movebank credentials. If you set your credentials this way, you will not be prompted to enter your Movebank credentials further by any future function calls.
+
+```{r set movebank credentials, eval = FALSE}
+opp_movebank_key(username = "my_movebank_username") # You will then be prompted to enter your password
+```
+
+We can then download data directly off of Movebank. If you stored your credentials using `opp_movebank_key`, the data will be downloaded directly. Otherwise, you will be prompted to enter your Movebank username and password in the console.
 
 ```{r movebank download, eval = FALSE}
 murres <- opp_download_data(248994009)
@@ -48,8 +58,6 @@ murres <- opp_download_data(248994009)
 In these examples, data for *thick-billed murres* from Coats Island are also already bundled with the package.
 
 ```{r murres data}
-library(OPPtools)
-
 data(murres) # same output as `opp_download_data(248994009)`
 
 knitr::kable(head(murres))
