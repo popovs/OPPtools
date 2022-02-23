@@ -1,3 +1,37 @@
+#' Set Movebank credentials
+#'
+#' @description This function uses the R library `keyring` to interactively
+#' and securely set your Movebank credentials for other functions to use.
+#' The credentials are encrypted and stored under the name "OPP-Movebank" in
+#' Keychain (Mac) or Credential Store (Windows). If you store your credentials
+#' in this way, other OPP functions will no longer prompt you for your Movebank
+#' username and password each time they are run.
+#'
+#' For added security, you can further set a keychain password. This means
+#' you will need to enter your keychain password any time an `OPPtools` function
+#' attempts to access your stored Movebank credentials. By default this is turned
+#' off, as the credentials are securely encrypted by `keyring`.
+#'
+#' @param username Your Movebank username.
+#' @param set_keyring Logical (T/F). Set to TRUE if you would like to further password protect your Movebank credentials. You will be prompted for this password immediately upon running the function.
+
+opp_movebank_key <- function(username,
+                             set_keyring = FALSE) {
+  if(set_keyring == TRUE){
+    keyring::keyring_create("OPPtools-keyring")
+    keyring::key_set(service = "OPP-Movebank",
+                     username = username,
+                     keyring = "OPPtools-keyring",
+                     prompt = "Movebank password: ")
+  } else {
+    keyring::key_set(service = "OPP-Movebank",
+                     username = username,
+                     prompt = "Movebank password: ")
+  }
+
+
+}
+
 #' Download OPP tracking data from Movebank
 #'
 #' @description This function downloads OPP tracking data from Movebank and returns a
@@ -5,7 +39,8 @@
 #'
 #' @param study List of Movebank project ids.
 #' @param login Stored Movebank login credentials if provided, otherwise function
-#'will prompt users to enter credentials.
+#'will prompt users to enter credentials. If credentials were saved with `opp_movebank_key`,
+#'this field will be ignored and login credentials will be automatically retrieved.
 #' @param start_month Earliest month (1-12) to include in output.
 #' @param end_month Latest month (1-12) to include in output.
 #' @param season Vector describing the season data can be applied to, eg. 'Breeding (Jun-Jul)'
@@ -27,6 +62,13 @@ opp_download_data <- function(study,
                               end_month = NULL,
                               season = NULL
 ) {
+
+  # If credentials were saved using opp_movebank_key, retrieve them
+  if (length(key_list(service = "OPP-Movebank")$username) == 1) {
+    mb_user <- key_list(service = "OPP-Movebank")$username
+    mb_pass <- key_get("OPP-Movebank")
+    login <- move::movebankLogin(username = mb_user, password = mb_pass)
+  }
 
   # Ask for movebank credentials if not provided
   if (is.null(login)) login <- move::movebankLogin()

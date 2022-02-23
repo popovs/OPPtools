@@ -1,12 +1,19 @@
 ---
-title: "Template Title"
-author: "Your Name"
-date: "The Date"
-output: output_format
+title: "OPP Diagnostic Report"
+author: "Allison Patterson & Sarah Popov"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = FALSE,
+                      message = FALSE,
+                      warning = FALSE,
+                      dpi = 300,
+                      fig.align = "center")
+
+library(OPPtools)
+library(kableExtra)
 ```
 
 ## Adding an RMarkdown Template

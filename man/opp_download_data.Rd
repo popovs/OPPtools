@@ -16,7 +16,8 @@ opp_download_data(
 \item{study}{List of Movebank project ids.}
 
 \item{login}{Stored Movebank login credentials if provided, otherwise function
-will prompt users to enter credentials.}
+will prompt users to enter credentials. If credentials were saved with \code{opp_movebank_key},
+this field will be ignored and login credentials will be automatically retrieved.}
 
 \item{start_month}{Earliest month (1-12) to include in output.}
 
