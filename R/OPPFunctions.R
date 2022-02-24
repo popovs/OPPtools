@@ -308,13 +308,19 @@ opp_map <- function(data) {
   coordsets <- sf::st_bbox(raw_tracks)
 
   trackplot <- ggplot2::ggplot(raw_tracks) +
+    ggplot2::borders("world",
+                     colour = "black",
+                     fill = grey(0.9),
+                     size = 0.3) +
     ggplot2::geom_sf(data = raw_tracks,
                      ggplot2::aes(col = deployment_id),
+                     size = 0.3,
+                     alpha = 0.75,
                      fill = NA) +
+    ggplot2::scale_colour_viridis_d() +
     ggplot2::coord_sf(xlim = c(coordsets$xmin, coordsets$xmax),
                       ylim = c(coordsets$ymin, coordsets$ymax),
                       expand = TRUE) +
-    ggplot2::borders("world", colour = "black", fill = NA) +
     ggplot2::geom_point(data = site,
                         ggplot2::aes(x = deploy_on_longitude,
                                      y = deploy_on_latitude),
@@ -322,12 +328,9 @@ opp_map <- function(data) {
                         color = "black",
                         pch = 21,
                         size = 2.5) +
-    ggplot2::theme(panel.background = ggplot2::element_rect(fill = "white",
-                                                            colour = "black"),
-                   legend.position = "none",
-                   panel.border = ggplot2::element_rect(colour = "black",
-                                                        fill = NA,
-                                                        size = 1)) +
+    ggplot2::theme_light() +
+    ggplot2::theme(text = ggplot2::element_text(size = 10)) +
+    ggplot2::guides(color = "none") +
     ggplot2::ylab("Latitude") +
     ggplot2::xlab("Longitude")
 
@@ -1459,7 +1462,7 @@ opp_map_tracks <- function(tracks,
     ggplot2::guides(color = 'none')
 
   if (show_locs == T) {
-    p <- p + ggplot2::geom_sf(data =tracks, ggplot2::aes(col = ID), size = 0.3, alpha = 0.75)  +
+    p <- p + ggplot2::geom_sf(data = tracks, ggplot2::aes(col = ID), size = 0.3, alpha = 0.75)  +
       ggplot2::geom_sf(data = center, fill = "dark orange",color = "black",pch = 21,size = 2.5)
   }
 
