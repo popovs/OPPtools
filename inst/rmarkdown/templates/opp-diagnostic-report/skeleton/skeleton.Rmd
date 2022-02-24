@@ -1,8 +1,25 @@
 ---
-title: "OPP Diagnostic Report"
+subtitle: "OPP Diagnostic Report"
 author: "Allison Patterson & Sarah Popov"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
-output: html_document
+output: 
+  pdf_document:
+    toc: true
+params:
+  movebank_id: NA
+  report_title: NA
+  breeding_pairs: NA
+  minDist: NA
+  maxDist: NA
+  minDur: NA
+  gapTime: NA
+  gapDist: NA
+  interpolateGaps: NA
+  timestep: NA
+  gridRes: NA
+  gridExtend: NA
+  speed: NA
+  mapZoom: NA
 ---
 
 ```{r setup, include=FALSE}
@@ -14,12 +31,11 @@ knitr::opts_chunk$set(echo = FALSE,
 
 library(OPPtools)
 library(kableExtra)
+
+dat <- opp_download_data(study = params$movebank_id)
+
 ```
 
-## Adding an RMarkdown Template
-
-This file is what a user will see when they select your template. Make sure that you update the fields in the yaml header. In particular you will want to update the `output` field to whatever format your template requires.
-
-This is a good place to demonstrate special features that your template provides. Ideally it should knit out-of-the-box, or at least contain clear instructions as to what needs changing.
-
-Finally, be sure to remove this message!
+---
+subtitle: "`r paste("Birb spp")``"
+---
