@@ -360,8 +360,8 @@ bbox_at_zoom <- function(locs, zoom_level = 7) {
 #' Change YAML header content
 #' @description This function updates the YAML content of a given Rmd file.
 #' YAML content is passed as a list via the dots argument of the function.
-#' @input_file Input .Rmd file with YAML to be updated
-#' @output_file Output .Rmd filename with updated YAML (optional; if left blank, updated .Rmd file will be printed in the console.)
+#' @param input_file Input .Rmd file with YAML to be updated
+#' @param output_file Output .Rmd filename with updated YAML (optional; if left blank, updated .Rmd file will be printed in the console.)
 #' @references Code from: https://stackoverflow.com/a/66908611/1454785
 #' @returns A .Rmd file with updated YAML content, either saved to the `output_file` path location or printed in the console.
 #' @export
