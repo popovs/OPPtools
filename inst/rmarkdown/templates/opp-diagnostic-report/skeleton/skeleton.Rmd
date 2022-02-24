@@ -22,6 +22,8 @@ params:
   gridExtend: NA
   speed: NA
   mapZoom: NA
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r setup, include=FALSE}
@@ -32,7 +34,8 @@ knitr::opts_chunk$set(echo = FALSE,
                       fig.align = "center")
 
 library(OPPtools)
-library(kableExtra)
+library(dplyr)
+library(data.table)
 
 dat <- opp_download_data(study = params$movebank_id)
 ```
@@ -43,16 +46,50 @@ dat <- opp_download_data(study = params$movebank_id)
 
 Between `r min(year(dat$timestamp))` and `r max(year(dat$timestamp))`, `r length(unique(dat$individual_id))` individual `r params$spp`s at the `r unique(dat$study_site)` colony were tagged and tracked with `r as.character(unique(dat$sensor_type))` tags.
 
-These `r length(unique(dat$individual_id))` individuals generated `r nrow(dat)` detections between `r min(dat$timestamp)` and `r max(dat$timestamp)`.
+These `r length(unique(dat$individual_id))` individuals generated `r nrow(dat)` detections between `r min(dat$timestamp)` UTC and `r max(dat$timestamp)` UTC.
 
-Data are stored on Movebank in project number `r params$movebank_id`.
+Data are stored on Movebank in project number `r as.character(params$movebank_id)`.
 
-```{r map}
+```{r map, fig.cap = "Map of raw GPS locations."}
 opp_map(dat)
 ```
 
-# Trip summary
+# Trips
 
-```{r}
+## Defining foraging trips
 
+Foraging trips were identified as any continuous track at least `r params$minDist` km from the colony, which lasted for a minimum of `r params$minDur` hours. Trips were considered incomplete if the trips started or ended more than `r params$maxDist` km from the colony. Trips were considered 'gappy' if there were gaps between successive locations greater than `r params$gapTime` hours, and the bird traveled farther than `r params$gapDist` km during that time. 
+
+The figures below show trips from each deployment, as defined by the criteria described above.
+
+```{r get trips}
+dat2 <- opp2KBA(dat)
+trips <- opp_get_trips(dat2,
+              innerBuff = params$minDist,
+              returnBuff = params$maxDist,
+              duration = params$minDur,
+              gapTime = params$gapTime,
+              gapDist = params$gapDist,
+              gapLimit = params$gapLimit)
+```
+
+## Trip summary
+
+```{r trip summary}
+ft <- trips@data %>%
+  filter(Type != 'Non-trip') %>% 
+  group_by(ID, tripID, Type) %>% 
+  mutate(
+    duration = as.numeric(difftime(max(DateTime), min(DateTime), units = 'hours'))
+  ) %>% 
+  group_by(Type) %>%
+  summarize(
+    `Number of trips` = length(unique(tripID)),
+    `Number of locations` = n(),
+    `Median duration (hrs)` = round(median(duration), 1),
+    `Median trip distance (km)` = round(median(max(ColDist))/1000, 1)
+    ) %>% 
+  flextable::flextable(cwidth =1.25)
+
+print(ft)
 ```
