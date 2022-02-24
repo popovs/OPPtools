@@ -14,6 +14,7 @@
 #'
 #' @param username Your Movebank username.
 #' @param set_keyring Logical (T/F). Set to TRUE if you would like to further password protect your Movebank credentials. You will be prompted for this password immediately upon running the function.
+#' @export
 
 opp_movebank_key <- function(username,
                              set_keyring = FALSE) {
@@ -31,6 +32,8 @@ opp_movebank_key <- function(username,
 
 
 }
+
+# -----
 
 #' Download OPP tracking data from Movebank
 #'
@@ -64,9 +67,9 @@ opp_download_data <- function(study,
 ) {
 
   # If credentials were saved using opp_movebank_key, retrieve them
-  if (length(key_list(service = "OPP-Movebank")$username) == 1) {
-    mb_user <- key_list(service = "OPP-Movebank")$username
-    mb_pass <- key_get("OPP-Movebank")
+  if (length(keyring::key_list(service = "OPP-Movebank")$username) == 1) {
+    mb_user <- keyring::key_list(service = "OPP-Movebank")$username
+    mb_pass <- keyring::key_get("OPP-Movebank")
     login <- move::movebankLogin(username = mb_user, password = mb_pass)
   }
 
@@ -1381,3 +1384,91 @@ opp_find_minDist <- function(data,
 
   out
 }
+
+# -----
+
+#' Creates maps of biologger tracks from output of opp2KBA, opp_get_trips, or ctcrw_interpolation
+#' @param tracks data.frame, sf points, or SpatialPointsDataFrame containing fields named ID, Longitude, and Latitude
+#' @param center Data frame containing columns 'Longitude' and 'Latitude' in decimal degrees,
+#' for plotting the colony or nest locations.
+#' @param coast_scale Mapping resolution for the coastline basemap. Must be one of: 10 - high resolution,
+#' 50 - medium resolution, 110 - low resolution.
+#' @param zoom NULL or numeric value from 1:16, indicating the zoom level for map. If left as NULL (default)
+#' map extent will be defined by the bounding box of tracks. If numeric value is provided, bounding box will
+#' be cenetered on the mean location in tracks at the zoom level provided.
+#' @param show_locs Logical. Should biologger locations be plotted as points?
+#' @param viridis_option A character string indicating the colormap option to
+#' use. Four options are available: "magma" (or "A"), "inferno" (or "B"), "plasma" (or "C"), "viridis" (or "D", the default option) and "cividis" (or "E").
+#' @returns A ggplot object
+#' @export
+#'
+opp_map_tracks <- function(tracks = my_interp$data,
+                          center = my_track2kba$site,
+                          zoom = NULL,
+                          coast_scale = 10,
+                          viridis_option = "D",
+                          show_locs = T) {
+  if (!('ID' %in% names(tracks)) | !('Longitude' %in% names(tracks)) | !('Latitude' %in% names(tracks))) stop('Tracks must contain fields: ID, Longitude, and Latitude.')
+
+
+  world <- rnaturalearth::ne_countries(scale = coast_scale, returnclass = 'sf')
+
+  if (class(tracks)[1] == "SpatialPointsDataFrame") tracks <- as(tracks, 'sf')
+
+  if (class(tracks)[1] == "data.frame") {
+    tracks <- sf::st_as_sf(tracks,
+                           coords = c("Longitude", "Latitude"),
+                           crs = '+proj=longlat') %>%
+      dplyr::mutate(tripID = ID)
+    tracks$Longitude <- sf::st_coordinates(tracks)[,1]
+    tracks$Latitude <- sf::st_coordinates(tracks)[,2]
+
+  }
+
+  tracks <- tracks %>%
+    dplyr::filter(tripID != -1) %>%
+    dplyr::group_by(ID, tripID) %>%
+    mutate(ID = factor(ID),
+           DiffTime = as.numeric(difftime(DateTime, dplyr::lag(DateTime), units = 'hour')),
+           DiffDist= getDist(lon = Longitude, lat = Latitude))
+  trips <- tracks %>%
+    dplyr::arrange(DateTime) %>%
+    dplyr::summarize(
+      TotalTime = sum(DiffTime, na.rm = T),
+      TotalDist = sum(DiffDist, na.rm = T),
+      do_union = FALSE,
+      .groups = 'drop'
+    ) %>%
+    sf::st_cast("LINESTRING")
+
+  if (!(coast_scale %in% c(10, 50, 110))) stop('coast_scale must be one of 10, 50, or 110')
+
+  center <- sf::st_as_sf(center, coords = c('Longitude', 'Latitude'), crs = sf::st_crs(trips))
+  world <- sf::st_transform(world, crs = sf::st_crs(trips))
+
+  if (is.null(zoom)) {
+    bb <- sf::st_bbox(trips)
+  } else bb <- bbox_at_zoom(locs = tracks, zoom_level = zoom)
+
+  p <- ggplot2::ggplot() +
+    ggplot2::geom_sf(data = world, fill = grey(0.9), size = 0.3) +
+    ggplot2::geom_sf(data =trips, ggplot2::aes(col = ID), size = 0.3, alpha = 0.75)  +
+    ggplot2::geom_sf(data = center, fill = "dark orange",
+                     color = "black",
+                     pch = 21,
+                     size = 2.5) +
+    ggplot2::scale_colour_viridis_d(option = viridis_option) +
+    ggplot2::theme_light() +
+    ggplot2::theme(text = ggplot2::element_text(size = 10))  +
+    ggplot2::guides(color = 'none')
+
+  if (show_locs == T) {
+    p <- p + ggplot2::geom_sf(data =tracks, ggplot2::aes(col = ID), size = 0.3, alpha = 0.75)  +
+      ggplot2::geom_sf(data = center, fill = "dark orange",color = "black",pch = 21,size = 2.5)
+  }
+
+  p <- p +
+    ggplot2::coord_sf(xlim = bb[c(1,3)],ylim = bb[c(2,4)],expand = T)
+  p
+}
+
