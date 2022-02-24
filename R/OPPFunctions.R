@@ -1428,7 +1428,7 @@ opp_map_tracks <- function(tracks = my_interp$data,
   tracks <- tracks %>%
     dplyr::filter(tripID != -1) %>%
     dplyr::group_by(ID, tripID) %>%
-    mutate(ID = factor(ID),
+    dplyr::mutate(ID = factor(ID),
            DiffTime = as.numeric(difftime(DateTime, dplyr::lag(DateTime), units = 'hour')),
            DiffDist= getDist(lon = Longitude, lat = Latitude))
   trips <- tracks %>%

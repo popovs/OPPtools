@@ -330,7 +330,7 @@ bbox_at_zoom <- function(locs, zoom_level = 7) {
 
   zoom_to <- sf::st_coordinates(locs) %>%
     as.data.frame() %>%
-    summarize(
+    dplyr::summarize(
       X = mean(X),
       Y = mean(Y)
     ) %>% sf::st_as_sf(coords = c('X','Y'), crs = sf::st_crs(locs))
