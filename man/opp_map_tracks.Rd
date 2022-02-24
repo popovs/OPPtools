@@ -5,8 +5,8 @@
 \title{Creates maps of biologger tracks from output of opp2KBA, opp_get_trips, or ctcrw_interpolation}
 \usage{
 opp_map_tracks(
-  tracks = my_interp$data,
-  center = my_track2kba$site,
+  tracks,
+  center = NULL,
   zoom = NULL,
   coast_scale = 10,
   viridis_option = "D",

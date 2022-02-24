@@ -1402,8 +1402,8 @@ opp_find_minDist <- function(data,
 #' @returns A ggplot object
 #' @export
 #'
-opp_map_tracks <- function(tracks = my_interp$data,
-                          center = my_track2kba$site,
+opp_map_tracks <- function(tracks,
+                          center = NULL,
                           zoom = NULL,
                           coast_scale = 10,
                           viridis_option = "D",
@@ -1443,7 +1443,7 @@ opp_map_tracks <- function(tracks = my_interp$data,
 
   if (!(coast_scale %in% c(10, 50, 110))) stop('coast_scale must be one of 10, 50, or 110')
 
-  center <- sf::st_as_sf(center, coords = c('Longitude', 'Latitude'), crs = sf::st_crs(trips))
+  if (!is.null(center)) center <- sf::st_as_sf(center, coords = c('Longitude', 'Latitude'), crs = sf::st_crs(trips))
   world <- sf::st_transform(world, crs = sf::st_crs(trips))
 
   if (is.null(zoom)) {
@@ -1453,10 +1453,6 @@ opp_map_tracks <- function(tracks = my_interp$data,
   p <- ggplot2::ggplot() +
     ggplot2::geom_sf(data = world, fill = grey(0.9), size = 0.3) +
     ggplot2::geom_sf(data =trips, ggplot2::aes(col = ID), size = 0.3, alpha = 0.75)  +
-    ggplot2::geom_sf(data = center, fill = "dark orange",
-                     color = "black",
-                     pch = 21,
-                     size = 2.5) +
     ggplot2::scale_colour_viridis_d(option = viridis_option) +
     ggplot2::theme_light() +
     ggplot2::theme(text = ggplot2::element_text(size = 10))  +
@@ -1466,6 +1462,11 @@ opp_map_tracks <- function(tracks = my_interp$data,
     p <- p + ggplot2::geom_sf(data =tracks, ggplot2::aes(col = ID), size = 0.3, alpha = 0.75)  +
       ggplot2::geom_sf(data = center, fill = "dark orange",color = "black",pch = 21,size = 2.5)
   }
+
+  if (!is.null(center)) {
+    p <- p + ggplot2::geom_sf(data = center, fill = "dark orange", color = "black", pch = 21, size = 2.5)
+  }
+
 
   p <- p +
     ggplot2::coord_sf(xlim = bb[c(1,3)],ylim = bb[c(2,4)],expand = T)
