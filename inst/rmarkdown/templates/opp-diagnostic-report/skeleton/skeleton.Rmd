@@ -73,23 +73,55 @@ trips <- opp_get_trips(dat2,
               gapLimit = params$gapLimit)
 ```
 
-## Trip summary
+## Defined trips
 
 ```{r trip summary}
 ft <- trips@data %>%
-  filter(Type != 'Non-trip') %>% 
-  group_by(ID, tripID, Type) %>% 
+  filter(Type != 'Non-trip') %>%
+  group_by(ID, tripID, Type) %>%
   mutate(
     duration = as.numeric(difftime(max(DateTime), min(DateTime), units = 'hours'))
-  ) %>% 
+  ) %>%
   group_by(Type) %>%
   summarize(
     `Number of trips` = length(unique(tripID)),
     `Number of locations` = n(),
     `Median duration (hrs)` = round(median(duration), 1),
     `Median trip distance (km)` = round(median(max(ColDist))/1000, 1)
-    ) %>% 
+    ) %>%
   flextable::flextable(cwidth =1.25)
 
 print(ft)
+```
+
+# Track interpolation
+
+Locations within complete, incomplete, and gappy trips were interpolated at a `r params$timestep` interval using a continuous time correlated random walk model. Figures below show the raw GPS locations (violet) overlain with the interpolated locations (green). Gaps in tracks during a trip, as defined above, were `r ifelse(params$interpolateGaps == F, 'not','')` interpolated.
+
+```{r interpolation}
+interp <- ctcrw_interpolation(trips,
+                    site = dat2$site,
+                    type = c('Complete', 'Incomplete', 'Gappy'),
+                    timestep = params$timestep,
+                    interpolateGaps = params$interpolateGaps)
+```
+
+## Interpolated trips summary
+
+```{r interpolated summary}
+my_trip_summary <- OPPtools::sum_trips(interp) %>% 
+  dplyr::mutate(duration = signif(duration, 3),
+         max_dist_km = signif(max_dist_km, 3),
+         departure = as.Date(departure)) %>% 
+  dplyr::select(tripID, raw_n_locs, interp_n_locs, departure, duration, max_dist_km, complete) %>% 
+  dplyr::rename(`Trip ID` = tripID,
+         `GPS fixes` = raw_n_locs,
+         `Interpolated locations` = interp_n_locs,
+         `Start date` = departure,
+         `Maximum distance (km)` = max_dist_km,
+         `Duration (hrs)` = duration,
+         Type = complete) %>% 
+  flextable::flextable(cwidth =c(1.25, 1, 1, 1.5, 1, 1, 1)) 
+
+n_tracks <- length(unique(my_interp$interp$ID))
 ```
