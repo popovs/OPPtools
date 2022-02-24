@@ -69,7 +69,7 @@ opp_download_data <- function(study,
   # If credentials were saved using opp_movebank_key, retrieve them
   if (length(keyring::key_list(service = "OPP-Movebank")$username) == 1) {
     mb_user <- keyring::key_list(service = "OPP-Movebank")$username
-    mb_pass <- keyring::key_get("OPP-Movebank")
+    mb_pass <- keyring::key_get("OPP-Movebank", username = mb_user)
     login <- move::movebankLogin(username = mb_user, password = mb_pass)
   }
 
