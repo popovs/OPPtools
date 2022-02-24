@@ -916,6 +916,10 @@ opp_kernel <- function(data,
     s <- opp_href(data = kd_data)
   }
 
+  if (smoother == "step") {
+    s <- opp_step(data = kd_data)
+  }
+
   if (is.numeric(smoother)) s <- smoother
 
   if (is.null(s)) stop("smoother must be a numeric value, 'step', or 'href'.")
@@ -1410,7 +1414,6 @@ opp_map_tracks <- function(tracks,
                           show_locs = T) {
   if (!('ID' %in% names(tracks)) | !('Longitude' %in% names(tracks)) | !('Latitude' %in% names(tracks))) stop('Tracks must contain fields: ID, Longitude, and Latitude.')
 
-
   world <- rnaturalearth::ne_countries(scale = coast_scale, returnclass = 'sf')
 
   if (class(tracks)[1] == "SpatialPointsDataFrame") tracks <- as(tracks, 'sf')
@@ -1473,3 +1476,162 @@ opp_map_tracks <- function(tracks,
   p
 }
 
+# -----
+#' Map and compare different UD smoothers for individual tracks
+#' @param uds Named list of estUDm or estUD objects to plot. As returned by opp_kernel.
+#' @param ud_levels List of numeric values between 1-99, indicting the utilization distribution levels to plot.
+#' @param tracks SpatialPointsDataFrame of location data used in opp_kernel.
+#' @param center Data frame containing columns 'Longitude' and 'Latitude' in decimal degrees,
+#' for plotting the colony or nest locations.
+#' @param coast_scale Mapping resolution for the coastline basemap. Must be one of: 10 - high resolution,
+#' 50 - medium resolution, 110 - low resolution.
+#' @param zoom NULL or numeric value from 1:16, indicating the zoom level for map. If left as NULL (default)
+#' map extent will be defined by the bounding box of tracks. If numeric value is provided, bounding box will
+#' be cenetered on the mean location in tracks at the zoom level provided.
+#' @param viridis_option A character string indicating the colormap option to
+#' use. Four options are available: "magma" (or "A"), "inferno" (or "B"), "plasma" (or "C"), "viridis" (or "D", the default option) and "cividis" (or "E").
+#' @returns A named list of ggplot objects, with one slot for each individual in uds.
+#'
+#' #'@examples
+#'
+#' my_data <- opp_download_data(study = c(1247096889),
+#'                              login = NULL, start_month = NULL,
+#'                              end_month = NULL,season = NULL)
+#'
+#' my_track2kba <- opp2KBA(data = my_data)
+#'
+#' my_trips <- opp_get_trips(data = my_track2kba, innerBuff  = 1, returnBuff = 10,
+#'                           duration  = 1, gapLimit = 100, gapTime = 1, gapDist = 12,
+#'                           showPlots = F)
+#'
+#' my_interp <- ctcrw_interpolation(data = my_trips,
+#'                                  site = my_track2kba$site,
+#'                                  type = c('Complete','Incomplete','Gappy'),
+#'                                  timestep = '10 min',
+#'                                  interpolateGaps = F,
+#'                                  showPlots = T,
+#'                                  theta = c(8,2),
+#'                                  quiet = F
+#' )
+#'
+#' (hh <- opp_href(my_interp$interp))
+#'
+#' my_ud_href1 <- opp_kernel(data = my_interp,
+#'                           interpolated = TRUE,
+#'                           smoother = hh/1,
+#'                           extendGrid = 30,
+#'                           res = 1)
+#'
+#' my_ud_href2 <- opp_kernel(data = my_interp,
+#'                           interpolated = TRUE,
+#'                           smoother = hh/2,
+#'                           extendGrid = 30,
+#'                           res = 1)
+#'
+#' my_plots_step <- opp_map_indUD(
+#'   uds = list(Href1 = my_ud_href1,Href2 = my_ud_href2),
+#'   tracks = my_interp$interp,
+#'   center = my_track2kba$site,
+#'   ud_levels = c(50,75,90),
+#'   coast_scale = 50,
+#'   viridis_option = 'A'
+#' )
+#'
+#' my_plots_step[[1]]
+#' my_plots_step[[2]]
+#' @export
+#'
+opp_map_indUD <- function(
+  uds,
+  ud_levels = c(50,95),
+  tracks,
+  center = NULL,
+  zoom = NULL,
+  coast_scale = 50,
+  viridis_option = "A"
+) {
+
+  if (!(class(uds[[1]]) %in% c("estUDm", "estUD"))) {stop('uds must be named list of estUDm or estUD object')}
+
+  if (!('ID' %in% names(tracks)) | !('Longitude' %in% names(tracks)) | !('Latitude' %in% names(tracks))) stop('Tracks must contain fields: ID, Longitude, and Latitude.')
+
+  world <- rnaturalearth::ne_countries(scale = coast_scale, returnclass = 'sf')
+
+  if (class(tracks)[1] == "SpatialPointsDataFrame") tracks <- as(tracks, 'sf')
+
+  tracks <- tracks %>%
+    dplyr::filter(tripID != -1) %>%
+    dplyr::group_by(ID, tripID) %>%
+    dplyr::mutate(ID = factor(ID),
+                  DiffTime = as.numeric(difftime(DateTime, dplyr::lag(DateTime), units = 'hour')),
+                  DiffDist= getDist(lon = Longitude, lat = Latitude))
+  trips <- tracks %>%
+    dplyr::arrange(DateTime) %>%
+    dplyr::summarize(
+      TotalTime = sum(DiffTime, na.rm = T),
+      TotalDist = sum(DiffDist, na.rm = T),
+      do_union = FALSE,
+      .groups = 'drop'
+    ) %>%
+    sf::st_cast("LINESTRING")
+
+  if (!(coast_scale %in% c(10, 50, 110))) stop('coast_scale must be one of 10, 50, or 110')
+
+  if (!is.null(center)) center <- sf::st_as_sf(center, coords = c('Longitude', 'Latitude'), crs = sf::st_crs(trips))
+  world <- sf::st_transform(world, crs = sf::st_crs(trips))
+
+  ud_levels <- sort(ud_levels, decreasing = T)
+  for (k in 1:length(uds)) {
+    for (j in 1:length(ud_levels)) {
+      temp <- adehabitatHR::getverticeshr(uds[[k]], percent = ud_levels[j])
+      temp$ud_level <- ud_levels[j]
+      temp$ud_type <- names(uds)[k]
+      temp <- as(temp, 'sf')
+      if (j == 1 & k == 1) ud_contours <- temp
+      if (j > 1 | k > 1) ud_contours <- rbind(ud_contours, y = temp)
+    }
+  }
+  ud_contours$ud_level <- factor(ud_contours$ud_level, levels = ud_levels)
+  ud_contours <- as(ud_contours, 'sf')
+
+  if (is.numeric(zoom)) bb <- bbox_at_zoom(locs = tracks, zoom_level = zoom)
+  if (is.null(zoom)) {bb <- sf::st_bbox(ud_contours)}
+
+  out <- vector(mode = 'list', length = length(unique(ud_contours$id)))
+  names(out) <- unique(ud_contours$id)
+
+  for (iid in unique(ud_contours$id)) {
+
+    ud_temp <- ud_contours[ud_contours$id == iid,]
+    ud_temp$ud_facets <- paste0('UD: ', ud_temp$ud_type, '   ID: ', ud_temp$id)
+    trips_temp <- trips[trips$ID == iid,]
+    tracks_temp <- tracks[tracks$ID == iid,]
+
+    p <- ggplot2::ggplot() +
+      ggplot2::geom_sf(data = world, fill = grey(0.9), size = 0.3) +
+      ggplot2::geom_sf(data =ud_temp, ggplot2::aes(fill = ud_level), color = 'transparent', size = 0.3, alpha = 0.5)  +
+      ggplot2::geom_sf(data =trips_temp, color = 'black', size = 0.3, alpha = 0.75, linetype = 3)  +
+      ggplot2::scale_colour_viridis_d(option = viridis_option, begin = 0.7, end = 0.9, direction = -1) +
+      ggplot2::scale_fill_viridis_d(option = viridis_option, begin = 0.7, end = 0.9, direction = -1) +
+      ggplot2::theme_light() +
+      ggplot2::theme(
+        legend.text = ggplot2::element_text(size = 10),
+        axis.text = ggplot2::element_text(size = 6, angle = 25, hjust = 1))  +
+      ggplot2::labs(fill = 'UD (%)') +
+      ggplot2::guides(color = 'none') +
+      ggplot2::facet_wrap(.~ud_facets, nrow = 1)+
+      ggplot2::geom_sf(data =tracks_temp, color = 'black', size = 0.3, alpha = 0.75)  +
+      ggplot2::geom_sf(data = center, fill = "dark orange",color = "black",pch = 21,size = 2.5)
+
+    if (!is.null(center)) {
+      p <- p + ggplot2::geom_sf(data = center, fill = "dark orange", color = "black", pch = 21, size = 2.5)
+    }
+
+    p <- p +
+      ggplot2::coord_sf(xlim = bb[c(1,3)],ylim = bb[c(2,4)],expand = T)
+
+    out[[iid]] <- p
+  }
+
+  return(out)
+}
