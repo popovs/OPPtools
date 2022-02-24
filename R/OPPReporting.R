@@ -38,3 +38,57 @@ opp_reports_cpf <- function(analysis_table = cpf_report_params,login = NULL, out
 
 }
 
+#' Render diagnostic report for a given species
+#'
+#' @description This function will generate a diagnostic report using the 'opp-diagnostic-report' RMarkdown template in `OPPtools`, with options to save the generated report as an .Rmd file in addition to the output PDF.
+#'
+#' @param params List of 16 parameter values used to generate report.
+#' @param save_rmd Logical (T/F). Should the .Rmd file used to generate the PDF report be saved as well?
+#' @param output_dir Output directory for generated files. Defaults to 'temp'. If the directory does not exist, the script will create the directory.
+#'
+#' @export
+
+render_diagnostic <- function(params,
+                              save_rmd = FALSE,
+                              output_dir = 'temp',
+                              ...) {
+
+  # Data health checks
+  params <- as.list(params)
+  if (class(params) != 'list') {
+    stop("Your passed params must be class 'list'.")
+  }
+  if (length(params) != 16) {
+    stop("Your passed params list is the incorrect length. Ensure you provide the 16 necessary params.")
+  }
+
+  # Create output dir & file
+  dir.create(output_dir, showWarnings = FALSE, recursive = TRUE)
+  filename <- params$file_name # set filename
+
+  # Modify params list
+  names(params)[grep("mb", names(params))] <- "movebank_id" # rename 'mb_project_num' to 'movebank_id', if exists
+  params <- params[-grep("file_name", names(params))] # remove 'file_name'
+
+  # If saving Rmd file, generate and save it
+  if (save_rmd == TRUE) {
+    rmd_out <- paste0(file.path(output_dir, filename), ".Rmd")
+    rmarkdown::draft(rmd_out,
+                     template = "opp-diagnostic-report",
+                     package = "OPPtools",
+                     edit = FALSE)
+    change_yaml_matter(rmd_out,
+                       output_file = rmd_out,
+                       params = params) # Could still be improved
+  }
+
+  # Render the file with the modified params
+  rmarkdown::render(
+    "inst/rmarkdown/templates/opp-diagnostic-report/skeleton/skeleton.Rmd",
+    params = params,
+    output_dir = output_dir,
+    output_file = paste0(filename, ".pdf"),
+    envir = new.env()
+  )
+}
+
