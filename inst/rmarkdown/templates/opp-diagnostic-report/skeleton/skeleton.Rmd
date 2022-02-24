@@ -91,9 +91,10 @@ ft <- trips@data %>%
     ) %>%
   flextable::flextable(cwidth =1.25)
 
-print(ft)
+ft
 ```
 
+\newpage
 # Track interpolation
 
 Locations within complete, incomplete, and gappy trips were interpolated at a `r params$timestep` interval using a continuous time correlated random walk model. Figures below show the raw GPS locations (violet) overlain with the interpolated locations (green). Gaps in tracks during a trip, as defined above, were `r ifelse(params$interpolateGaps == F, 'not','')` interpolated.
@@ -121,7 +122,9 @@ my_trip_summary <- OPPtools::sum_trips(interp) %>%
          `Maximum distance (km)` = max_dist_km,
          `Duration (hrs)` = duration,
          Type = complete) %>% 
-  flextable::flextable(cwidth =c(1.25, 1, 1, 1.5, 1, 1, 1)) 
+  flextable::flextable(cwidth =c(1.25, 1, 1, 1, 1, 1, 1)) 
 
-n_tracks <- length(unique(my_interp$interp$ID))
+my_trip_summary
+
+n_tracks <- length(unique(interp$interp$ID))
 ```

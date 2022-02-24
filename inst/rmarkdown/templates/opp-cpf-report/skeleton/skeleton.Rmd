@@ -132,7 +132,6 @@ my_interp <- ctcrw_interpolation(data = my_trips,
 This table provides summary statistics for each trip included in the analysis. Including a comparison of the number of GPS fixes relative to the interpolated locations.
 
 ```{r trip_summary, echo=FALSE, message=FALSE, warning=FALSE}
-
 my_trip_summary <- OPPtools::sum_trips(my_interp) %>% 
   dplyr::mutate(duration = signif(duration, 3),
          max_dist_km = signif(max_dist_km, 3),
@@ -148,7 +147,6 @@ my_trip_summary <- OPPtools::sum_trips(my_interp) %>%
   flextable::flextable(cwidth =c(1.25, 1, 1, 1.5, 1, 1, 1)) 
 
 n_tracks <- length(unique(my_interp$interp$ID))
-
 ```
 
 
