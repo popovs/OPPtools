@@ -1,4 +1,5 @@
 ---
+title: "`r params$report_title`"
 subtitle: "OPP Diagnostic Report"
 author: "Allison Patterson & Sarah Popov"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
@@ -8,6 +9,7 @@ output:
 params:
   movebank_id: NA
   report_title: NA
+  spp: NA
   breeding_pairs: NA
   minDist: NA
   maxDist: NA
@@ -33,9 +35,24 @@ library(OPPtools)
 library(kableExtra)
 
 dat <- opp_download_data(study = params$movebank_id)
-
 ```
 
----
-subtitle: "`r paste("Birb spp")``"
----
+\newpage
+
+# Summary
+
+Between `r min(year(dat$timestamp))` and `r max(year(dat$timestamp))`, `r length(unique(dat$individual_id))` individual `r params$spp`s at the `r unique(dat$study_site)` colony were tagged and tracked with `r as.character(unique(dat$sensor_type))` tags.
+
+These `r length(unique(dat$individual_id))` individuals generated `r nrow(dat)` detections between `r min(dat$timestamp)` and `r max(dat$timestamp)`.
+
+Data are stored on Movebank in project number `r params$movebank_id`.
+
+```{r map}
+opp_map(dat)
+```
+
+# Trip summary
+
+```{r}
+
+```
