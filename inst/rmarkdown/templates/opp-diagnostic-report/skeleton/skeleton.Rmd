@@ -110,7 +110,33 @@ interp <- ctcrw_interpolation(trips,
 ## Interpolated trips summary
 
 ```{r interpolated map, fig.caption = "Map of interpolated tracks."}
-opp_map_tracks(interp$interp)
+# Raw GPS data
+p_gps <- opp_map_tracks(tracks = dat2,
+               center = dat2$site,
+               zoom = 7,
+               coast_scale = 10,
+               viridis_option = "D",
+               show_locs = T)
+
+# Raw trip data
+p_raw <- opp_map_tracks(tracks = interp$data,
+               center = dat2$site,
+               zoom = 7,
+               coast_scale = 10,
+               viridis_option = "D",
+               show_locs = T)
+
+# Interpolated data
+p_int <- opp_map_tracks(tracks = interp$interp,
+               center = dat2$site,
+               zoom = 7,
+               coast_scale = 10,
+               viridis_option = "D",
+               show_locs = T)
+
+print(ggpubr::ggarrange(p_gps, p_raw, p_int,
+                        ncol = 3,
+                        labels = c("GPS points", "Raw tracks", "Interpolated tracks")))
 ```
 
 ```{r interpolated summary}
