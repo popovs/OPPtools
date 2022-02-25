@@ -1619,7 +1619,9 @@ opp_map_indUD <- function(
       ggplot2::theme_light() +
       ggplot2::theme(
         legend.text = ggplot2::element_text(size = 10),
-        axis.text = ggplot2::element_text(size = 6, angle = 25, hjust = 1))  +
+        axis.text = ggplot2::element_text(size = 6, hjust = 1),
+        axis.text.x = ggplot2::element_text(angle = 90),
+        )  +
       ggplot2::labs(fill = 'UD (%)') +
       ggplot2::guides(color = 'none') +
       ggplot2::facet_wrap(.~ud_facets, nrow = 1)+
