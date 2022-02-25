@@ -29,7 +29,7 @@ opp_reports_cpf <- function(analysis_table = cpf_report_params,login = NULL, out
 
     dat <- analysis_table[i,]
 
-    rmarkdown::render(input = "inst/rmarkdown/templates/report_pdf/opp_cpf_report_template.Rmd",
+    rmarkdown::render(input = "inst/rmarkdown/templates/opp-cpf-report/skeleton/skeleton.Rmd",
                       output_format = "pdf_document",
                       output_file = paste0(dat$file_name, ".pdf"),
                       output_dir = output_dir)
