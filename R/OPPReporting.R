@@ -51,6 +51,7 @@ opp_reports_cpf <- function(analysis_table = cpf_report_params,login = NULL, out
 render_diagnostic <- function(params,
                               save_rmd = FALSE,
                               output_dir = 'temp',
+                              out_format = 'html_document',
                               ...) {
 
   # Data health checks
@@ -93,7 +94,8 @@ render_diagnostic <- function(params,
     "inst/rmarkdown/templates/opp-diagnostic-report/skeleton/skeleton.Rmd",
     params = params,
     output_dir = output_dir,
-    output_file = paste0(filename, ".pdf"),
+    output_file = paste0(filename, ifelse(out_format == 'pdf_document','.pdf', '.html')),
+    output_format = out_format,
     envir = new.env()
   )
 }
