@@ -109,6 +109,10 @@ interp <- ctcrw_interpolation(trips,
 
 ## Interpolated trips summary
 
+```{r interpolated map, fig.caption = "Map of interpolated tracks."}
+opp_map_tracks(interp$interp)
+```
+
 ```{r interpolated summary}
 my_trip_summary <- OPPtools::sum_trips(interp) %>% 
   dplyr::mutate(duration = signif(duration, 3),
@@ -125,6 +129,98 @@ my_trip_summary <- OPPtools::sum_trips(interp) %>%
   flextable::flextable(cwidth =c(1.25, 1, 1, 1, 1, 1, 1)) 
 
 my_trip_summary
+```
 
+```{r short report}
+# Report will end here if there are fewer than 20 tracks in the dataset
 n_tracks <- length(unique(interp$interp$ID))
+
+show.text <- n_tracks < 20
+```
+
+```{r conditional block, results = 'asis', eval = show.text}
+cat("#### Low track sample size.
+    
+The number of tracks available is insufficient for generating accurate kernel density estimates.")
+```
+
+```{r abort small sample size}
+if (n_tracks < 20) knitr::knit_exit()
+```
+
+# Kernel density estimates
+
+Given the sensitivity of kernel density estimates to the kernel smoother, it is important to choose the appropriate kernel smoother for a given species. These plots can be used to choose an appropriate final smoothing parameter for the final data products.
+
+```{r calc kernels}
+h <- opp_href(interp$interp)
+s <- opp_step(interp$interp)
+s <- ifelse(s < 1, 1, s)
+
+href_ud <- opp_kernel(interp,
+                      interpolated = TRUE,
+                      smoother = "href",
+                      extendGrid = 30,
+                      res = 1)
+
+step_ud <- opp_kernel(interp,
+                      interpolated = TRUE,
+                      smoother = s,
+                      extendGrid = 30,
+                      res = 1)
+
+bbmm_ud <- opp_bbmm(interp,
+                    extendGrid = 30,
+                    res = 1)
+```
+
+`r if(s == 1){"The step function resulted in a value of less than 1. All 'step' UDs were therefore instead calculated with a smoother value = 1."}`
+
+<!--## Population level-->
+
+```{r population level kernel, eval = FALSE}
+# Combine all tracks
+# pop_tracks <- interp$interp %>%
+#   as('sf') %>%
+#   dplyr::filter(tripID != -1) %>%
+#   dplyr::group_by(ID, tripID) %>%
+#   dplyr::mutate(ID = factor(ID),
+#                 DiffTime = as.numeric(difftime(DateTime, dplyr::lag(DateTime), units = 'hour')),
+#                 DiffDist= getDist(lon = Longitude, lat = Latitude)) %>%
+#   dplyr::arrange(DateTime) %>%
+#   dplyr::summarize(
+#     TotalTime = sum(DiffTime, na.rm = T),
+#     TotalDist = sum(DiffDist, na.rm = T),
+#     do_union = FALSE,
+#     .groups = 'drop'
+#     ) %>%
+#   sf::st_cast("LINESTRING")
+# 
+# # Unweighted stacked kernels
+# pop_href <- ud_stack(href_ud)
+# pop_step <- ud_stack(step_ud)
+# 
+# # Using a combination of aggregate and sum_trips, 
+# # let's pull out the number of locations per animal
+# n_locs <- suppressMessages(aggregate(interp_n_locs ~ ID, data = sum_trips(interp), sum)[[2]])
+# 
+# # Stack our kernels, weighted by n_locs
+# pop_hrefw <- ud_stack(href_ud, n_locs)
+# pop_stepw <- ud_stack(step_ud, n_locs)
+# 
+# pop_uds <- list()
+# 
+# pop_uds[["unweighted href"]] <- ud_vol(pop_href, lowerVol = 50, upperVol = 95)
+# pop_uds[["unweighted step"]] <- ud_vol(pop_step, lowerVol = 50, upperVol = 95)
+# pop_uds[["weighted href"]] <- ud_vol(pop_hrefw, lowerVol = 50, upperVol = 95)
+# pop_uds[["weighted step"]] <- ud_vol(pop_stepw, lowerVol = 50, upperVol = 95)
+```
+
+## Individual level
+
+```{r plot kernels}
+opp_map_indUD(list(step = step_ud,
+                   href = href_ud,
+                   bbmm = bbmm_ud),
+              tracks = interp$interp)
 ```
