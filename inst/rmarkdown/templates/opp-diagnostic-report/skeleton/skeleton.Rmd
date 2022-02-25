@@ -219,8 +219,17 @@ bbmm_ud <- opp_bbmm(interp,
 ## Individual level
 
 ```{r plot kernels}
-opp_map_indUD(list(step = step_ud,
-                   href = href_ud,
-                   bbmm = bbmm_ud),
-              tracks = interp$interp)
+pp <- opp_map_indUD(list(step = step_ud,
+                         href = href_ud,
+                         bbmm = bbmm_ud),
+                    tracks = interp$interp,
+                    center = dat2$site,
+                    ud_levels = c(50, 95),
+                    zoom = NULL,
+                    coast_scale = 50,
+                    viridis_option = "A")
+
+for (i in 1:length(pp)) {
+  print(pp[[i]])
+}
 ```
