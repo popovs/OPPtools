@@ -72,7 +72,9 @@ render_diagnostic <- function(params,
 
   # If saving Rmd file, generate and save it
   if (save_rmd == TRUE) {
-    rmd_out <- paste0(file.path(output_dir, filename), ".Rmd")
+    rmd_dir <- paste0(file.path(output_dir, filename))
+    dir.create(rmd_dir, showWarnings = FALSE)
+    rmd_out <- paste0(file.path(rmd_dir, filename), ".Rmd")
     rmarkdown::draft(rmd_out,
                      template = "opp-diagnostic-report",
                      package = "OPPtools",
@@ -80,6 +82,10 @@ render_diagnostic <- function(params,
     change_yaml_matter(rmd_out,
                        output_file = rmd_out,
                        params = params) # Could still be improved
+
+    # If save_rmd true, update output dir
+    # This is so Rmd & PDF are in nice little folder together
+    output_dir <- rmd_dir
   }
 
   # Render the file with the modified params
