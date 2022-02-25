@@ -1415,6 +1415,7 @@ opp_map_tracks <- function(tracks,
                           coast_scale = 10,
                           viridis_option = "D",
                           show_locs = T) {
+
   if (!('ID' %in% names(tracks)) | !('Longitude' %in% names(tracks)) | !('Latitude' %in% names(tracks))) stop('Tracks must contain fields: ID, Longitude, and Latitude.')
 
   world <- rnaturalearth::ne_countries(scale = coast_scale, returnclass = 'sf')
@@ -1450,10 +1451,12 @@ opp_map_tracks <- function(tracks,
   if (!(coast_scale %in% c(10, 50, 110))) stop('coast_scale must be one of 10, 50, or 110')
 
   if (!is.null(center)) center <- sf::st_as_sf(center, coords = c('Longitude', 'Latitude'), crs = sf::st_crs(trips))
+  tracks <- sf::st_transform(tracks, crs = sf::st_crs(4326))
+  trips <- sf::st_transform(trips, crs = sf::st_crs(4326))
   world <- sf::st_transform(world, crs = sf::st_crs(trips))
 
   if (is.null(zoom)) {
-    bb <- sf::st_bbox(trips)
+    bb <- sf::st_bbox(tracks)
   } else bb <- bbox_at_zoom(locs = tracks, zoom_level = zoom)
 
   p <- ggplot2::ggplot() +
@@ -1472,7 +1475,6 @@ opp_map_tracks <- function(tracks,
   if (!is.null(center)) {
     p <- p + ggplot2::geom_sf(data = center, fill = "dark orange", color = "black", pch = 21, size = 2.5)
   }
-
 
   p <- p +
     ggplot2::coord_sf(xlim = bb[c(1,3)],ylim = bb[c(2,4)],expand = T)

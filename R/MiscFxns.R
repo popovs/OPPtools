@@ -331,8 +331,8 @@ bbox_at_zoom <- function(locs, zoom_level = 7) {
   zoom_to <- sf::st_coordinates(locs) %>%
     as.data.frame() %>%
     dplyr::summarize(
-      X = mean(X),
-      Y = mean(Y)
+      X = ((max(X) - min(X))/2) + min(X),
+      Y = ((max(Y) - min(Y))/2) + min(Y)
     ) %>% sf::st_as_sf(coords = c('X','Y'), crs = sf::st_crs(locs))
 
   if (sf::st_is_longlat(zoom_to) == T) {
@@ -341,7 +341,7 @@ bbox_at_zoom <- function(locs, zoom_level = 7) {
   } else {
     C <- 40075016.686   # ~ circumference of Earth in meters
     lon_span <- C / 2^zoom_level
-    lat_span <- C / 2^(zoom_level+1)
+    lat_span <- C / 2^(zoom_level)
   }
 
   cc <- sf::st_coordinates(zoom_to)
