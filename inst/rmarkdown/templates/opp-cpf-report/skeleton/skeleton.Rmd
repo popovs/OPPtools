@@ -27,8 +27,8 @@ interpolateGaps <- dat$interpolateGaps
 timestep <- dat$timestep
 if(is.na(dat$breeding_pairs[i])) popSize <- NULL else popSize <- dat$breeding_pairs[i]*2
 
-study_data <- move::getMovebankStudy(study = project, login = mb_login)
-dep_data <- move::getMovebankReferenceTable(study = project, login = mb_login)
+study_data <- move::getMovebankStudy(study = project, login = login)
+dep_data <- move::getMovebankReferenceTable(study = project, login = login)
 
 my_data <- opp_download_data(study = c(project),
                              login = mb_login,
