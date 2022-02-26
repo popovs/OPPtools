@@ -107,17 +107,10 @@ interp <- ctcrw_interpolation(trips,
                     interpolateGaps = params$interpolateGaps)
 ```
 
+\newpage
 ## Interpolated trips summary
 
-```{r interpolated map, fig.caption = "Map of interpolated tracks."}
-# Raw GPS data
-p_gps <- opp_map_tracks(tracks = dat2,
-               center = dat2$site,
-               zoom = 7,
-               coast_scale = 10,
-               viridis_option = "D",
-               show_locs = T)
-
+```{r interpolated map, fig.height=7, fig.caption = "Map of interpolated tracks."}
 # Raw trip data
 p_raw <- opp_map_tracks(tracks = interp$data,
                center = dat2$site,
@@ -134,11 +127,14 @@ p_int <- opp_map_tracks(tracks = interp$interp,
                viridis_option = "D",
                show_locs = T)
 
-print(ggpubr::ggarrange(p_gps, p_raw, p_int,
-                        ncol = 3,
-                        labels = c("GPS points", "Raw tracks", "Interpolated tracks")))
+print(ggpubr::ggarrange(p_raw, p_int,
+                        ncol = 1,
+                        labels = c("Raw tracks", "Interpolated tracks"),
+                        align = "v")
+      )
 ```
 
+\newpage
 ```{r interpolated summary}
 my_trip_summary <- OPPtools::sum_trips(interp) %>% 
   dplyr::mutate(duration = signif(duration, 3),
@@ -152,7 +148,7 @@ my_trip_summary <- OPPtools::sum_trips(interp) %>%
          `Maximum distance (km)` = max_dist_km,
          `Duration (hrs)` = duration,
          Type = complete) %>% 
-  flextable::flextable(cwidth =c(1.25, 1, 1, 1, 1, 1, 1)) 
+  flextable::flextable(cwidth =c(1, 0.8, 0.8, 1, 0.8, 1, 0.8))
 
 my_trip_summary
 ```
@@ -186,6 +182,12 @@ s <- ifelse(s < 1, 1, s)
 href_ud <- opp_kernel(interp,
                       interpolated = TRUE,
                       smoother = "href",
+                      extendGrid = 30,
+                      res = 1)
+
+href0.5_ud <- opp_kernel(interp,
+                      interpolated = TRUE,
+                      smoother = (h/2),
                       extendGrid = 30,
                       res = 1)
 
@@ -247,6 +249,7 @@ bbmm_ud <- opp_bbmm(interp,
 ```{r plot kernels}
 pp <- opp_map_indUD(list(step = step_ud,
                          href = href_ud,
+                         href_half = href0.5_ud,
                          bbmm = bbmm_ud),
                     tracks = interp$interp,
                     center = dat2$site,
