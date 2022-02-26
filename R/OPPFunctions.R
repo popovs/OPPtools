@@ -1453,7 +1453,8 @@ opp_map_tracks <- function(tracks,
   if (!is.null(center)) center <- sf::st_as_sf(center, coords = c('Longitude', 'Latitude'), crs = sf::st_crs(trips))
   tracks <- sf::st_transform(tracks, crs = sf::st_crs(4326))
   trips <- sf::st_transform(trips, crs = sf::st_crs(4326))
-  world <- sf::st_transform(world, crs = sf::st_crs(trips))
+  center <- sf::st_transform(center, crs = sf::st_crs(4326))
+  world <- sf::st_transform(world, crs = sf::st_crs(4326))
 
   if (is.null(zoom)) {
     bb <- sf::st_bbox(tracks)
