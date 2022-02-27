@@ -540,7 +540,6 @@ opp_get_trips <- function(data,
       tripTime = as.numeric(difftime(max(DateTime), min(DateTime), units = 'hour')),
       Type = NA,
       Type = ifelse(ColDist[1] > returnBuff * 1000 | ColDist[dplyr::n()] > returnBuff * 1000, 'Incomplete', Type),
-      #Type = ifelse(max(dt, na.rm = T) > tripTime * missingLocs, 'Gappy', Type),
       Type = ifelse(max(flag, na.rm = T) > 0, 'Gappy', Type),
       Type = ifelse(tripID == -1, 'Non-trip', Type),
       Type = ifelse(n < 3, 'Non-trip', Type),
@@ -563,30 +562,10 @@ opp_get_trips <- function(data,
   dummy <- data.frame(Type = c('Non-trip', 'Incomplete', 'Gappy', 'Complete'))
 
   if (showPlots == TRUE) {
-    for (i in idx) {
-
-      intdat <- trips_type[trips_type$ID %in% bb[i:(i+(plotsPerPage-1))],]
-
-      p <- ggplot2::ggplot(intdat) +
-        ggplot2::geom_line(ggplot2::aes(x = DateTime, y = ColDist/1000), linetype = 3) +
-        ggplot2::geom_point(size = 1, ggplot2::aes(x = DateTime, y = ColDist/1000, col = Type))  +
-        ggplot2::geom_hline(yintercept = c(innerBuff, returnBuff), linetype = 2, col = 'black') +
-        ggplot2::facet_wrap(facets = . ~ ID, ncol = 2, scales = 'free') +
-        ggplot2::labs(x = 'Time', y = 'Distance from colony (km)', col = 'Trip type') +
-        ggplot2::geom_blank(data = dummy, ggplot2::aes(col = Type)) +
-        ggplot2::scale_color_viridis_d() +
-        ggplot2::theme_light() +
-        ggplot2::theme(
-          text = ggplot2::element_text(size = 9),
-          axis.text.x = ggplot2::element_text(size = 7)
-        )
-
-      print(p)
-      #readline('')
-    }
-    message('Use back arrow in plot pane to browse all plots')
-
+    plot_trip_dist(trips, plotsPerPage = plotsPerPage, showPlots = showPlots,
+                                 innerBuff = innerBuff, returnBuff = returnBuff)
   }
+
   return(trips)
 }
 
