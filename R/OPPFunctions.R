@@ -1400,7 +1400,7 @@ opp_map_tracks <- function(tracks,
 
   p <- ggplot2::ggplot() +
     ggplot2::geom_sf(data = world, fill = grey(0.9), size = 0.3) +
-    ggplot2::geom_sf(data =trips, ggplot2::aes(col = ID), size = 0.3, alpha = 0.75)  +
+    ggplot2::geom_sf(data =trips, ggplot2::aes(col = ID), size = 0.3, alpha = 0.75, linetype = 3)  +
     ggplot2::scale_colour_viridis_d(option = viridis_option) +
     ggplot2::theme_light() +
     ggplot2::theme(text = ggplot2::element_text(size = 10))  +
