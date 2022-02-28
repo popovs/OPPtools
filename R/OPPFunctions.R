@@ -540,7 +540,6 @@ opp_get_trips <- function(data,
       tripTime = as.numeric(difftime(max(DateTime), min(DateTime), units = 'hour')),
       Type = NA,
       Type = ifelse(ColDist[1] > returnBuff * 1000 | ColDist[dplyr::n()] > returnBuff * 1000, 'Incomplete', Type),
-      #Type = ifelse(max(dt, na.rm = T) > tripTime * missingLocs, 'Gappy', Type),
       Type = ifelse(max(flag, na.rm = T) > 0, 'Gappy', Type),
       Type = ifelse(tripID == -1, 'Non-trip', Type),
       Type = ifelse(n < 3, 'Non-trip', Type),
@@ -563,30 +562,10 @@ opp_get_trips <- function(data,
   dummy <- data.frame(Type = c('Non-trip', 'Incomplete', 'Gappy', 'Complete'))
 
   if (showPlots == TRUE) {
-    for (i in idx) {
-
-      intdat <- trips_type[trips_type$ID %in% bb[i:(i+(plotsPerPage-1))],]
-
-      p <- ggplot2::ggplot(intdat) +
-        ggplot2::geom_line(ggplot2::aes(x = DateTime, y = ColDist/1000), linetype = 3) +
-        ggplot2::geom_point(size = 1, ggplot2::aes(x = DateTime, y = ColDist/1000, col = Type))  +
-        ggplot2::geom_hline(yintercept = c(innerBuff, returnBuff), linetype = 2, col = 'black') +
-        ggplot2::facet_wrap(facets = . ~ ID, ncol = 2, scales = 'free') +
-        ggplot2::labs(x = 'Time', y = 'Distance from colony (km)', col = 'Trip type') +
-        ggplot2::geom_blank(data = dummy, ggplot2::aes(col = Type)) +
-        ggplot2::scale_color_viridis_d() +
-        ggplot2::theme_light() +
-        ggplot2::theme(
-          text = ggplot2::element_text(size = 9),
-          axis.text.x = ggplot2::element_text(size = 7)
-        )
-
-      print(p)
-      #readline('')
-    }
-    message('Use back arrow in plot pane to browse all plots')
-
+    plot_trip_dist(trips, plotsPerPage = plotsPerPage, showPlots = showPlots,
+                   innerBuff = innerBuff, returnBuff = returnBuff)
   }
+
   return(trips)
 }
 
@@ -738,49 +717,8 @@ ctcrw_interpolation <- function(data,
   )
 
   if (showPlots == T) {
-    bb <- unique(pred$ID)
-    idx <- seq(1,length(bb), by = plotsPerPage)
-    pal <- hcl.colors(4, "viridis")
-
-    for (i in idx) {
-
-      intdat <- pred[pred$ID %in% bb[i:(i + plotsPerPage - 1)],]@data
-      intdat$Type <- 'Interpolated'
-      obsdat <- orig_loc[orig_loc$ID %in% bb[i:(i + plotsPerPage - 1)],]@data
-      obsdat$Type <- 'Raw'
-
-      plotdat <- rbind(intdat[,c('ID','DateTime','ColDist','Type', 'tripID')],
-                       obsdat[,c('ID','DateTime','ColDist','Type', 'tripID')])
-      plotdat$Type <- factor(plotdat$Type, levels = c('Interpolated', 'Raw'))
-
-      pl <- c('Raw' = pal[1], 'Interpolated' = pal[3])
-      lt <- c('Raw' =3, 'Interpolated' = 2)
-
-      p <- ggplot2::ggplot(plotdat, ggplot2::aes(x = DateTime, y = ColDist/1000)) +
-        ggplot2::geom_line(data = plotdat[plotdat$Type == 'Raw',],
-                           ggplot2::aes(col = Type, linetype = Type)) +
-        ggplot2::geom_point(data = plotdat[plotdat$Type == 'Raw',],
-                            ggplot2::aes(col = Type), size = 1.5, shape = 1) +
-        ggplot2::geom_line(data = plotdat[plotdat$Type == 'Interpolated',],
-                           ggplot2::aes(col = Type, linetype = Type, group = tripID)) +
-        ggplot2::geom_point(data = plotdat[plotdat$Type == 'Interpolated',],
-                            ggplot2::aes(col = Type), size = 1.5, shape = 1) +
-        ggplot2::facet_wrap(facets = . ~ ID, nrow = 2, scales = 'free') +
-        ggplot2::labs(x = 'Time', y = 'Distance from colony (km)') +
-        ggplot2::scale_colour_manual(values = pl) +
-        ggplot2::scale_linetype_manual(values = lt) +
-        ggplot2::theme_light() +
-        ggplot2::theme(
-          text = ggplot2::element_text(size = 9),
-          axis.text.x = ggplot2::element_text(size = 7)
-        )
-
-      print(p)
-      #readline('')
-    }
-    message('Use back arrow in plot pane to browse all plots')
-
-  }
+    pp <- plot_interp_dist(data = out, showPlots = showPlots, plotsPerPage = plotsPerPage)
+ }
   return(out)
 }
 
@@ -1462,7 +1400,7 @@ opp_map_tracks <- function(tracks,
 
   p <- ggplot2::ggplot() +
     ggplot2::geom_sf(data = world, fill = grey(0.9), size = 0.3) +
-    ggplot2::geom_sf(data =trips, ggplot2::aes(col = ID), size = 0.3, alpha = 0.75)  +
+    ggplot2::geom_sf(data =trips, ggplot2::aes(col = ID), size = 0.3, alpha = 0.75, linetype = 3)  +
     ggplot2::scale_colour_viridis_d(option = viridis_option) +
     ggplot2::theme_light() +
     ggplot2::theme(text = ggplot2::element_text(size = 10))  +
@@ -1621,7 +1559,8 @@ opp_map_indUD <- function(
       ggplot2::scale_fill_viridis_d(option = viridis_option, begin = 0.7, end = 0.9, direction = -1) +
       ggplot2::theme_light() +
       ggplot2::theme(
-        legend.text = ggplot2::element_text(size = 10),
+        text = ggplot2::element_text(size = 8),
+        legend.text = ggplot2::element_text(size = 8),
         axis.text = ggplot2::element_text(size = 6, hjust = 1),
         axis.text.x = ggplot2::element_text(angle = 90),
         )  +

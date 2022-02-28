@@ -4,7 +4,13 @@
 \alias{render_diagnostic}
 \title{Render diagnostic report for a given species}
 \usage{
-render_diagnostic(params, save_rmd = FALSE, output_dir = "temp", ...)
+render_diagnostic(
+  params,
+  save_rmd = FALSE,
+  output_dir = "temp",
+  out_format = "html_document",
+  ...
+)
 }
 \arguments{
 \item{params}{List of 16 parameter values used to generate report.}
