@@ -29,9 +29,9 @@ away from the colony. Used to label trips as 'Incomplete'. Defaults to 20.}
 \value{
 A list of ggplot objects. If plotsPerPage == 1, then each object is
 named after the corresponding deployment ID in data. If plotsPerPage > 1 then
-the function returns an unamed list of ggplot obejcts.
+the function returns an unnamed list of ggplot objects.
 }
 \description{
 Plots the results of opp_get_trips(), with DateTime on the x-axis and ColDist
-on the y-axis. Points coloured based on Teyp
+on the y-axis. Points coloured based on Type
 }
