@@ -563,7 +563,7 @@ opp_get_trips <- function(data,
 
   if (showPlots == TRUE) {
     plot_trip_dist(trips, plotsPerPage = plotsPerPage, showPlots = showPlots,
-                                 innerBuff = innerBuff, returnBuff = returnBuff)
+                   innerBuff = innerBuff, returnBuff = returnBuff)
   }
 
   return(trips)
@@ -717,49 +717,8 @@ ctcrw_interpolation <- function(data,
   )
 
   if (showPlots == T) {
-    bb <- unique(pred$ID)
-    idx <- seq(1,length(bb), by = plotsPerPage)
-    pal <- hcl.colors(4, "viridis")
-
-    for (i in idx) {
-
-      intdat <- pred[pred$ID %in% bb[i:(i + plotsPerPage - 1)],]@data
-      intdat$Type <- 'Interpolated'
-      obsdat <- orig_loc[orig_loc$ID %in% bb[i:(i + plotsPerPage - 1)],]@data
-      obsdat$Type <- 'Raw'
-
-      plotdat <- rbind(intdat[,c('ID','DateTime','ColDist','Type', 'tripID')],
-                       obsdat[,c('ID','DateTime','ColDist','Type', 'tripID')])
-      plotdat$Type <- factor(plotdat$Type, levels = c('Interpolated', 'Raw'))
-
-      pl <- c('Raw' = pal[1], 'Interpolated' = pal[3])
-      lt <- c('Raw' =3, 'Interpolated' = 2)
-
-      p <- ggplot2::ggplot(plotdat, ggplot2::aes(x = DateTime, y = ColDist/1000)) +
-        ggplot2::geom_line(data = plotdat[plotdat$Type == 'Raw',],
-                           ggplot2::aes(col = Type, linetype = Type)) +
-        ggplot2::geom_point(data = plotdat[plotdat$Type == 'Raw',],
-                            ggplot2::aes(col = Type), size = 1.5, shape = 1) +
-        ggplot2::geom_line(data = plotdat[plotdat$Type == 'Interpolated',],
-                           ggplot2::aes(col = Type, linetype = Type, group = tripID)) +
-        ggplot2::geom_point(data = plotdat[plotdat$Type == 'Interpolated',],
-                            ggplot2::aes(col = Type), size = 1.5, shape = 1) +
-        ggplot2::facet_wrap(facets = . ~ ID, nrow = 2, scales = 'free') +
-        ggplot2::labs(x = 'Time', y = 'Distance from colony (km)') +
-        ggplot2::scale_colour_manual(values = pl) +
-        ggplot2::scale_linetype_manual(values = lt) +
-        ggplot2::theme_light() +
-        ggplot2::theme(
-          text = ggplot2::element_text(size = 9),
-          axis.text.x = ggplot2::element_text(size = 7)
-        )
-
-      print(p)
-      #readline('')
-    }
-    message('Use back arrow in plot pane to browse all plots')
-
-  }
+    pp <- plot_interp_dist(data = out, showPlots = showPlots, plotsPerPage = plotsPerPage)
+ }
   return(out)
 }
 
@@ -1600,7 +1559,8 @@ opp_map_indUD <- function(
       ggplot2::scale_fill_viridis_d(option = viridis_option, begin = 0.7, end = 0.9, direction = -1) +
       ggplot2::theme_light() +
       ggplot2::theme(
-        legend.text = ggplot2::element_text(size = 10),
+        text = ggplot2::element_text(size = 8),
+        legend.text = ggplot2::element_text(size = 8),
         axis.text = ggplot2::element_text(size = 6, hjust = 1),
         axis.text.x = ggplot2::element_text(angle = 90),
         )  +
