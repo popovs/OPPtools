@@ -200,24 +200,24 @@ In addition to the traditional kernel density estimates, we considered a Brownia
 href_ud <- opp_kernel(interp,
                       interpolated = TRUE,
                       smoother = "href",
-                      extendGrid = 30,
-                      res = 1)
+                      extendGrid = params$gridExtend,
+                      res = params$gridRes)
 
 href0.5_ud <- opp_kernel(interp,
                       interpolated = TRUE,
                       smoother = (h/2),
-                      extendGrid = 30,
-                      res = 1)
+                      extendGrid = params$gridExtend,
+                      res = params$gridRes)
 
 step_ud <- opp_kernel(interp,
                       interpolated = TRUE,
                       smoother = s,
-                      extendGrid = 30,
-                      res = 1)
+                      extendGrid = params$gridExtend,
+                      res = params$gridRes)
 
 bbmm_ud <- opp_bbmm(interp,
-                    extendGrid = 30,
-                    res = 1)
+                    extendGrid = params$gridExtend,
+                    res = params$gridRes)
 ```
 
 
