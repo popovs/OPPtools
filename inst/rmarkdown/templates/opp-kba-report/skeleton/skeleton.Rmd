@@ -1,6 +1,6 @@
 ---
 title: "`r paste('KBA:', params$report_title)`"
-subtitle: "OPP Diagnostic Report"
+subtitle: "OPP KBA Report"
 author: "Allison Patterson & Sarah Popov"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output: 
