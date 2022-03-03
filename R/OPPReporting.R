@@ -59,7 +59,7 @@ render_diagnostic <- function(params,
   if (class(params) != 'list') {
     stop("Your passed params must be class 'list'.")
   }
-  if (length(params) != 16) {
+  if (length(params) != 17) {
     stop("Your passed params list is the incorrect length. Ensure you provide the 16 necessary params.")
   }
 

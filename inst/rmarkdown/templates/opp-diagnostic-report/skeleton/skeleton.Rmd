@@ -22,6 +22,7 @@ params:
   gridExtend: NA
   speed: NA
   mapZoom: NA
+  includeBB: NA
 editor_options: 
   chunk_output_type: console
 ---
@@ -109,7 +110,7 @@ ft
 
 # Track interpolation
 
-Locations collected during complete, incomplete, and gappy trips were interpolated at a `r params$timestep` interval using a continuous time correlated random walk model. This `r params$timestep` corresponds to the longest sampling frequency used across all GPS deployments. Gaps in tracks during a trip, as defined above, were `r ifelse(params$interpolateGaps == F, 'not','')` interpolated. Figure 2 shows maps comparing the raw and interpolated locations within trips for all deployments. Table 2 provides a summary of the number of raw and interpolated locations, trip duration, maximum trip distance and trip type for each identified foraging trip. Plots comparing the raw and interpolated data for each individual deployment are provided in Appendix B.
+Locations collected during complete, incomplete, and gappy trips were interpolated at a `r params$timestep` interval using a continuous time correlated random walk model. Gaps in tracks during a trip, as defined above, were `r ifelse(params$interpolateGaps == F, 'not','')` interpolated. Figure 2 shows maps comparing the raw and interpolated locations within trips for all deployments. Table 2 provides a summary of the number of raw and interpolated locations, trip duration, maximum trip distance and trip type for each identified foraging trip. Plots comparing the raw and interpolated data for each individual deployment are provided in Appendix B.
 
 ```{r interpolation}
 interp <- ctcrw_interpolation(trips,
@@ -215,9 +216,13 @@ step_ud <- opp_kernel(interp,
                       extendGrid = params$gridExtend,
                       res = params$gridRes)
 
-bbmm_ud <- opp_bbmm(interp,
+if (params$includeBB == T ) {
+
+bbmm_ud <- opp_bbmm(interp,interpolated = T,
                     extendGrid = params$gridExtend,
-                    res = params$gridRes)
+                    res = params$gridRes
+                    )
+}
 ```
 
 
@@ -316,7 +321,7 @@ Figures in this appendix compare four different KDE smoothers. Each plot shows h
 
 ```{r plot kernels, fig.height=2.5}
 
-if (params$movebank_id %in% c(1247096889, 1904543040)) {
+if (params$includeBB == F ) {
   plot_uds <- list(Step = step_ud,
                          Href = href_ud,
                          `Href/2` = href0.5_ud)
