@@ -38,6 +38,8 @@ opp_reports_cpf <- function(analysis_table = cpf_report_params,login = NULL, out
 
 }
 
+# -----
+
 #' Render diagnostic report for a given species
 #'
 #' @description This function will generate a diagnostic report using the 'opp-diagnostic-report' RMarkdown template in `OPPtools`, with options to save the generated report as an .Rmd file in addition to the output PDF.
@@ -60,7 +62,7 @@ render_diagnostic <- function(params,
     stop("Your passed params must be class 'list'.")
   }
   if (length(params) != 17) {
-    stop("Your passed params list is the incorrect length. Ensure you provide the 16 necessary params.")
+    stop("Your passed params list is the incorrect length. Ensure you provide the 17 necessary params.")
   }
 
   # Create output dir & file
@@ -100,6 +102,9 @@ render_diagnostic <- function(params,
   )
 }
 
+# -----
+
+
 #' Render KBA report for a given species
 #'
 #' @description This function will generate a KBA report using the 'opp-kba-report' RMarkdown template in `OPPtools`, with options to save the generated report as an .Rmd file in addition to the output PDF.
@@ -127,8 +132,8 @@ render_kba <- function(params,
   if (class(params) != 'list') {
     stop("Your passed params must be class 'list'.")
   }
-  if (length(params) != 16) {
-    stop("Your passed params list is the incorrect length. Ensure you provide the 16 necessary params.")
+  if (length(params) != 17) {
+    stop("Your passed params list is the incorrect length. Ensure you provide the 17 necessary params.")
   }
 
   # Create output dir & file
