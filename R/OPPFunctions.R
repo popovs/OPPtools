@@ -1223,6 +1223,8 @@ opp_map_keyareas <- function(track2KBA_UD,
                              coast_scale = 50,
                              viridis_option = "D") {
 
+  if(class(track2KBA_UD)[1] != "sf") stop("Re-run track2KBA::findSites with polyOut = TRUE.")
+
   world <- rnaturalearth::ne_countries(scale = coast_scale, returnclass = 'sf')
   temp <- track2KBA_UD[track2KBA_UD$N_animals > 0,]
 
