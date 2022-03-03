@@ -194,7 +194,7 @@ Given the sensitivity of kernel density estimates to the kernel smoother, it is 
 
 We considered three smoothers using a traditional kernel density estimate. The 'href' smoother is a data-driven method which is calculated from the variance in the X and Y directions in the data, in this case the median href was `r signif(h, 2)` km. Initial data exploration indicated that the href parameter could over smooth tracks, so that in complex tracks areas of high use were missed in the kernel density estimate, therefore we also considered the href/2, which was `r signif(h/2, 2)` km. Finally, we used a step smoother based on the median step length between interpolated locations across all tracks. `r if(s == 1){"The step function resulted in a value of less than 1 km; therefore, 'step' kernel density estimates were calculated with a smoother value of 1 km."} else {paste("The step smoother was", signif(s, 2), "km.")}`
 
-`r if (params$includeBB == T) {"In addition to the traditional kernel density estimates, we considered a Brownian kernel estimate. This method uses two smoothers: sig1 is  based on the speed of the animal and was calculated independently for each track and sig2 is based on the logger accuracy (20 m)".}`
+`r if (params$includeBB == T) {"In addition to the traditional kernel density estimates, we considered a Brownian kernel estimate. This method uses two smoothers: sig1 is  based on the speed of the animal and was calculated independently for each track and sig2 is based on the logger accuracy (20 m)."}`
 
 ```{r calc kernels}
 
