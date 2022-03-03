@@ -22,6 +22,7 @@ params:
   gridExtend: NA
   speed: NA
   mapZoom: NA
+  includeBB: NA
 editor_options: 
   chunk_output_type: console
 ---
@@ -106,7 +107,7 @@ ft
 
 # Track interpolation
 
-Locations collected during complete, incomplete, and gappy trips were interpolated at a `r params$timestep` interval using a continuous time correlated random walk model. This `r params$timestep` corresponds to the longest sampling frequency used across all GPS deployments. Gaps in tracks during a trip, as defined above, were `r ifelse(params$interpolateGaps == F, 'not','')` interpolated. Figure 2 shows maps comparing the raw and interpolated locations within trips for all deployments. Table 2 provides a summary of the number of raw and interpolated locations, trip duration, maximum trip distance and trip type for each identified foraging trip. Plots comparing the raw and interpolated data for each individual deployment are provided in Appendix B.
+Locations collected during complete, incomplete, and gappy trips were interpolated at a `r params$timestep` interval using a continuous time correlated random walk model. Gaps in tracks during a trip, as defined above, were `r ifelse(params$interpolateGaps == F, 'not','')` interpolated. Figure 2 shows maps comparing the raw and interpolated locations within trips for all deployments. Table 2 provides a summary of the number of raw and interpolated locations, trip duration, maximum trip distance and trip type for each identified foraging trip. Plots comparing the raw and interpolated data for each individual deployment are provided in Appendix B.
 
 ```{r interpolation}
 interp <- ctcrw_interpolation(trips,
@@ -186,7 +187,7 @@ Given the sensitivity of kernel density estimates to the kernel smoother, it is 
 
 We considered three smoothers using a traditional kernel density estimate. The 'href' smoother is a data-driven method which is calculated from the variance in the X and Y directions in the data, in this case the median href was `r signif(h, 2)` km. Initial data exploration indicated that the href parameter could over smooth tracks, so that in complex tracks areas of high use were missed in the kernel density estimate, therefore we also considered the href/2, which was `r signif(h/2, 2)` km. Finally, we used a step smoother based on the median step length between interpolated locations across all tracks. `r if(s == 1){"The step function resulted in a value of less than 1 km; therefore, 'step' kernel density estimates were calculated with a smoother value of 1 km."} else {paste("The step smoother was", signif(s, 2), "km.")}`
 
-In addition to the traditional kernel density estimates, we considered a Brownian kernel estimate. This method uses two smoothers: sig1 is  based on the speed of the animal and was calculated independently for each track and sig2 is based on the logger accuracy (20 m). 
+`r if (params$includeBB == T) {"In addition to the traditional kernel density estimates, we considered a Brownian kernel estimate. This method uses two smoothers: sig1 is  based on the speed of the animal and was calculated independently for each track and sig2 is based on the logger accuracy (20 m)."}`
 
 ```{r calc kernels}
 
@@ -208,9 +209,15 @@ step_ud <- opp_kernel(interp,
                       extendGrid = params$gridExtend,
                       res = params$gridRes)
 
-bbmm_ud <- opp_bbmm(interp,
+
+if (params$includeBB == T ) {
+
+bbmm_ud <- opp_bbmm(interp,interpolated = T,
                     extendGrid = params$gridExtend,
-                    res = params$gridRes)
+                    res = params$gridRes
+                    )
+}
+
 ```
 
 
@@ -304,7 +311,10 @@ for (i in 1:length(interp_plots)) {
 Figures in this appendix compare four different KDE smoothers. Each plot shows how the 50% and 95% utilization distribution calculated for individual tracks changes with depending on the  smoothing parameter and method.
 
 ```{r plot kernels, fig.height=2.5}
-if (params$movebank_id %in% c(1247096889, 1904543040)) {
+
+
+if (params$includeBB == F ) {
+
   plot_uds <- list(Step = step_ud,
                          Href = href_ud,
                          `Href/2` = href0.5_ud)
