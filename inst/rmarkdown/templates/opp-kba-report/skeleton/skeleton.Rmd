@@ -1,5 +1,5 @@
 ---
-title: "`r params$report_title`"
+title: "`r paste('KBA:', params$report_title)`"
 subtitle: "OPP Diagnostic Report"
 author: "Allison Patterson & Sarah Popov"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
@@ -22,9 +22,9 @@ params:
   gridExtend: NA
   speed: NA
   mapZoom: NA
-  kernelSmoother: "href/2"
-  iterations: 5
-  levelUD: 95
+  kernelSmoother: kernel_smoother
+  iterations: interations
+  levelUD: level_ud
 editor_options: 
   chunk_output_type: console
 ---
@@ -68,16 +68,16 @@ h <- opp_href(interp$interp)
 s <- opp_step(interp$interp)
 s <- ifelse(s < 1, 1, s)
 
-if (kernelSmoother == "href") {
+if (params$kernelSmoother == "href") {
   smooth = h
-} else if (kernelSmoother == "href/2") {
+} else if (params$kernelSmoother == "href/2") {
   smooth = h/2
-} else if (kernelSmoother == "step") {
+} else if (params$kernelSmoother == "step") {
   smooth = s
 }
 
 # Calc kernels
-if (kernelSmoother != "bbmm") {
+if (params$kernelSmoother != "bbmm") {
   kernels <- opp_kernel(interp,
                         interpolated = TRUE,
                         smoother = smooth,
@@ -158,9 +158,9 @@ sites <- track2KBA::findSite(kernels,
 
 ## Key biological areas
 
-The `r params$kernelSmoother` smoother was chosen for kernel density estimation, with a value of `r if(kernelSmoother == "href"){ paste(h) } else if(kernelSmoother == "href/2") {paste(h/2)} else if(kernelSmoother == "step") {paste(s)} else {paste("Error: kernelSmoother not a valid value")}` km.
+The `r params$kernelSmoother` smoother was chosen for kernel density estimation, with a value of `r if(params$kernelSmoother == "href"){ paste(h) } else if(params$kernelSmoother == "href/2") {paste(h/2)} else if(params$kernelSmoother == "step") {paste(s)} else {paste("Error: kernelSmoother not a valid value")}` km.
 
-`r if(s == 1){"The step function resulted in a step smoother value of less than 1 km; therefore, 'step' kernel density estimates were calculated with a smoother value of 1 km."}`
+`r if(params$kernelSmoother == "step" & s == 1){"The step function resulted in a step smoother value of less than 1 km; therefore, 'step' kernel density estimates were calculated with a smoother value of 1 km."}`
 
 ```{r plot KBA}
 opp_map_keyareas(track2KBA_UD = sites,
