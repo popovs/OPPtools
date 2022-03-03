@@ -51,7 +51,6 @@ These `r length(unique(dat$individual_id))` individuals generated `r nrow(dat)` 
 Data are stored on Movebank in project number `r as.character(params$movebank_id)`.
 
 ```{r map, fig.cap = "Map of raw GPS locations. Different colours represent trips from unique deployments. Location of the breeding colony is indicated with an orange point."}
-
 dat2 <- opp2KBA(dat)
 
 # Raw trip data
@@ -61,7 +60,6 @@ opp_map_tracks(tracks = dat2$data,
                coast_scale = 10,
                viridis_option = "D",
                show_locs = T)
-
 ```
 
 \newpage
@@ -73,7 +71,6 @@ Foraging trips were identified as any continuous track at least `r params$minDis
 Table 1 summarizes trip attributes for each type of trip. Appendix A includes plots showing the trip classification from each individual deployment.
 
 ```{r get trips}
-
 trips <- opp_get_trips(dat2,
               innerBuff = params$minDist,
               returnBuff = params$maxDist,
@@ -122,7 +119,6 @@ interp <- ctcrw_interpolation(trips,
 
 \newpage
 ```{r interpolated map, fig.height=7, fig.cap = "Maps comparing trips with raw GPS locations (A) and trips using interpolated locations (B). Different colours represent trips from unique deployments. Location of the breeding colony is indicated with an orange point."}
-
 # Raw trip data
 p_raw <- opp_map_tracks(tracks = interp$data,
                center = dat2$site,
@@ -175,18 +171,15 @@ n_tracks <- length(unique(interp$interp$ID))
 
 show.text <- n_tracks < 20
 calc.kernels <- n_tracks >= 20
-
 ```
 
 \newpage
 # Kernel density estimates
 
 ```{r get smoothers}
-
 h <- opp_href(interp$interp)
 s <- opp_step(interp$interp)
 s <- ifelse(s < 1, 1, s)
-
 ```
 
 Given the sensitivity of kernel density estimates to the kernel smoother, it is important to choose the appropriate kernel smoother for a given species. Appendix C includes plots comparing kernel smoothers for each individual track parameters. These plots should be examined to identify any potential biases associated with using a particular smoother.
@@ -200,24 +193,24 @@ In addition to the traditional kernel density estimates, we considered a Brownia
 href_ud <- opp_kernel(interp,
                       interpolated = TRUE,
                       smoother = "href",
-                      extendGrid = 30,
-                      res = 1)
+                      extendGrid = params$gridExtend,
+                      res = params$gridRes)
 
 href0.5_ud <- opp_kernel(interp,
                       interpolated = TRUE,
                       smoother = (h/2),
-                      extendGrid = 30,
-                      res = 1)
+                      extendGrid = params$gridExtend,
+                      res = params$gridRes)
 
 step_ud <- opp_kernel(interp,
                       interpolated = TRUE,
                       smoother = s,
-                      extendGrid = 30,
-                      res = 1)
+                      extendGrid = params$gridExtend,
+                      res = params$gridRes)
 
 bbmm_ud <- opp_bbmm(interp,
-                    extendGrid = 30,
-                    res = 1)
+                    extendGrid = params$gridExtend,
+                    res = params$gridRes)
 ```
 
 
@@ -280,7 +273,6 @@ Figures in this appendix show the trip classifications for each individual deplo
 
 
 ```{r plot trip-types, fig.height=3.5}
-
 trip_plots <- plot_trip_dist(data = trips, plotsPerPage = 2,              
                              innerBuff = params$minDist,
                              returnBuff = params$maxDist,
@@ -289,7 +281,6 @@ trip_plots <- plot_trip_dist(data = trips, plotsPerPage = 2,
 for (i in 1:length(trip_plots)) {
   print(trip_plots[[i]])
 }
-
 ```
 
 \newpage
@@ -298,7 +289,6 @@ for (i in 1:length(trip_plots)) {
 Figures in this appendix show the interpolated GPS locations relative to raw GPS locations for each individual deployment. Locations are plotted as distance from colony over time. Gaps in the interploted (teal) tracks, where no dashed line is plotted were times when the bird was not classified as in a foraging trip. Times where the interpolated track is shown with a dashed line, but no points were large gaps in GPS tracking during a foraging trip where no interpolation was performed.
 
 ```{r plot trip-interpolation, fig.height=3.5}
-
 interp_plots <- plot_interp_dist(data = interp, 
                                  plotsPerPage = 2,              
                                  showPlots = F)
@@ -306,7 +296,6 @@ interp_plots <- plot_interp_dist(data = interp,
 for (i in 1:length(interp_plots)) {
   print(interp_plots[[i]])
 }
-
 ```
 
 \newpage
@@ -315,7 +304,6 @@ for (i in 1:length(interp_plots)) {
 Figures in this appendix compare four different KDE smoothers. Each plot shows how the 50% and 95% utilization distribution calculated for individual tracks changes with depending on the  smoothing parameter and method.
 
 ```{r plot kernels, fig.height=2.5}
-
 if (params$movebank_id %in% c(1247096889, 1904543040)) {
   plot_uds <- list(Step = step_ud,
                          Href = href_ud,
@@ -338,5 +326,4 @@ pp <- opp_map_indUD(plot_uds,
 for (i in 1:length(pp)) {
   print(pp[[i]])
 }
-
 ```
