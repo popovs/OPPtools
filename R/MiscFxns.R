@@ -304,12 +304,14 @@ CIDA_drive_path <- function(path = ""){
 
 # -----
 
-#' Defines a bounding box at a specified zoom level around a set of coordinates
-#' @description This function returns a bounding box at a user defined zoom level
+#' Defines a bounding box at a specified zoom level around a set of coordinates, useful
+#' for making maps with a consistant aspect ratio
+#' @description This function returns a bounding box at a  defined zoom level
 #' centered on the mean value of a set of coordinates.
-#' @param locs An sf or sp points object. The bounding box will be centered on the mean value of
-#' these points
-#' @param zoom_level Numeric. Specifies how zoomed in the bounding box should be, eg. 1 = whole world and 4 = 1/4 of world
+#' @param locs An sf or sp object. The bounding box will be centered on the mid point value of
+#' bound box of this object.
+#' @param zoom_level Numeric. Specifies how zoomed in the bounding box should be,
+#' eg. 1 = whole world and 4 = 1/4 of world. Defaults to NULL, which will calculate the zoom level required to contain locs
 #' @references Code adapted from: https://www.r-bloggers.com/2019/04/zooming-in-on-maps-with-sf-and-ggplot2/
 #'
 #' @returns an object with class "bbox" containing four values: xmin, ymin, xmax, and ymax.
@@ -317,29 +319,39 @@ CIDA_drive_path <- function(path = ""){
 #' @export
 
 
-bbox_at_zoom <- function(locs, zoom_level = 7) {
+bbox_at_zoom <- function(locs, zoom_level = NULL) {
 
-  if (!(class(locs)[1] %in% c('sf','SpatialPointsDataFrame'))) stop('locs must be an sf or sp points object')
+  if (!(substr(class(locs)[1], 1, 7) %in% c('sf','Spatial'))) stop('locs must be an sf or sp object')
 
-  if (class(locs)[1] == 'SpatialPointsDataFrame') {
+  if (class(locs)[1] != 'sf') {
     convert_sp <- T
     locs <- as(locs, 'sf')
   }
+  C <- 40075016.686   # ~ circumference of Earth in meters
 
-  if (sf::st_is(locs, "POINT")[1] == F) stop('locs must be an sf or sp points object')
+  bb <- sf::st_bbox(locs)
 
-  zoom_to <- sf::st_coordinates(locs) %>%
-    as.data.frame() %>%
-    dplyr::summarize(
-      X = ((max(X) - min(X))/2) + min(X),
-      Y = ((max(Y) - min(Y))/2) + min(Y)
-    ) %>% sf::st_as_sf(coords = c('X','Y'), crs = sf::st_crs(locs))
+  zoom_to <- data.frame(
+    X = ((bb$xmax - bb$xmin)/2) + bb$xmin,
+    Y = ((bb$ymax - bb$ymin)/2) + bb$ymin
+  ) %>% sf::st_as_sf(coords = c('X','Y'), crs = sf::st_crs(locs))
+
+  if (is.null(zoom_level)) {
+    if (sf::st_is_longlat(zoom_to) == T) {
+      lon_zoom <- log2(360/(bb$xmax - bb$xmin))
+      lat_zoom <- log2(180/(bb$ymax - bb$ymin))
+      zoom_level <- min(c(lon_zoom, lat_zoom))
+    } else {
+      lon_zoom <- log2(C/(bb$xmax - bb$xmin))
+      lat_zoom <- log2(C/(bb$ymax - bb$ymin))
+      zoom_level <- min(c(lon_zoom, lat_zoom))
+    }
+  }
 
   if (sf::st_is_longlat(zoom_to) == T) {
     lon_span <- 360/2^zoom_level
     lat_span <- 180/2^zoom_level
   } else {
-    C <- 40075016.686   # ~ circumference of Earth in meters
     lon_span <- C / 2^zoom_level
     lat_span <- C / 2^(zoom_level)
   }

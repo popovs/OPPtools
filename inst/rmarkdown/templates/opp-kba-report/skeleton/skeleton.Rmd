@@ -5,7 +5,6 @@ author: "Allison Patterson & Sarah Popov"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output: 
   pdf_document:
-    latex_engine: xelatex
     toc: TRUE
 params:
   movebank_id: NA
@@ -104,7 +103,7 @@ Data are stored on Movebank in project number `r as.character(params$movebank_id
 ```{r trip map, fig.width=7, fig.cap = "Map of trips with raw GPS locations. Different colours represent trips from unique deployments. Location of the breeding colony is indicated with an orange point."}
 opp_map_tracks(tracks = interp$data,
                center = dat2$site,
-               zoom = params$mapZoom,
+               zoom = NULL,
                coast_scale = 10,
                viridis_option = "D",
                show_locs = T)
@@ -168,7 +167,7 @@ The `r params$kernelSmoother` smoother was chosen for kernel density estimation,
 ```{r plot KBA, fig.width=7, fig.cap = "Map showing the estimated distribution of birds at sea around the breeding colony."}
 opp_map_keyareas(track2KBA_UD = sites,
                  center = dat2$site,
-                 zoom = params$mapZoom,
+                 zoom = NULL,
                  show_site = ifelse(repAssess$out >=0.7 & repAssess$SampleSize >= 20,
                                     T, F),
                  coast_scale = 10
