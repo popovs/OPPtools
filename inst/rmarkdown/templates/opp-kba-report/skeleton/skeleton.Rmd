@@ -5,7 +5,8 @@ author: "Allison Patterson & Sarah Popov"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output: 
   pdf_document:
-    toc: true
+    latex_engine: xelatex
+    toc: TRUE
 params:
   movebank_id: NA
   report_title: NA
@@ -34,8 +35,7 @@ editor_options:
 knitr::opts_chunk$set(echo = FALSE,
                       message = FALSE,
                       warning = FALSE,
-                      dpi = 300,
-                      fig.align = "center")
+                      dpi = 300)
 
 library(OPPtools)
 library(dplyr)
@@ -93,7 +93,7 @@ if (params$kernelSmoother != "bbmm") {
 
 \newpage
 
-# Data summary 
+# Data summary
 
 Between `r min(year(dat$timestamp))` and `r max(year(dat$timestamp))`, `r length(unique(dat$individual_id))` individual `r params$spp`s at the `r unique(dat$study_site)` colony were tagged and tracked with `r as.character(unique(dat$sensor_type))` tags.
 
@@ -101,7 +101,7 @@ These `r length(unique(dat$individual_id))` individuals generated `r nrow(dat)` 
 
 Data are stored on Movebank in project number `r as.character(params$movebank_id)`.
 
-```{r trip map, fig.height=7, fig.cap = "Map of trips with raw GPS locations. Different colours represent trips from unique deployments. Location of the breeding colony is indicated with an orange point."}
+```{r trip map, fig.width=7, fig.cap = "Map of trips with raw GPS locations. Different colours represent trips from unique deployments. Location of the breeding colony is indicated with an orange point."}
 opp_map_tracks(tracks = interp$data,
                center = dat2$site,
                zoom = params$mapZoom,
@@ -134,7 +134,7 @@ ft <- trips@data %>%
     `Median duration (hrs)` = round(median(duration), 1),
     `Median trip distance (km)` = round(median(max(ColDist))/1000, 1)
     ) %>%
-  flextable::flextable(cwidth =1.25) %>% 
+  flextable::flextable(cwidth =1.25) %>%
   flextable::align(align = 'center', part = 'all') %>%
   flextable::set_caption("Summary of trip attributes by trip classification.")
 
@@ -145,15 +145,17 @@ ft
 
 ```{r repAssess}
 repAssess <- track2KBA::repAssess(interp$interp,
-                                 KDE = kernels,
-                                 iteration = params$iterations,
-                                 levelUD = params$levelUD)
+                                  KDE = kernels,
+                                  iteration = params$iterations,
+                                  levelUD = params$levelUD, 
+                                  avgMethod = "weighted")
 
 # track2KBA::findSite
 sites <- track2KBA::findSite(kernels,
                              represent = repAssess$out,
                              levelUD = params$levelUD,
-                             popSize = params$breeding_pairs * 2,
+                             # popSize = ifelse(is.character(param$breeding_pairs), NULL, 
+                             #                  param$breeding_pairs * 2),
                              polyOut = TRUE)
 ```
 
@@ -163,8 +165,12 @@ The `r params$kernelSmoother` smoother was chosen for kernel density estimation,
 
 `r if(params$kernelSmoother == "step" & s == 1){"The step function resulted in a step smoother value of less than 1 km; therefore, 'step' kernel density estimates were calculated with a smoother value of 1 km."}`
 
-```{r plot KBA}
+```{r plot KBA, fig.width=7, fig.cap = "Map showing the estimated distribution of birds at sea around the breeding colony."}
 opp_map_keyareas(track2KBA_UD = sites,
                  center = dat2$site,
-                 zoom = params$mapZoom)
+                 zoom = params$mapZoom,
+                 show_site = ifelse(repAssess$out >=0.7 & repAssess$SampleSize >= 20,
+                                    T, F),
+                 coast_scale = 10
+                 )
 ```

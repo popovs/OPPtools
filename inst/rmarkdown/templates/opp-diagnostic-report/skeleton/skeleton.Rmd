@@ -5,7 +5,8 @@ author: "Allison Patterson & Sarah Popov"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output: 
   pdf_document:
-    toc: true
+    latex_engine: xelatex
+    toc: TRUE
 params:
   movebank_id: NA
   report_title: NA
@@ -25,14 +26,14 @@ params:
   includeBB: NA
 editor_options: 
   chunk_output_type: console
+
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE,
                       message = FALSE,
                       warning = FALSE,
-                      dpi = 300,
-                      fig.align = "center")
+                      dpi = 300)
 
 library(OPPtools)
 library(dplyr)
