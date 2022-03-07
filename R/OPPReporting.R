@@ -38,6 +38,8 @@ opp_reports_cpf <- function(analysis_table = cpf_report_params,login = NULL, out
 
 }
 
+# -----
+
 #' Render diagnostic report for a given species
 #'
 #' @description This function will generate a diagnostic report using the 'opp-diagnostic-report' RMarkdown template in `OPPtools`, with options to save the generated report as an .Rmd file in addition to the output PDF.
@@ -59,8 +61,8 @@ render_diagnostic <- function(params,
   if (class(params) != 'list') {
     stop("Your passed params must be class 'list'.")
   }
-  if (length(params) != 16) {
-    stop("Your passed params list is the incorrect length. Ensure you provide the 16 necessary params.")
+  if (length(params) != 17) {
+    stop("Your passed params list is the incorrect length. Ensure you provide the 17 necessary params.")
   }
 
   # Create output dir & file
@@ -100,3 +102,78 @@ render_diagnostic <- function(params,
   )
 }
 
+# -----
+
+
+#' Render KBA report for a given species
+#'
+#' @description This function will generate a KBA report using the 'opp-kba-report' RMarkdown template in `OPPtools`, with options to save the generated report as an .Rmd file in addition to the output PDF.
+#'
+#' @param params List of 16 parameter values used to generate report.
+#' @param kernel_smoother One of four options for kernel smoothers in kernel calculations: "href", "href/2", "step", or "bbmm". Defaults to href/2.
+#' @param iterations Numeric. Number of iterations to perform for track2KBA::repAssess. More iterations will result in a more accurate assessment, but take longer to run. Default 5.
+#' @param level_ud Numeric, from 0 to 100. Utilization distribution volume to extract from kernel densities. Defaults to 95.
+#' @param save_rmd Logical (T/F). Should the .Rmd file used to generate the PDF report be saved as well?
+#' @param output_dir Output directory for generated files. Defaults to 'temp'. If the directory does not exist, the script will create the directory.
+#'
+#' @export
+
+render_kba <- function(params,
+                              kernel_smoother = "href/2",
+                              iterations = 5,
+                              level_ud = 95,
+                              save_rmd = FALSE,
+                              output_dir = 'temp',
+                              out_format = 'html_document',
+                              ...) {
+
+  # Data health checks
+  params <- as.list(params)
+  if (class(params) != 'list') {
+    stop("Your passed params must be class 'list'.")
+  }
+  if (length(params) != 17) {
+    stop("Your passed params list is the incorrect length. Ensure you provide the 17 necessary params.")
+  }
+
+  # Create output dir & file
+  dir.create(file.path("KBA", output_dir), showWarnings = FALSE, recursive = TRUE)
+  filename <- params$file_name # set filename
+
+  # Modify params list
+  names(params)[grep("mb", names(params))] <- "movebank_id" # rename 'mb_project_num' to 'movebank_id', if exists
+  params <- params[-grep("file_name", names(params))] # remove 'file_name'
+
+  # Add 3 new params to params list
+  params$kernelSmoother <- kernel_smoother
+  params$iterations <- iterations
+  params$levelUD <- level_ud
+
+  # If saving Rmd file, generate and save it
+  if (save_rmd == TRUE) {
+    rmd_dir <- paste0(file.path("KBA", output_dir, filename))
+    dir.create(rmd_dir, showWarnings = FALSE)
+    rmd_out <- paste0(file.path(rmd_dir, filename), ".Rmd")
+    rmarkdown::draft(rmd_out,
+                     template = "opp-kba-report",
+                     package = "OPPtools",
+                     edit = FALSE)
+    change_yaml_matter(rmd_out,
+                       output_file = rmd_out,
+                       params = params) # Could still be improved
+
+    # If save_rmd true, update output dir
+    # This is so Rmd & PDF are in nice little folder together
+    output_dir <- rmd_dir
+  }
+
+  # Render the file with the modified params
+  rmarkdown::render(
+    "inst/rmarkdown/templates/opp-kba-report/skeleton/skeleton.Rmd",
+    params = params,
+    output_dir = output_dir,
+    output_file = paste0(filename, ifelse(out_format == 'pdf_document','.pdf', '.html')),
+    output_format = out_format,
+    envir = new.env()
+  )
+}

@@ -1209,7 +1209,7 @@ getDist <- function(lon, lat, lonlat = TRUE) {
 #' identified by track2KBA::findSite() should be plotted.
 #' @param coast_scale Mapping resolution for the coastline basemap. Must be one of: 10 - high resolution,
 #' 50 - medium resolution, 110 = low resolution.
-#' @param zoom Integer from 1:16, indicating the zoom level for map.
+#' @param zoom Integer from 1:16, indicating the zoom level for map. If NULL the function will calculate the required zoom level.
 #' @param viridis_option A character string indicating the colormap option to
 #' use. Four options are available: "magma" (or "A"), "inferno" (or "B"), "plasma" (or "C"), "viridis" (or "D", the default option) and "cividis" (or "E").
 #' @returns A ggplot object
@@ -1219,9 +1219,11 @@ getDist <- function(lon, lat, lonlat = TRUE) {
 opp_map_keyareas <- function(track2KBA_UD,
                              center,
                              show_site = T,
-                             zoom = 6.5,
+                             zoom = NULL,
                              coast_scale = 50,
                              viridis_option = "D") {
+
+  if(class(track2KBA_UD)[1] != "sf") stop("Re-run track2KBA::findSites with polyOut = TRUE.")
 
   world <- rnaturalearth::ne_countries(scale = coast_scale, returnclass = 'sf')
   temp <- track2KBA_UD[track2KBA_UD$N_animals > 0,]
@@ -1236,7 +1238,7 @@ opp_map_keyareas <- function(track2KBA_UD,
   }
 
   center <- sf::st_as_sf(center, coords = c('Longitude', 'Latitude'), crs = sf::st_crs(temp))
-  bb <- bbox_at_zoom(locs = center, zoom_level = zoom)
+  bb <- bbox_at_zoom(locs = track2KBA_UD, zoom_level = zoom)
 
   p <- ggplot2::ggplot() +
     ggplot2::geom_sf(data =temp, ggplot2::aes(fill = N_animals,
@@ -1394,9 +1396,7 @@ opp_map_tracks <- function(tracks,
   center <- sf::st_transform(center, crs = sf::st_crs(4326))
   world <- sf::st_transform(world, crs = sf::st_crs(4326))
 
-  if (is.null(zoom)) {
-    bb <- sf::st_bbox(tracks)
-  } else bb <- bbox_at_zoom(locs = tracks, zoom_level = zoom)
+  bb <- bbox_at_zoom(locs = tracks, zoom_level = zoom)
 
   p <- ggplot2::ggplot() +
     ggplot2::geom_sf(data = world, fill = grey(0.9), size = 0.3) +

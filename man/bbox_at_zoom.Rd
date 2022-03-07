@@ -2,22 +2,24 @@
 % Please edit documentation in R/MiscFxns.R
 \name{bbox_at_zoom}
 \alias{bbox_at_zoom}
-\title{Defines a bounding box at a specified zoom level around a set of coordinates}
+\title{Defines a bounding box at a specified zoom level around a set of coordinates, useful
+for making maps with a consistant aspect ratio}
 \usage{
-bbox_at_zoom(locs, zoom_level = 7)
+bbox_at_zoom(locs, zoom_level = NULL)
 }
 \arguments{
-\item{locs}{An sf or sp points object. The bounding box will be centered on the mean value of
-these points}
+\item{locs}{An sf or sp object. The bounding box will be centered on the mid point value of
+bound box of this object.}
 
-\item{zoom_level}{Numeric. Specifies how zoomed in the bounding box should be, eg. 1 = whole world and 4 = 1/4 of world}
+\item{zoom_level}{Numeric. Specifies how zoomed in the bounding box should be,
+eg. 1 = whole world and 4 = 1/4 of world. Defaults to NULL, which will calculate the zoom level required to contain locs}
 }
 \value{
 an object with class "bbox" containing four values: xmin, ymin, xmax, and ymax.
 Values will be in units of locs (either decimal degrees or meters).
 }
 \description{
-This function returns a bounding box at a user defined zoom level
+This function returns a bounding box at a  defined zoom level
 centered on the mean value of a set of coordinates.
 }
 \references{

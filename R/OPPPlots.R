@@ -142,3 +142,46 @@ plot_interp_dist <- function(data, showPlots = T, plotsPerPage = 4) {
   return(out)
 
 }
+
+# -----
+
+#' Custom plot of representativeness assessment from track2KBA::repAssess
+#'
+#' @export
+#' @represent Output from track2KBA::repAssess with bootTable = TRUE
+#' @plot Logical. Should result be plotted
+#' @returns A ggplot object showing the results of the call to repAssess
+
+opp_plot_repAssess <- function(represent, plot = TRUE) {
+
+  if (class(represent) != 'list' | length(represent) != 2) {
+    stop('represent must be the output of track2KBA::repAssess run with bootTable = TRUE.')
+  }
+
+  rep_result <- represent[[1]]
+  rep_table <- represent[[2]]
+  min(rep_table$SampleSize)
+  max(rep_table$SampleSize)
+
+  rep_label <- paste0("Estimated representativeness: ", signif(rep_result$out, 3),'%')
+
+  p <- rep_table %>%
+    dplyr::group_by(SampleSize) %>%
+    dplyr::summarize(
+      rep_est = mean(pred),
+      min_rep = quantile(InclusionRate, 0),
+      max_rep = quantile(InclusionRate, 1)
+    ) %>% ggplot2::ggplot(ggplot2::aes(x = SampleSize, y = rep_est)) +
+    ggplot2::geom_ribbon(ggplot2::aes(x = SampleSize, ymin = min_rep, ymax = max_rep),
+                         fill = grey(0.9)) +
+    ggplot2::geom_line() +
+    ggplot2::geom_hline(yintercept = rep_result$tar_asym, linetype = 2) +
+    ggplot2::annotate('text', label = rep_label, x = 1, y = 0.9,
+                      hjust = 0, size = 3, fontface = 'plain') +
+    ggplot2::labs(x = 'Sample size', y = 'Inclusion rate') +
+    ggplot2::theme_light() +
+    ggplot2::ylim(c(0, 1))
+
+  if (plot == TRUE) print(p)
+  return(p)
+}

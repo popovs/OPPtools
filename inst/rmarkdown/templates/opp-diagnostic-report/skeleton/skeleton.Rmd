@@ -5,7 +5,7 @@ author: "Allison Patterson & Sarah Popov"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output: 
   pdf_document:
-    toc: true
+    toc: TRUE
 params:
   movebank_id: NA
   report_title: NA
@@ -22,16 +22,17 @@ params:
   gridExtend: NA
   speed: NA
   mapZoom: NA
+  includeBB: NA
 editor_options: 
   chunk_output_type: console
+
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE,
                       message = FALSE,
                       warning = FALSE,
-                      dpi = 300,
-                      fig.align = "center")
+                      dpi = 300)
 
 library(OPPtools)
 library(dplyr)
@@ -51,17 +52,15 @@ These `r length(unique(dat$individual_id))` individuals generated `r nrow(dat)` 
 Data are stored on Movebank in project number `r as.character(params$movebank_id)`.
 
 ```{r map, fig.cap = "Map of raw GPS locations. Different colours represent trips from unique deployments. Location of the breeding colony is indicated with an orange point."}
-
 dat2 <- opp2KBA(dat)
 
 # Raw trip data
 opp_map_tracks(tracks = dat2$data,
                center = dat2$site,
-               zoom = params$mapZoom,
+               zoom = NULL,
                coast_scale = 10,
                viridis_option = "D",
                show_locs = T)
-
 ```
 
 \newpage
@@ -73,7 +72,6 @@ Foraging trips were identified as any continuous track at least `r params$minDis
 Table 1 summarizes trip attributes for each type of trip. Appendix A includes plots showing the trip classification from each individual deployment.
 
 ```{r get trips}
-
 trips <- opp_get_trips(dat2,
               innerBuff = params$minDist,
               returnBuff = params$maxDist,
@@ -109,7 +107,7 @@ ft
 
 # Track interpolation
 
-Locations collected during complete, incomplete, and gappy trips were interpolated at a `r params$timestep` interval using a continuous time correlated random walk model. This `r params$timestep` corresponds to the longest sampling frequency used across all GPS deployments. Gaps in tracks during a trip, as defined above, were `r ifelse(params$interpolateGaps == F, 'not','')` interpolated. Figure 2 shows maps comparing the raw and interpolated locations within trips for all deployments. Table 2 provides a summary of the number of raw and interpolated locations, trip duration, maximum trip distance and trip type for each identified foraging trip. Plots comparing the raw and interpolated data for each individual deployment are provided in Appendix B.
+Locations collected during complete, incomplete, and gappy trips were interpolated at a `r params$timestep` interval using a continuous time correlated random walk model. Gaps in tracks during a trip, as defined above, were `r ifelse(params$interpolateGaps == F, 'not','')` interpolated. Figure 2 shows maps comparing the raw and interpolated locations within trips for all deployments. Table 2 provides a summary of the number of raw and interpolated locations, trip duration, maximum trip distance and trip type for each identified foraging trip. Plots comparing the raw and interpolated data for each individual deployment are provided in Appendix B.
 
 ```{r interpolation}
 interp <- ctcrw_interpolation(trips,
@@ -122,11 +120,10 @@ interp <- ctcrw_interpolation(trips,
 
 \newpage
 ```{r interpolated map, fig.height=7, fig.cap = "Maps comparing trips with raw GPS locations (A) and trips using interpolated locations (B). Different colours represent trips from unique deployments. Location of the breeding colony is indicated with an orange point."}
-
 # Raw trip data
 p_raw <- opp_map_tracks(tracks = interp$data,
                center = dat2$site,
-               zoom = params$mapZoom,
+               zoom = NULL,
                coast_scale = 10,
                viridis_option = "D",
                show_locs = T)
@@ -134,7 +131,7 @@ p_raw <- opp_map_tracks(tracks = interp$data,
 # Interpolated data
 p_int <- opp_map_tracks(tracks = interp$interp,
                center = dat2$site,
-               zoom = params$mapZoom,
+               zoom = NULL,
                coast_scale = 10,
                viridis_option = "D",
                show_locs = T)
@@ -175,49 +172,52 @@ n_tracks <- length(unique(interp$interp$ID))
 
 show.text <- n_tracks < 20
 calc.kernels <- n_tracks >= 20
-
 ```
 
 \newpage
 # Kernel density estimates
 
 ```{r get smoothers}
-
 h <- opp_href(interp$interp)
 s <- opp_step(interp$interp)
 s <- ifelse(s < 1, 1, s)
-
 ```
 
 Given the sensitivity of kernel density estimates to the kernel smoother, it is important to choose the appropriate kernel smoother for a given species. Appendix C includes plots comparing kernel smoothers for each individual track parameters. These plots should be examined to identify any potential biases associated with using a particular smoother.
 
 We considered three smoothers using a traditional kernel density estimate. The 'href' smoother is a data-driven method which is calculated from the variance in the X and Y directions in the data, in this case the median href was `r signif(h, 2)` km. Initial data exploration indicated that the href parameter could over smooth tracks, so that in complex tracks areas of high use were missed in the kernel density estimate, therefore we also considered the href/2, which was `r signif(h/2, 2)` km. Finally, we used a step smoother based on the median step length between interpolated locations across all tracks. `r if(s == 1){"The step function resulted in a value of less than 1 km; therefore, 'step' kernel density estimates were calculated with a smoother value of 1 km."} else {paste("The step smoother was", signif(s, 2), "km.")}`
 
-In addition to the traditional kernel density estimates, we considered a Brownian kernel estimate. This method uses two smoothers: sig1 is  based on the speed of the animal and was calculated independently for each track and sig2 is based on the logger accuracy (20 m). 
+`r if (params$includeBB == T) {"In addition to the traditional kernel density estimates, we considered a Brownian kernel estimate. This method uses two smoothers: sig1 is  based on the speed of the animal and was calculated independently for each track and sig2 is based on the logger accuracy (20 m)."}`
 
 ```{r calc kernels}
 
 href_ud <- opp_kernel(interp,
                       interpolated = TRUE,
                       smoother = "href",
-                      extendGrid = 30,
-                      res = 1)
+                      extendGrid = params$gridExtend,
+                      res = params$gridRes)
 
 href0.5_ud <- opp_kernel(interp,
                       interpolated = TRUE,
                       smoother = (h/2),
-                      extendGrid = 30,
-                      res = 1)
+                      extendGrid = params$gridExtend,
+                      res = params$gridRes)
 
 step_ud <- opp_kernel(interp,
                       interpolated = TRUE,
                       smoother = s,
-                      extendGrid = 30,
-                      res = 1)
+                      extendGrid = params$gridExtend,
+                      res = params$gridRes)
 
-bbmm_ud <- opp_bbmm(interp,
-                    extendGrid = 30,
-                    res = 1)
+
+if (params$includeBB == T ) {
+
+bbmm_ud <- opp_bbmm(interp,interpolated = T,
+                    extendGrid = params$gridExtend,
+                    res = params$gridRes
+                    )
+}
+
 ```
 
 
@@ -280,7 +280,6 @@ Figures in this appendix show the trip classifications for each individual deplo
 
 
 ```{r plot trip-types, fig.height=3.5}
-
 trip_plots <- plot_trip_dist(data = trips, plotsPerPage = 2,              
                              innerBuff = params$minDist,
                              returnBuff = params$maxDist,
@@ -289,7 +288,6 @@ trip_plots <- plot_trip_dist(data = trips, plotsPerPage = 2,
 for (i in 1:length(trip_plots)) {
   print(trip_plots[[i]])
 }
-
 ```
 
 \newpage
@@ -298,7 +296,6 @@ for (i in 1:length(trip_plots)) {
 Figures in this appendix show the interpolated GPS locations relative to raw GPS locations for each individual deployment. Locations are plotted as distance from colony over time. Gaps in the interploted (teal) tracks, where no dashed line is plotted were times when the bird was not classified as in a foraging trip. Times where the interpolated track is shown with a dashed line, but no points were large gaps in GPS tracking during a foraging trip where no interpolation was performed.
 
 ```{r plot trip-interpolation, fig.height=3.5}
-
 interp_plots <- plot_interp_dist(data = interp, 
                                  plotsPerPage = 2,              
                                  showPlots = F)
@@ -306,7 +303,6 @@ interp_plots <- plot_interp_dist(data = interp,
 for (i in 1:length(interp_plots)) {
   print(interp_plots[[i]])
 }
-
 ```
 
 \newpage
@@ -316,7 +312,9 @@ Figures in this appendix compare four different KDE smoothers. Each plot shows h
 
 ```{r plot kernels, fig.height=2.5}
 
-if (params$movebank_id %in% c(1247096889, 1904543040)) {
+
+if (params$includeBB == F ) {
+
   plot_uds <- list(Step = step_ud,
                          Href = href_ud,
                          `Href/2` = href0.5_ud)
@@ -338,5 +336,4 @@ pp <- opp_map_indUD(plot_uds,
 for (i in 1:length(pp)) {
   print(pp[[i]])
 }
-
 ```
