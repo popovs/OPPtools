@@ -5,7 +5,7 @@ author: "Allison Patterson & Sarah Popov"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output: 
   pdf_document:
-    toc: true
+    toc: TRUE
 params:
   movebank_id: NA
   report_title: NA
@@ -25,14 +25,14 @@ params:
   includeBB: NA
 editor_options: 
   chunk_output_type: console
+
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE,
                       message = FALSE,
                       warning = FALSE,
-                      dpi = 300,
-                      fig.align = "center")
+                      dpi = 300)
 
 library(OPPtools)
 library(dplyr)
@@ -57,7 +57,7 @@ dat2 <- opp2KBA(dat)
 # Raw trip data
 opp_map_tracks(tracks = dat2$data,
                center = dat2$site,
-               zoom = params$mapZoom,
+               zoom = NULL,
                coast_scale = 10,
                viridis_option = "D",
                show_locs = T)
@@ -123,7 +123,7 @@ interp <- ctcrw_interpolation(trips,
 # Raw trip data
 p_raw <- opp_map_tracks(tracks = interp$data,
                center = dat2$site,
-               zoom = params$mapZoom,
+               zoom = NULL,
                coast_scale = 10,
                viridis_option = "D",
                show_locs = T)
@@ -131,7 +131,7 @@ p_raw <- opp_map_tracks(tracks = interp$data,
 # Interpolated data
 p_int <- opp_map_tracks(tracks = interp$interp,
                center = dat2$site,
-               zoom = params$mapZoom,
+               zoom = NULL,
                coast_scale = 10,
                viridis_option = "D",
                show_locs = T)

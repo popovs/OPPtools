@@ -8,7 +8,7 @@ opp_map_keyareas(
   track2KBA_UD,
   center,
   show_site = T,
-  zoom = 6.5,
+  zoom = NULL,
   coast_scale = 50,
   viridis_option = "D"
 )
@@ -22,7 +22,7 @@ for plotting the colony or nest locations.}
 \item{show_site}{Logical indicating if polygon conatining potential important sites
 identified by track2KBA::findSite() should be plotted.}
 
-\item{zoom}{Integer from 1:16, indicating the zoom level for map.}
+\item{zoom}{Integer from 1:16, indicating the zoom level for map. If NULL the function will calculate the required zoom level.}
 
 \item{coast_scale}{Mapping resolution for the coastline basemap. Must be one of: 10 - high resolution,
 50 - medium resolution, 110 = low resolution.}
