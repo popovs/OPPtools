@@ -119,13 +119,14 @@ render_diagnostic <- function(params,
 #' @export
 
 render_kba <- function(params,
-                              kernel_smoother = "href/2",
-                              iterations = 5,
-                              level_ud = 95,
-                              save_rmd = FALSE,
-                              output_dir = 'temp',
-                              out_format = 'html_document',
-                              ...) {
+                       kernel_smoother = "href/2",
+                       iterations = 5,
+                       level_ud = 95,
+                       save_rmd = FALSE,
+                       save_shp = TRUE,
+                       output_dir = 'temp',
+                       out_format = 'html_document',
+                       ...) {
 
   # Data health checks
   params <- as.list(params)
@@ -137,7 +138,8 @@ render_kba <- function(params,
   }
 
   # Create output dir & file
-  dir.create(file.path("KBA", output_dir), showWarnings = FALSE, recursive = TRUE)
+  output_dir <- file.path(output_dir, "KBA")
+  dir.create(file.path(output_dir), showWarnings = FALSE, recursive = TRUE)
   filename <- params$file_name # set filename
 
   # Modify params list
@@ -151,7 +153,7 @@ render_kba <- function(params,
 
   # If saving Rmd file, generate and save it
   if (save_rmd == TRUE) {
-    rmd_dir <- paste0(file.path("KBA", output_dir, filename))
+    rmd_dir <- paste0(file.path(output_dir, filename))
     dir.create(rmd_dir, showWarnings = FALSE)
     rmd_out <- paste0(file.path(rmd_dir, filename), ".Rmd")
     rmarkdown::draft(rmd_out,
@@ -165,6 +167,11 @@ render_kba <- function(params,
     # If save_rmd true, update output dir
     # This is so Rmd & PDF are in nice little folder together
     output_dir <- rmd_dir
+  }
+
+  # If saving shp file, generate and save it
+  if (save_rmd == TRUE) {
+
   }
 
   # Render the file with the modified params

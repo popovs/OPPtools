@@ -10,6 +10,7 @@ render_kba(
   iterations = 5,
   level_ud = 95,
   save_rmd = FALSE,
+  save_shp = TRUE,
   output_dir = "temp",
   out_format = "html_document",
   ...
