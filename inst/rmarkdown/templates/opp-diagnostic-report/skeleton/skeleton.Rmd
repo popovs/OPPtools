@@ -69,7 +69,7 @@ opp_map_tracks(tracks = dat2$data,
 
 Foraging trips were identified as any continuous track at least `r params$minDist` km from the colony, which lasted for a minimum of `r params$minDur` hours. Trips were considered incomplete if the trips started or ended more than `r params$maxDist` km from the colony. Trips were considered 'gappy' if there were gaps between successive locations greater than `r params$gapTime` hours, and the bird traveled farther than `r params$gapDist` km during that time. 
 
-Table 1 summarizes trip attributes for each type of trip. Appendix A includes plots showing the trip classification from each individual deployment.
+Table 1 summarizes trip attributes for each type of trip. Appendix A includes plots showing the trip classification from each individual deployment. `r if (length(grep('storm-petrel', params$spp)) == 1) "Because of the low GPS sampling rate and long commuting distances of storm-petrels, some consecutive trips are potentially combined here. These merged trips were retained in order to include time spent close to the colony in estimated utilization distributions. For this reason, trip summary statistics in Tables 1 and 2 should be interpreted with caution."`
 
 ```{r get trips}
 trips <- opp_get_trips(dat2,
