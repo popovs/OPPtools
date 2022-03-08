@@ -8,10 +8,10 @@ mb_project_num,report_title,file_name,spp,breeding_pairs,minDist,maxDist,minDur,
 1904565280,"Rhinocerous auklet - Protection Island, WA",RHAU - Protection Island,Rhinocerous auklet,34000,0.5,10,1,1,12,FALSE,5 min,1,30,50,6.5,1
 1903075528,"Rhinocerous auklet - SGang Gwaay, BC",RHAU - SGang Gwaay,Rhinocerous auklet,,2.5,10,1,1,12,FALSE,5 min,1,30,50,6.5,1
 1901463730,"Rhinocerous auklet - Triangle Island, BC",RHAU - Triangle Island,Rhinocerous auklet,42000,3.5,10,1,1,12,FALSE,5 min,1,30,50,6.5,1
-1953033045,"Leach's storm-petrel - Copper Islands, BC",LHSP - Copper Islands,Leach's storm-petrel,,25,60,12,6,30,FALSE,60 min,5,500,50,4,1
-1952967863,"Leach's storm-petrel - Gillam Islands, BC",LHSP - Gillam Islands,Leach's storm-petrel,,25,60,12,6,30,FALSE,60 min,5,500,50,4.5,1
-1953016048,"Leach's storm-petrel - Hippa Island, BC",LHSP - Hippa Island,Leach's storm-petrel,,25,60,12,6,30,FALSE,60 min,5,500,50,4.5,1
-1948459965,"Leach's storm-petrel - Storm Islands, BC",LHSP - Storm Islands,Leach's storm-petrel,,25,60,12,6,30,FALSE,60 min,5,500,50,4,0
-1953094560,"Fork-tailed storm-petrel - Hippa Island, BC",FTSP - Hippa Island,Fork-tailed storm petrel,,25,60,12,6,30,FALSE,60 min,2,300,50,4,1
-1953062177,"Fork-tailed storm-petrel - Copper Islands, BC",FTSP - Copper Islands,Fork-tailed storm petrel,,25,60,12,6,30,FALSE,60 min,2,300,50,6,0
-1953086120,"Fork-tailed storm-petrel - Gillam Islands, BC",FTSP - Gillam Islands,Fork-tailed storm petrel,,25,60,12,6,30,FALSE,60 min,2,300,50,7.5,0
+1953033045,"Leach's storm-petrel - Copper Islands, BC",LHSP - Copper Islands,Leach's storm-petrel,,5,60,12,6,5,FALSE,60 min,5,500,50,4,1
+1952967863,"Leach's storm-petrel - Gillam Islands, BC",LHSP - Gillam Islands,Leach's storm-petrel,,5,60,12,6,5,FALSE,60 min,5,500,50,4.5,1
+1953016048,"Leach's storm-petrel - Hippa Island, BC",LHSP - Hippa Island,Leach's storm-petrel,,5,60,12,6,5,FALSE,60 min,5,500,50,4.5,1
+1948459965,"Leach's storm-petrel - Storm Islands, BC",LHSP - Storm Islands,Leach's storm-petrel,,5,60,12,6,5,FALSE,60 min,5,500,50,4,0
+1953094560,"Fork-tailed storm-petrel - Hippa Island, BC",FTSP - Hippa Island,Fork-tailed storm petrel,,5,60,12,6,5,FALSE,60 min,2,300,50,4,1
+1953062177,"Fork-tailed storm-petrel - Copper Islands, BC",FTSP - Copper Islands,Fork-tailed storm petrel,,5,60,12,6,5,FALSE,60 min,2,300,50,6,0
+1953086120,"Fork-tailed storm-petrel - Gillam Islands, BC",FTSP - Gillam Islands,Fork-tailed storm petrel,,5,60,12,6,5,FALSE,60 min,2,300,50,7.5,0
