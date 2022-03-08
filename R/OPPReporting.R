@@ -137,25 +137,36 @@ render_kba <- function(params,
     stop("Your passed params list is the incorrect length. Ensure you provide the 17 necessary params.")
   }
 
-  # Create output dir & file
+  # Create output dir & filename
   output_dir <- file.path(output_dir, "KBA")
   dir.create(file.path(output_dir), showWarnings = FALSE, recursive = TRUE)
   filename <- params$file_name # set filename
 
   # Modify params list
   names(params)[grep("mb", names(params))] <- "movebank_id" # rename 'mb_project_num' to 'movebank_id', if exists
-  params <- params[-grep("file_name", names(params))] # remove 'file_name'
+  #params <- params[-grep("file_name", names(params))] # remove 'file_name'
 
-  # Add 3 new params to params list
+  # Add 4 new params to params list
   params$kernelSmoother <- kernel_smoother
   params$iterations <- iterations
   params$levelUD <- level_ud
+  params$saveShp <- save_shp
+
+  # If either Rmd or Shp file are saved, update the output_dir
+  # This is so all outputs are in nice little folder together
+  if (save_rmd == TRUE | save_shp == TRUE) {
+    output_dir <- paste0(file.path(output_dir, filename))
+    dir.create(output_dir, showWarnings = FALSE, recursive = TRUE)
+
+    # Add the output_dir to the params passed to skeleton.Rmd
+    params$output_dir <- output_dir
+  }
 
   # If saving Rmd file, generate and save it
   if (save_rmd == TRUE) {
-    rmd_dir <- paste0(file.path(output_dir, filename))
-    dir.create(rmd_dir, showWarnings = FALSE)
-    rmd_out <- paste0(file.path(rmd_dir, filename), ".Rmd")
+    #rmd_dir <- paste0(file.path(output_dir, filename))
+    #dir.create(rmd_dir, showWarnings = FALSE)
+    rmd_out <- paste0(file.path(output_dir, filename), ".Rmd")
     rmarkdown::draft(rmd_out,
                      template = "opp-kba-report",
                      package = "OPPtools",
@@ -166,12 +177,7 @@ render_kba <- function(params,
 
     # If save_rmd true, update output dir
     # This is so Rmd & PDF are in nice little folder together
-    output_dir <- rmd_dir
-  }
-
-  # If saving shp file, generate and save it
-  if (save_rmd == TRUE) {
-
+    #output_dir <- rmd_dir
   }
 
   # Render the file with the modified params
