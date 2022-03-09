@@ -32,7 +32,7 @@ editor_options:
 knitr::opts_chunk$set(echo = FALSE,
                       message = FALSE,
                       warning = FALSE,
-                      dpi = 300)
+                      dpi = 150)
 
 library(OPPtools)
 library(dplyr)
@@ -335,5 +335,6 @@ pp <- opp_map_indUD(plot_uds,
 
 for (i in 1:length(pp)) {
   print(pp[[i]])
+  cat("  \n")
 }
 ```
