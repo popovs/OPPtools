@@ -310,7 +310,7 @@ for (i in 1:length(interp_plots)) {
 
 Figures in this appendix compare four different KDE smoothers. Each plot shows how the 50% and 95% utilization distribution calculated for individual tracks changes with depending on the  smoothing parameter and method.
 
-```{r plot kernels, fig.height=2.5}
+```{r plot kernels, fig.height=2.5, fig.width=7}
 
 
 #if (params$includeBB == F ) {
