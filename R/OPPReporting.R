@@ -65,6 +65,8 @@ render_diagnostic <- function(params,
     stop("Your passed params list is the incorrect length. Ensure you provide the 17 necessary params.")
   }
 
+  if (any(is.na(params))) warning("There are NA values in your passed params list. This may cause unexpected errors when rendering the document.")
+
   # Create output dir & file
   dir.create(output_dir, showWarnings = FALSE, recursive = TRUE)
   filename <- params$file_name # set filename
@@ -136,6 +138,8 @@ render_kba <- function(params,
   if (length(params) != 17) {
     stop("Your passed params list is the incorrect length. Ensure you provide the 17 necessary params.")
   }
+
+  if (any(is.na(params))) warning("There are NA values in your passed params list. This may cause unexpected errors when rendering the document.")
 
   # Create output dir & filename
   output_dir <- file.path(output_dir, "KBA")
