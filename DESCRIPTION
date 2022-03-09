@@ -22,7 +22,8 @@ Imports:
     ggplot2,
     data.table,
     spatialEco,
-    keyring
+    keyring,
+    here
 License: CC0
 Encoding: UTF-8
 LazyData: true
