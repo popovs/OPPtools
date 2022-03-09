@@ -22,7 +22,7 @@ params:
   gridExtend: NA
   speed: NA
   mapZoom: NA
-  includeBB: NA
+  includeBB: 0
 editor_options: 
   chunk_output_type: console
 
@@ -313,17 +313,17 @@ Figures in this appendix compare four different KDE smoothers. Each plot shows h
 ```{r plot kernels, fig.height=2.5}
 
 
-if (params$includeBB == F ) {
+#if (params$includeBB == F ) {
 
   plot_uds <- list(Step = step_ud,
                          Href = href_ud,
                          `Href/2` = href0.5_ud)
-} else {
-  plot_uds <- list(Step = step_ud,
-                         Href = href_ud,
-                         `Href/2` = href0.5_ud,
-                         BBMM = bbmm_ud)
-} 
+#} else {
+#   plot_uds <- list(Step = step_ud,
+#                          Href = href_ud,
+#                          `Href/2` = href0.5_ud,
+#                          BBMM = bbmm_ud)
+# } 
 
 pp <- opp_map_indUD(plot_uds,
                     tracks = interp$interp,
