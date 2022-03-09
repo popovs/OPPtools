@@ -203,7 +203,8 @@ sites <- track2KBA::findSite(kernels,
 if (params$saveShp == TRUE) {
   sf::st_write(sites[sites$N_animals > 0, ], 
                paste0(file.path(here::here(), params$output_dir, params$file_name), " KBA.shp"), 
-               append = FALSE)
+               append = FALSE,
+               quiet = TRUE)
 }
 ```
 
