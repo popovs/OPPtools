@@ -143,6 +143,7 @@ ft <- trips@data %>%
 ft
 ```
 
+\newpage
 ## Track representativeness
 
 ```{r ra_result, fig.show = 'hide'}
@@ -156,7 +157,18 @@ invisible(ra <- track2KBA::repAssess(tracks = interp$interp,
                                         ))
 ra_result <- ra[[1]]
 ra_table <- ra[[2]]
-not_rep <- (ra_result$SampleSize < 10 | ra_result$out < 1)
+
+# Check sample size is greater than 10
+small_sample <- (ra_result$SampleSize <= 10)
+# Check estimated asymptote is similar to target asymptote
+bad_asymp <- (abs(ra_result$est_asym - ra_result$est_asym) > 0.1 )
+# Check if criteria for representativeness are met
+not_rep <- ifelse(small_sample == T | bad_asymp == T, T, F)
+
+# Calculate representativeness based on target asymptote
+rep_target <- (max(ra_table$pred)/ra_result$tar_asym) * 100
+
+
 ```
 
 We evaluated the representativeness of tracking data using the *repAssess* function in the 'track2KBA' package (Beal et al. 2021). Subsamples of tracks were drawn from the available tracks. Each subsample was used to calculate a pooled `r params$levelUD` % UD, weighted by the number of interpolated locations within each track. The track inclusion rate was calculated as the proportion out-of sample tracking locations that overlapped with the pooled UD. This sampling procedure was repeated `r params$iterations` times, for sample sizes between `r min(ra_table$SampleSize)` and `r max(ra_table$SampleSize)` tracks. A non-linear regression is used to estimate the sample size where the inclusion rate reaches an asymptote. Representativeness is calculated as
@@ -165,7 +177,7 @@ $$R = \frac{y_n}{A}*100$$
 
 where *A* is the target asymptote, *y* is the inclusion rate, and *n* is the sample size. The inclusion rate should be similar to the target asymptote for a representative sample.
 
-The representativeness was  `r signif(ra_result$out, 3)`, (Figure 2). The inclusion rate reached an asymptote at `r signif(ra_result$est_asym, 2)` and the target asymptote was `r ra_result$tar_asym`. The non-linear regression results indicate that the minimum sample size required to achieve 70% and 95% representativeness would be, respectively, `r ra_result$Rep70` and `r ra_result$Rep95` tracks.
+The representativeness was  `r signif(rep_target, 3)`, (Figure 2). The inclusion rate reached an asymptote at `r signif(ra_result$est_asym, 2)` and the target asymptote was `r ra_result$tar_asym`. The non-linear regression results indicate that the minimum sample size required to achieve 70% and 95% representativeness would be, respectively, `r ra_result$Rep70` and `r ra_result$Rep95` tracks.
 
 ```{r ra_plot, fig.height = 3, fig.cap = "Inclusion rate as a function of sample size. The solid line shows the result of non-linear regression, the grey shaded area shows range of inclusion values from subsampling iterations. The dashed horizontal line shows the target asymptote, which is determined be the desired utilization distribution."}
 
@@ -178,7 +190,9 @@ ra_plot
 
 ## Key biological areas
 
-`r if (not_rep) "Due to the low sample size of tracks available for this population, we recommend collecting additional tracking data before trying to infer key at-sea area use during the breeding season for this population. "`
+`r if (small_sample) "Due to the low sample size of tracks available for this population, we recommend collecting additional tracking data before trying to infer key at-sea area use during the breeding season for this population."`
+
+`r if (small_sample == F & bad_asymp == T) "The estimated asymptote for the inclusion rate differed from the target asymptote, this is an indication that the tracking sample size is not sufficient to represent the source population, we recommend collecting additional tracking data before trying to infer key at-sea area use during the breeding season for this population."`
 
 `r if (not_rep) ("# References")`
 
@@ -212,11 +226,9 @@ The `r params$kernelSmoother` smoother was chosen for kernel density estimation,
 
 `r if(params$kernelSmoother == "step" & s == 1){"The step function resulted in a step smoother value of less than 1 km; therefore, 'step' kernel density estimates were calculated with a smoother value of 1 km."}`
 
-The `track2KBA` package (Beal et al. 2021) was used to identify important at-sea areas for `r params$spp` breeding at `r unique(dat$study_site)`. This calculates an estimate of the number of birds from the source colony that predictably use at sea areas. The estimate is based on the proportion of overlapping 95% UD areas in each raster grid cell multiplied by the calculated representativeness of the sample (`r signif(ra_result$out, 2)`) and the source population size (`r format(params$breeding_pairs * 2, scientific = F, big.mark = ',')` individuals).
+The `track2KBA` package (Beal et al. 2021) was used to identify important at-sea areas for `r params$spp` breeding at `r unique(dat$study_site)`. This calculates an estimate of the number of birds from the source colony that predictably use at sea areas. The estimate is based on the proportion of overlapping 95% UD areas in each raster grid cell multiplied by the calculated representativeness of the sample (`r signif(ra_result$out, 2)`) and the source population size (`r format(params$breeding_pairs * 2, scientific = F, big.mark = ',')` individuals). From this raster, a 'key area' polygon was delineated as all grid cells used by at least 10% of the source population (Lascelles et al. 2016).
 
-From this raster, a 'key area' polygon was delineated as all grid cells used by at least 10% of the source population (Lascelles et al. 2016).
-
-```{r plot KBA, fig.width=7, fig.cap = "Map showing the estimated distribution of birds at sea around the breeding colony."}
+```{r plot KBA, fig.height=5, fig.cap = "Map showing the estimated distribution of birds at sea around the breeding colony."}
 opp_map_keyareas(track2KBA_UD = sites,
                  center = dat2$site,
                  zoom = NULL,
@@ -225,6 +237,8 @@ opp_map_keyareas(track2KBA_UD = sites,
                  coast_scale = 10
                  )
 ```
+
+\newpage
 
 # References
 
