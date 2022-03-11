@@ -92,11 +92,18 @@ if (params$kernelSmoother != "bbmm") {
                       extendGrid = params$gridExtend,
                       res = params$gridRes)
 }
+
+if (length(unique(year(dat$timestamp))) == 1) {
+  track_years <- paste0("In ", unique(year(dat$timestamp)))
+} else {
+  track_years <- paste0("Between ", min(year(dat$timestamp)), ' and ', max(year(dat$timestamp)))
+}
+
 ```
 
 # Data summary
 
-Between `r min(year(dat$timestamp))` and `r max(year(dat$timestamp))`, `r length(unique(dat$individual_id))` individual `r params$spp`s at the `r unique(dat$study_site)` colony were tagged and tracked with `r as.character(unique(dat$sensor_type))` tags.
+Between `r track_years`, `r length(unique(dat$individual_id))` individual `r params$spp`s at the `r unique(dat$study_site)` colony were tagged and tracked with `r as.character(unique(dat$sensor_type))` tags.
 
 These `r length(unique(dat$individual_id))` individuals generated `r nrow(dat)` detections between `r as.Date(min(dat$timestamp))` and `r as.Date(max(dat$timestamp))`.
 
@@ -160,16 +167,24 @@ ra_table <- ra[[2]]
 
 # Check sample size is greater than 10
 small_sample <- (ra_result$SampleSize <= 10)
+not_rep_message <- ''
+if (small_sample == T) not_rep_message <- paste0(not_rep_message, "The sample size of tracks available for this population was lower than the recommended minimum of 10 tracks. ")
+
 # Check estimated asymptote is similar to target asymptote
-bad_asymp <- (abs(ra_result$est_asym - ra_result$est_asym) > 0.1 )
-# Check if criteria for representativeness are met
-not_rep <- ifelse(small_sample == T | bad_asymp == T, T, F)
+bad_asymp <- (abs(ra_result$est_asym - ra_result$tar_asym) > 0.1 )
+if (bad_asymp == T) not_rep_message <- paste0(not_rep_message, "The estimated asymptote for the inclusion rate differed from the target asymptote, this is an indication that the tracking sample size is not sufficient to represent the source population. ")
 
 # Calculate representativeness based on target asymptote
 rep_target <- (max(ra_table$pred)/ra_result$tar_asym) * 100
+if (rep_target < 70) not_rep_message <- paste0(not_rep_message, "The estimated representativeness of tracks available for this population was lower than the recommended minimum of 70%. ")
 
-
+# Check if criteria for representativeness are met
+not_rep <- ifelse(small_sample == T | bad_asymp == T | rep_target < 70 , T, F)
+if (not_rep == T) not_rep_message <- paste0(not_rep_message, "Additional tracking data should be collected in order to infer key at-sea area use during the breeding season for this population. ")
+  
+  
 ```
+
 
 We evaluated the representativeness of tracking data using the *repAssess* function in the 'track2KBA' package (Beal et al. 2021). Subsamples of tracks were drawn from the available tracks. Each subsample was used to calculate a pooled `r params$levelUD` % UD, weighted by the number of interpolated locations within each track. The track inclusion rate was calculated as the proportion out-of sample tracking locations that overlapped with the pooled UD. This sampling procedure was repeated `r params$iterations` times, for sample sizes between `r min(ra_table$SampleSize)` and `r max(ra_table$SampleSize)` tracks. A non-linear regression is used to estimate the sample size where the inclusion rate reaches an asymptote. Representativeness is calculated as
 
@@ -179,6 +194,8 @@ where *A* is the target asymptote, *y* is the inclusion rate, and *n* is the sam
 
 The representativeness was  `r signif(rep_target, 3)`, (Figure 2). The inclusion rate reached an asymptote at `r signif(ra_result$est_asym, 2)` and the target asymptote was `r ra_result$tar_asym`. The non-linear regression results indicate that the minimum sample size required to achieve 70% and 95% representativeness would be, respectively, `r ra_result$Rep70` and `r ra_result$Rep95` tracks.
 
+`r if (not_rep) not_rep_message`
+
 ```{r ra_plot, fig.height = 3, fig.cap = "Inclusion rate as a function of sample size. The solid line shows the result of non-linear regression, the grey shaded area shows range of inclusion values from subsampling iterations. The dashed horizontal line shows the target asymptote, which is determined be the desired utilization distribution."}
 
 ra_plot <- opp_plot_repAssess(ra, plot = F)
@@ -186,13 +203,6 @@ ra_plot
 
 ```
 
-\newpage
-
-## Key biological areas
-
-`r if (small_sample) "Due to the low sample size of tracks available for this population, we recommend collecting additional tracking data before trying to infer key at-sea area use during the breeding season for this population."`
-
-`r if (small_sample == F & bad_asymp == T) "The estimated asymptote for the inclusion rate differed from the target asymptote, this is an indication that the tracking sample size is not sufficient to represent the source population, we recommend collecting additional tracking data before trying to infer key at-sea area use during the breeding season for this population."`
 
 `r if (not_rep) ("# References")`
 
@@ -200,9 +210,16 @@ ra_plot
 
 `r if (not_rep) "Lascelles, B. G., Taylor, P. R., Miller, M. G. R., Dias, M. P., Oppel, S., Torres, L., Hedd, A., Corre, M. L., Phillips, R. A., Shaffer, S. A., Weimerskirch, H., & Small, C. (2016). Applying global criteria to tracking data to define important areas for marine conservation. Diversity and Distributions, 22, 422–431."`
 
+
 ```{r short report, echo=FALSE, message=FALSE, warning=FALSE}
 if (not_rep) knitr::knit_exit()
 ```
+
+
+\newpage
+
+## Key biological areas
+
 
 ```{r find kba & save shp}
 # track2KBA::findSite
