@@ -1,5 +1,47 @@
 # -----
 
+#' Plot tracking history by date, year, Movebank ID, and animal-reproductive-condition
+#' @description Creates a dot plot showing GPS locations for each individual over time
+#' @param data Dataframe as returned by opp_download_data()
+#' @returns A ggplot object
+#' @examples
+#'
+#' my_data <- opp_download_data(study = c(1247096889),login = NULL, start_month = NULL,
+#'                             end_month = NULL,season = NULL)
+#'
+#' opp_logger_dotplot(data = my_data)
+#'
+#' @export
+
+opp_logger_dotplot <- function(data) {
+
+  p <- data %>%
+    mutate(
+      animal_reproductive_condition = ifelse(animal_reproductive_condition == 'breeding, chicks','Chicks',
+                                             ifelse(animal_reproductive_condition == 'breeding, eggs', 'Eggs',
+                                                    'Breeder, unknown'
+                                             )),
+      common_date = as.POSIXct(paste0("2000-",format(timestamp, "%m-%d %H:%M:%S", tz = 'UTC')), "%Y-%m-%d %H:%M:%S", tz = 'UTC')
+    ) %>%
+    ggplot2::ggplot(ggplot2::aes(x = common_date, y = factor(local_identifier),
+                                 col = animal_reproductive_condition)) +
+    ggplot2::geom_point(size = 1.5) +
+    ggplot2::facet_wrap(.~year, scales = 'free_y', ncol = 1)+
+    ggplot2::labs(x = "Date", y = "Inidividual ID", colour = 'Breeding status') +
+    ggplot2::scale_x_datetime(date_labels = "%d-%b") +
+    ggplot2::scale_colour_brewer(palette = 'Dark2') +
+    ggplot2::theme_light()+
+    ggplot2::theme(
+      text = ggplot2::element_text(size = 10),
+      legend.title = ggplot2::element_text(size = 8),
+      strip.text = ggplot2::element_text(size = 10, colour = 'black'),
+      strip.background= ggplot2::element_rect(fill = 'transparent'),
+    )
+  return(p)
+}
+
+# -----
+
 #' Plot trips identified using opp_get_trips()
 
 #' @description Plots the results of opp_get_trips(), with DateTime on the x-axis and ColDist
@@ -148,8 +190,8 @@ plot_interp_dist <- function(data, showPlots = T, plotsPerPage = 4) {
 #' Custom plot of representativeness assessment from track2KBA::repAssess
 #'
 #' @export
-#' @represent Output from track2KBA::repAssess with bootTable = TRUE
-#' @plot Logical. Should result be plotted
+#' @param represent Output from track2KBA::repAssess with bootTable = TRUE
+#' @param plot Logical. Should result be plotted
 #' @returns A ggplot object showing the results of the call to repAssess
 
 opp_plot_repAssess <- function(represent, plot = TRUE) {
