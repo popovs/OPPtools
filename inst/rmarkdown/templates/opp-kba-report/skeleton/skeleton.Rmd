@@ -118,7 +118,8 @@ opp_map_tracks(tracks = interp$data,
 ```
 
 \newpage
-```{r location plot, fig.width = 6, fig.cap = 'Plot showing tracking period and breeding status for each individual GPS deployment'}
+
+```{r location plot, fig.height = 6, fig.cap = 'Plot showing tracking period and breeding status for each individual GPS deployment'}
 
 opp_logger_dotplot(dat)
 
@@ -201,7 +202,7 @@ $$R = \frac{y_n}{A}*100$$
 
 where *A* is the target asymptote, *y* is the inclusion rate, and *n* is the sample size. The inclusion rate should be similar to the target asymptote for a representative sample.
 
-The representativeness was  `r signif(rep_target, 3)`, (Figure 2). The inclusion rate reached an asymptote at `r signif(ra_result$est_asym, 2)` and the target asymptote was `r ra_result$tar_asym`. The non-linear regression results indicate that the minimum sample size required to achieve 70% and 95% representativeness would be, respectively, `r ra_result$Rep70` and `r ra_result$Rep95` tracks.
+The estimated representativeness was  `r signif(rep_target, 3)`%, (Figure 2). The inclusion rate reached an asymptote at `r signif(ra_result$est_asym, 2)` and the target asymptote was `r ra_result$tar_asym`. The non-linear regression results indicate that the minimum sample size required to achieve 70% and 95% representativeness would be, respectively, `r ra_result$Rep70` and `r ra_result$Rep95` tracks.
 
 `r if (not_rep) not_rep_message`
 
