@@ -59,6 +59,8 @@ trips <- opp_get_trips(dat2,
               showPlots = F
               )
 
+trip_summary <- OPPtools::sum_trips(trips)
+
 # Interpolate trips
 interp <- ctcrw_interpolation(trips,
                     site = dat2$site,
@@ -100,22 +102,26 @@ if (length(unique(year(dat$timestamp))) == 1) {
 }
 
 ```
+\newpage
 
 # Data summary
 
-Between `r track_years`, `r length(unique(dat$individual_id))` individual `r params$spp`s at the `r unique(dat$study_site)` colony were tagged and tracked with `r as.character(unique(dat$sensor_type))` tags.
+`r track_years`, `r length(unique(dat$individual_id))` individual `r params$spp`s at the `r unique(dat$study_site)` colony were tracked with `r as.character(unique(dat$sensor_type))` tags (Figure 1). These `r length(unique(dat$individual_id))` individuals were tracked during `r nrow(trip_summary)` off-colony bouts between `r as.Date(min(dat$timestamp))` and `r as.Date(max(dat$timestamp))` (Figure 2, Table 1). Data used in this report are stored on Movebank (https://www.movebank.org/) in project number `r as.character(params$movebank_id)`.
 
-These `r length(unique(dat$individual_id))` individuals generated `r nrow(dat)` detections between `r as.Date(min(dat$timestamp))` and `r as.Date(max(dat$timestamp))`.
-
-Data are stored on Movebank in project number `r as.character(params$movebank_id)`.
-
-```{r trip map, fig.width=7, fig.cap = "Map of trips with raw GPS locations. Different colours represent trips from unique deployments. Location of the breeding colony is indicated with an orange point."}
+```{r trip map, fig.width=6, fig.cap = "Map of trips with raw GPS locations. Different colours represent trips from unique deployments. Location of the breeding colony is indicated with an orange point."}
 opp_map_tracks(tracks = interp$data,
                center = dat2$site,
                zoom = NULL,
                coast_scale = 10,
                viridis_option = "D",
                show_locs = T)
+```
+
+\newpage
+```{r location plot, fig.width = 6, fig.cap = 'Plot showing tracking period and breeding status for each individual GPS deployment'}
+
+opp_logger_dotplot(dat)
+
 ```
 
 \newpage
@@ -185,6 +191,9 @@ if (not_rep == T) not_rep_message <- paste0(not_rep_message, "Additional trackin
   
 ```
 
+The `r params$kernelSmoother` smoother was used for kernel density estimation, with a value of `r if(params$kernelSmoother == "href"){ paste(h) } else if(params$kernelSmoother == "href/2") {paste(h/2)} else if(params$kernelSmoother == "step") {paste(s)} else {paste("Error: kernelSmoother not a valid value")}` km.
+
+`r if(params$kernelSmoother == "step" & s == 1){"The step function resulted in a step smoother value of less than 1 km; therefore, 'step' kernel density estimates were calculated with a smoother value of 1 km."}`
 
 We evaluated the representativeness of tracking data using the *repAssess* function in the 'track2KBA' package (Beal et al. 2021). Subsamples of tracks were drawn from the available tracks. Each subsample was used to calculate a pooled `r params$levelUD` % UD, weighted by the number of interpolated locations within each track. The track inclusion rate was calculated as the proportion out-of sample tracking locations that overlapped with the pooled UD. This sampling procedure was repeated `r params$iterations` times, for sample sizes between `r min(ra_table$SampleSize)` and `r max(ra_table$SampleSize)` tracks. A non-linear regression is used to estimate the sample size where the inclusion rate reaches an asymptote. Representativeness is calculated as
 
@@ -238,10 +247,6 @@ if (params$saveShp == TRUE) {
                quiet = TRUE)
 }
 ```
-
-The `r params$kernelSmoother` smoother was chosen for kernel density estimation, with a value of `r if(params$kernelSmoother == "href"){ paste(h) } else if(params$kernelSmoother == "href/2") {paste(h/2)} else if(params$kernelSmoother == "step") {paste(s)} else {paste("Error: kernelSmoother not a valid value")}` km.
-
-`r if(params$kernelSmoother == "step" & s == 1){"The step function resulted in a step smoother value of less than 1 km; therefore, 'step' kernel density estimates were calculated with a smoother value of 1 km."}`
 
 The `track2KBA` package (Beal et al. 2021) was used to identify important at-sea areas for `r params$spp` breeding at `r unique(dat$study_site)`. This calculates an estimate of the number of birds from the source colony that predictably use at sea areas. The estimate is based on the proportion of overlapping 95% UD areas in each raster grid cell multiplied by the calculated representativeness of the sample (`r signif(ra_result$out, 2)`) and the source population size (`r format(params$breeding_pairs * 2, scientific = F, big.mark = ',')` individuals). From this raster, a 'key area' polygon was delineated as all grid cells used by at least 10% of the source population (Lascelles et al. 2016).
 
