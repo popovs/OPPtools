@@ -4,10 +4,12 @@
 \alias{opp_logger_dotplot}
 \title{Plot tracking history by date, year, Movebank ID, and animal-reproductive-condition}
 \usage{
-opp_logger_dotplot(data)
+opp_logger_dotplot(data, yearround = F)
 }
 \arguments{
 \item{data}{Dataframe as returned by opp_download_data()}
+
+\item{multiyear}{Logical. If multiyear is FALSE (default), each year is plotted as a separate facet}
 }
 \value{
 A ggplot object

@@ -3,6 +3,7 @@
 #' Plot tracking history by date, year, Movebank ID, and animal-reproductive-condition
 #' @description Creates a dot plot showing GPS locations for each individual over time
 #' @param data Dataframe as returned by opp_download_data()
+#' @param multiyear Logical. If multiyear is FALSE (default), each year is plotted as a separate facet
 #' @returns A ggplot object
 #' @examples
 #'
@@ -13,22 +14,34 @@
 #'
 #' @export
 
-opp_logger_dotplot <- function(data) {
+opp_logger_dotplot <- function(data, yearround = F) {
 
-  p <- data %>%
-    mutate(
-      animal_reproductive_condition = ifelse(animal_reproductive_condition == 'breeding, chicks','Chicks',
-                                             ifelse(animal_reproductive_condition == 'breeding, eggs', 'Eggs',
-                                                    'Breeder, unknown'
+  if (yearround == T) {
+    data <- data %>%
+      dplyr::mutate(
+        animal_reproductive_condition = 'Year-round',
+        common_date = timestamp
+        )
+  }
+
+  if (yearround == F) {
+  data <- data %>%
+    dplyr::mutate(
+      animal_reproductive_condition = ifelse(animal_reproductive_condition %in% c('breeding, chicks', 'breeding, chick'),'Chick-rearing',
+                                             ifelse(animal_reproductive_condition %in% c('breeding, eggs', 'breeding, egg'), 'Incubation',
+                                                    'Breeding, unknown'
                                              )),
       common_date = as.POSIXct(paste0("2000-",format(timestamp, "%m-%d %H:%M:%S", tz = 'UTC')), "%Y-%m-%d %H:%M:%S", tz = 'UTC')
-    ) %>%
-    ggplot2::ggplot(ggplot2::aes(x = common_date, y = factor(local_identifier),
+
+    )
+  }
+
+  p <- data %>%
+    ggplot2::ggplot(ggplot2::aes(x = common_date, y = factor(deployment_id),
                                  col = animal_reproductive_condition)) +
     ggplot2::geom_point(size = 1.5) +
-    ggplot2::facet_wrap(.~year, scales = 'free_y', ncol = 1)+
     ggplot2::labs(x = "Date", y = "Inidividual ID", colour = 'Breeding status') +
-    ggplot2::scale_x_datetime(date_labels = "%d-%b") +
+    ggplot2::scale_x_datetime(date_labels = ifelse(multiyear == F, "%b-%d", "%d-%b-%Y")) +
     ggplot2::scale_colour_brewer(palette = 'Dark2') +
     ggplot2::theme_light()+
     ggplot2::theme(
@@ -37,6 +50,11 @@ opp_logger_dotplot <- function(data) {
       strip.text = ggplot2::element_text(size = 10, colour = 'black'),
       strip.background= ggplot2::element_rect(fill = 'transparent'),
     )
+
+  if (yearround == F) p <- p + ggplot2::facet_grid(rows = 'year', scales = 'free_y', space = 'free_y')
+  if (yearround == T) p <- p + ggplot2::guides(colour = 'none')
+
+
   return(p)
 }
 
