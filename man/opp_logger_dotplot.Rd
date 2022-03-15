@@ -9,7 +9,7 @@ opp_logger_dotplot(data, yearround = F)
 \arguments{
 \item{data}{Dataframe as returned by opp_download_data()}
 
-\item{multiyear}{Logical. If multiyear is FALSE (default), each year is plotted as a separate facet}
+\item{yearround}{Logical. If yearround is FALSE (default), each year is plotted as a separate facet}
 }
 \value{
 A ggplot object

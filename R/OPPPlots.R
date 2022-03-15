@@ -3,7 +3,7 @@
 #' Plot tracking history by date, year, Movebank ID, and animal-reproductive-condition
 #' @description Creates a dot plot showing GPS locations for each individual over time
 #' @param data Dataframe as returned by opp_download_data()
-#' @param multiyear Logical. If multiyear is FALSE (default), each year is plotted as a separate facet
+#' @param yearround Logical. If yearround is FALSE (default), each year is plotted as a separate facet
 #' @returns A ggplot object
 #' @examples
 #'
@@ -41,7 +41,7 @@ opp_logger_dotplot <- function(data, yearround = F) {
                                  col = animal_reproductive_condition)) +
     ggplot2::geom_point(size = 1.5) +
     ggplot2::labs(x = "Date", y = "Inidividual ID", colour = 'Breeding status') +
-    ggplot2::scale_x_datetime(date_labels = ifelse(multiyear == F, "%b-%d", "%d-%b-%Y")) +
+    ggplot2::scale_x_datetime(date_labels = ifelse(yearround == F, "%b-%d", "%d-%b-%Y")) +
     ggplot2::scale_colour_brewer(palette = 'Dark2') +
     ggplot2::theme_light()+
     ggplot2::theme(
