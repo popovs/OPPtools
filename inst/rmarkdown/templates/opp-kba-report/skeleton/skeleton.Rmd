@@ -21,10 +21,9 @@ params:
   timestep: NA
   gridRes: NA
   gridExtend: NA
-  speed: NA
-  mapZoom: NA
   includeBB: NA
-  kernelSmoother: kernel_smoother
+  kernelSmoother: NA
+  stage: NA
   iterations: interations
   levelUD: level_ud
   saveShp: save_shp
@@ -46,6 +45,23 @@ library(track2KBA)
 
 # Pull data and calculate necessary interim analysis steps
 dat <- opp_download_data(study = params$movebank_id)
+
+# Restrict to selected breeding stage
+if (params$stage == 'Incubation') {
+  dat <- dat %>% filter(animal_reproductive_condition %in% c('breeding, eggs', 'breeding, egg'))
+  stage_message <- 'This report focuses on tracking data collected during the incubation stage of the breeding season.'
+}
+
+if (params$stage == 'Chick-rearing') {
+  dat <- dat %>% filter(animal_reproductive_condition %in% c('breeding, chicks', 'breeding, chick'))
+  stage_message <- 'This report focuses on tracking data collected during the chick-rearing stage the breeding season.'
+}
+
+if (params$stage == 'Unknown') {
+    stage_message <- 'Breeding status could not be determined for all deployments, therefore data in this report represent both incubation and chick-rearing breeding stages.'
+}
+
+# format data for track2KBA
 dat2 <- opp2KBA(dat)
 
 # Get trips
@@ -61,6 +77,9 @@ trips <- opp_get_trips(dat2,
 
 trip_summary <- OPPtools::sum_trips(trips)
 
+# list of deployments with usable trips
+deps <- unique(trips$ID[trips$Type != "Non-trip"])
+
 # Interpolate trips
 interp <- ctcrw_interpolation(trips,
                     site = dat2$site,
@@ -70,16 +89,13 @@ interp <- ctcrw_interpolation(trips,
                     showPlots = F)
 
 # Get smoothers
-h <- opp_href(interp$interp)
-s <- opp_step(interp$interp)
-s <- ifelse(s < 1, 1, s)
-
 if (params$kernelSmoother == "href") {
-  smooth = h
+  smooth <- opp_href(interp$interp)
 } else if (params$kernelSmoother == "href/2") {
-  smooth = h/2
+  smooth <- opp_href(interp$interp)/2
 } else if (params$kernelSmoother == "step") {
-  smooth = s
+  s <- opp_step(interp$interp)
+  smooth <- ifelse(s < 1, 1, s)
 }
 
 # Calc kernels
@@ -95,18 +111,46 @@ if (params$kernelSmoother != "bbmm") {
                       res = params$gridRes)
 }
 
-if (length(unique(year(dat$timestamp))) == 1) {
-  track_years <- paste0("In ", unique(year(dat$timestamp)))
-} else {
-  track_years <- paste0("Between ", min(year(dat$timestamp)), ' and ', max(year(dat$timestamp)))
+yy <- sort(unique(year(dat$timestamp)))
+
+if (length(yy) == 1) {
+  track_years <- paste0("GPS units were deployed in ", yy, ".")
+} 
+if (length(yy) == 2) {
+  track_years <- paste0("GPS units were deployed in ", yy[1], " and ", yy[2], ".")
 }
+if (length(yy) >2) {
+  track_years <- paste0("GPS units were deployed over ", length(yy), ' years, between ' , min(yy), " and ", max(yy), ".")
+}
+
+
+small_sample <- paste0("With 10 or fewer tracks, it is not possible to delineate a representative at-sea area for this breeding population (Beal et al 2021). We recommend collecting additional GPS tracking data at this site.^[For further details on defining trips for these analyses, see the associated diagnostic file.]")
+
+
+report_references <- 'Beal, M., Oppel, S., Handley, J., Pearmain, E. J., Morera-Pujol, V., Carneiro, A. P. B., Davies, T. E., Phillips, R. A., Taylor, P. R., Miller, M. G. R., Franco, A. M. A., Catry,
+I., Patrício, A. R., Regalla, A., Staniland, I., Boyd, C., Catry, P., and Dias, M. P. (2021). track2KBA: An R package for identifying important sites for biodiversity from tracking data. Methods in Ecology and Evolution, 12, 2372–2378.
+\n\n
+Calenge, C. (2006) The package adehabitat for the R software: a tool for the analysis of space and habitat use by animals. Ecological Modelling, 197, 516-519
+\n\n
+Johnson, D. S., London, J. M., Lea, M.-A. and Durban, J. W. (2008) Continuous-time correlated random walk model for animal telemetry data. Ecology, 89: 1208-1215. 
+\n\n
+Lascelles, B. G., Taylor, P. R., Miller, M. G. R., Dias, M. P., Oppel, S., Torres,
+L., Hedd, A., Corre, M. L., Phillips, R. A., Shaffer, S. A., Weimerskirch, H., & Small, C. (2016). Applying global criteria to tracking data to define important areas for marine conservation. Diversity and Distributions, 22, 422–431.
+\n\n
+R Core Team (2021). R: A language and environment for statistical computing. R Foundation for Statistical Computing, Vienna, Austria. URL https://www.R-project.org/.'
+
 
 ```
 \newpage
 
 # Data summary
 
-`r track_years`, `r length(unique(dat$individual_id))` individual `r params$spp`s at the `r unique(dat$study_site)` colony were tracked with `r as.character(unique(dat$sensor_type))` tags (Figure 1). These `r length(unique(dat$individual_id))` individuals were tracked during `r nrow(trip_summary)` off-colony bouts between `r as.Date(min(dat$timestamp))` and `r as.Date(max(dat$timestamp))` (Figure 2, Table 1). Data used in this report are stored on Movebank (https://www.movebank.org/) in project number `r as.character(params$movebank_id)`.
+GPS tracking was conducted on breeding `r params$spp`s at `r unique(dat$study_site)`; a colony with 
+`r format(params$breeding_pairs * 2, scientific = F, big.mark = ',')` breeding pairs. `r track_years` Location data away from the colony were obtained from `r length(deps)` individuals (Figure 1 and Figure 2). `r stage_message` 
+
+Raw tracking data are stored on Movebank (https://www.movebank.org/) in project number `r as.character(params$movebank_id)`. All analysis were conducted with R (version 4.1.0, R Core Team 2021), code used to generate this report is available at https://github.com/popovs/OPPtools.
+
+`r if (length(deps) <= 10) small_sample`
 
 ```{r trip map, fig.width=6, fig.cap = "Map of trips with raw GPS locations. Different colours represent trips from unique deployments. Location of the breeding colony is indicated with an orange point."}
 opp_map_tracks(tracks = interp$data,
@@ -119,45 +163,30 @@ opp_map_tracks(tracks = interp$data,
 
 \newpage
 
-```{r location plot, fig.height = 6, fig.cap = 'Plot showing tracking period and breeding status for each individual GPS deployment'}
+```{r location plot, fig.height = 6, fig.cap = 'Plot showing tracking period and breeding status for each individual GPS deployment that included locations at-sea'}
 
-opp_logger_dotplot(dat)
+opp_logger_dotplot(dat[dat$deployment_id %in% deps,])
 
 ```
 
 \newpage
-# Key at-sea areas
 
-The following at-sea areas were defined by following the OPP Workflow:
+`r if (length(deps) <= 10) ("# References")`
 
-1. Define individual "trips"^[For further details on defining trips for these analyses, see the associated diagnostic file.]
-2. Calculate a kernel density estimate using the `r params$kernelSmoother` kernel smoother
-3. Estimate "key biological areas" of overlapping kernel areas using the `track2KBA` suite of tools
+`r if (length(deps) <= 10) report_references`
 
-## Trips summary
 
-```{r trip summary}
-ft <- trips@data %>%
-  filter(Type != 'Non-trip') %>%
-  group_by(ID, tripID, Type) %>%
-  mutate(
-    duration = as.numeric(difftime(max(DateTime), min(DateTime), units = 'hours'))
-  ) %>%
-  group_by(Type) %>%
-  summarize(
-    `Number of trips` = length(unique(tripID)),
-    `Number of locations` = n(),
-    `Median duration (hrs)` = round(median(duration), 1),
-    `Median trip distance (km)` = round(median(max(ColDist))/1000, 1)
-    ) %>%
-  flextable::flextable(cwidth =1.25) %>%
-  flextable::align(align = 'center', part = 'all') %>%
-  flextable::set_caption("Summary of trip attributes by trip classification.")
+``` {r small_sample}
+if (length(deps) <= 10) knitr::knit_exit()
 
-ft
 ```
 
-\newpage
+## Individual utilization distributions
+
+To focus on at-sea distribution, we first identified periods of time when birds were away from the colony. Tracked individuals were considered away from the colony if consecutive locations were more than  `r params$minDist` km from the colony for at least `r params$minDur` hr. GPS locations at-sea may be recorded at uneven intervals if birds are diving underwater or the logger could not obtain a fix for other reasons. In order to avoid bias in the utilization distributions due to missing locations, we interpolated at-sea data to a constant time interval of `r params$timestep` using a continuous-time correlated random walk model  with the 'crawl' package (version 2.2.1, Johnson et al 2008) in R. Prior to interpolation, we identified large gaps in tracks if there were no GPS fixes for at least `r params$gapTime` hr and the bird travelled more than `r params$gapDist` km. Data were not interpolated across these larger gaps, to avoid including interpolated locations with a high degree of uncertainty in kernel density estimates. For further details on how parameters for these analyses were selected, see the associated diagnostic file.
+
+A utilization distribution (UD) was calculated for each individual deployment using the *kernelUD* function in the 'adehabitatHR' package (version 0.4.19, Calenge 2006) in R. All UDs were calculated on the the same  `r paste(params$gridRes, ' x ', params$gridRes, 'km')` grid, with a smoothing parameter value of `r round(smooth, 0.1)` km. `r if(params$kernelSmoother == "href"){"The smoothing parameter was determined using the ‘href’ method, which is calculated from the variance in the X and Y dimensions of the location data (Beal et al 2021) This value was calculated for individual tracks and the median value across all tracks was used."}` `r if(params$kernelSmoother == "href/"){"The smoothing parameter was based on the ‘href’ method, which is calculated from the variance in the X and Y directions in the data (Beal et al 2021), initial data exploration showed the href smoother over-simplified resulting utilization distributions, so the median href * 0.5 was used to obtain a more precise estimate of individual distributions."}``r if(params$kernelSmoother == "step"){"The smoothing function was based on the median step length between consecutive locations across all individual interpolated tracks."}``r if(params$kernelSmoother == "step" & smooth == 1){"The step function resulted in a step smoother value of less than 1 km; therefore, UDs were calculated with a smoother value of 1 km."}` See the associated diagnostic file for a comparison of different smoothing parameters.
+
 ## Track representativeness
 
 ```{r ra_result, fig.show = 'hide'}
@@ -179,11 +208,11 @@ if (small_sample == T) not_rep_message <- paste0(not_rep_message, "The sample si
 
 # Check estimated asymptote is similar to target asymptote
 bad_asymp <- (abs(ra_result$est_asym - ra_result$tar_asym) > 0.1 )
-if (bad_asymp == T) not_rep_message <- paste0(not_rep_message, "The estimated asymptote for the inclusion rate differed from the target asymptote, this is an indication that the tracking sample size is not sufficient to represent the source population. ")
+if (bad_asymp == T) not_rep_message <- paste0(not_rep_message, "The estimated asymptote for the inclusion rate differed from the target asymptote, which is an indication that the tracking sample size is not sufficient to represent the source population. ")
 
 # Calculate representativeness based on target asymptote
 rep_target <- (max(ra_table$pred)/ra_result$tar_asym) * 100
-if (rep_target < 70) not_rep_message <- paste0(not_rep_message, "The estimated representativeness of tracks available for this population was lower than the recommended minimum of 70%. ")
+if (rep_target < 70) not_rep_message <- paste0(not_rep_message, "The estimated representativeness of tracks available for this population was lower than the recommended minimum of 70% (Beal et al. 2021). ")
 
 # Check if criteria for representativeness are met
 not_rep <- ifelse(small_sample == T | bad_asymp == T | rep_target < 70 , T, F)
@@ -192,17 +221,13 @@ if (not_rep == T) not_rep_message <- paste0(not_rep_message, "Additional trackin
   
 ```
 
-The `r params$kernelSmoother` smoother was used for kernel density estimation, with a value of `r if(params$kernelSmoother == "href"){ paste(h) } else if(params$kernelSmoother == "href/2") {paste(h/2)} else if(params$kernelSmoother == "step") {paste(s)} else {paste("Error: kernelSmoother not a valid value")}` km.
-
-`r if(params$kernelSmoother == "step" & s == 1){"The step function resulted in a step smoother value of less than 1 km; therefore, 'step' kernel density estimates were calculated with a smoother value of 1 km."}`
-
 We evaluated the representativeness of tracking data using the *repAssess* function in the 'track2KBA' package (Beal et al. 2021). Subsamples of tracks were drawn from the available tracks. Each subsample was used to calculate a pooled `r params$levelUD` % UD, weighted by the number of interpolated locations within each track. The track inclusion rate was calculated as the proportion out-of sample tracking locations that overlapped with the pooled UD. This sampling procedure was repeated `r params$iterations` times, for sample sizes between `r min(ra_table$SampleSize)` and `r max(ra_table$SampleSize)` tracks. A non-linear regression is used to estimate the sample size where the inclusion rate reaches an asymptote. Representativeness is calculated as
 
 $$R = \frac{y_n}{A}*100$$
 
 where *A* is the target asymptote, *y* is the inclusion rate, and *n* is the sample size. The inclusion rate should be similar to the target asymptote for a representative sample.
 
-The estimated representativeness was  `r signif(rep_target, 3)`%, (Figure 2). The inclusion rate reached an asymptote at `r signif(ra_result$est_asym, 2)` and the target asymptote was `r ra_result$tar_asym`. The non-linear regression results indicate that the minimum sample size required to achieve 70% and 95% representativeness would be, respectively, `r ra_result$Rep70` and `r ra_result$Rep95` tracks.
+The estimated representativeness was  `r signif(rep_target, 3)`%, (Figure 2). The inclusion rate reached an asymptote at `r signif(ra_result$est_asym, 2)` and the target asymptote was `r ra_result$tar_asym`. The non-linear regression results indicate that the minimum sample size of `r ra_result$Rep95` tracks would be required to achieve 95% representativeness.
 
 `r if (not_rep) not_rep_message`
 
@@ -213,20 +238,16 @@ ra_plot
 
 ```
 
+\newpage
 
 `r if (not_rep) ("# References")`
 
-`r if (not_rep) "Beal, M., Oppel, S., Handley, J., Pearmain, E. J., Morera-Pujol, V., Carneiro, A. P. B., Davies, T. E., Phillips, R. A., Taylor, P. R., Miller, M. G. R., Franco, A. M. A., Catry, I., Patrício, A. R., Regalla, A., Staniland, I., Boyd, C., Catry, P., and Dias, M. P. (2021). track2KBA: An R package for identifying important sites for biodiversity from tracking data. Methods in Ecology and Evolution, 12, 2372–2378."`
-
-`r if (not_rep) "Lascelles, B. G., Taylor, P. R., Miller, M. G. R., Dias, M. P., Oppel, S., Torres, L., Hedd, A., Corre, M. L., Phillips, R. A., Shaffer, S. A., Weimerskirch, H., & Small, C. (2016). Applying global criteria to tracking data to define important areas for marine conservation. Diversity and Distributions, 22, 422–431."`
-
+`r if (not_rep) report_references`
 
 ```{r short report, echo=FALSE, message=FALSE, warning=FALSE}
 if (not_rep) knitr::knit_exit()
 ```
 
-
-\newpage
 
 ## Key biological areas
 
@@ -265,9 +286,4 @@ opp_map_keyareas(track2KBA_UD = sites,
 
 # References
 
-Beal, M., Oppel, S., Handley, J., Pearmain, E. J., Morera-Pujol, V., Carneiro, A. P. B., Davies, T. E., Phillips, R. A., Taylor, P. R., Miller, M. G. R., Franco, A. M. A., Catry,
-I., Patrício, A. R., Regalla, A., Staniland, I., Boyd, C., Catry, P., and Dias, M. P. (2021). track2KBA: An R package for identifying important sites for biodiversity from tracking data. Methods in Ecology and Evolution, 12, 2372–2378.
-
-Lascelles, B. G., Taylor, P. R., Miller, M. G. R., Dias, M. P., Oppel, S., Torres,
-L., Hedd, A., Corre, M. L., Phillips, R. A., Shaffer, S. A., Weimerskirch, H., & Small, C. (2016). Applying global criteria to tracking data to define important areas for marine conservation. Diversity and Distributions, 22, 422–431.
-
+`r report_references`
