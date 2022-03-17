@@ -44,7 +44,7 @@ opp_reports_cpf <- function(analysis_table = cpf_report_params,login = NULL, out
 #'
 #' @description This function will generate a diagnostic report using the 'opp-diagnostic-report' RMarkdown template in `OPPtools`, with options to save the generated report as an .Rmd file in addition to the output PDF.
 #'
-#' @param params List of 16 parameter values used to generate report.
+#' @param params List of 17 parameter values used to generate report.
 #' @param save_rmd Logical (T/F). Should the .Rmd file used to generate the PDF report be saved as well?
 #' @param output_dir Output directory for generated files. Defaults to 'temp'. If the directory does not exist, the script will create the directory.
 #'
@@ -62,7 +62,7 @@ render_diagnostic <- function(params,
     stop("Your passed params must be class 'list'.")
   }
   if (length(params) != 17) {
-    stop("Your passed params list is the incorrect length. Ensure you provide the 17 necessary params.")
+    stop("Your passed params list is the incorrect length. Ensure you provide the 16 necessary params.")
   }
 
   if (any(is.na(params))) warning("There are NA values in your passed params list. This may cause unexpected errors when rendering the document.")
@@ -111,7 +111,7 @@ render_diagnostic <- function(params,
 #'
 #' @description This function will generate a KBA report using the 'opp-kba-report' RMarkdown template in `OPPtools`, with options to save the generated report as an .Rmd file in addition to the output PDF.
 #'
-#' @param params List of 16 parameter values used to generate report.
+#' @param params List of 17 parameter values used to generate report.
 #' @param kernel_smoother One of four options for kernel smoothers in kernel calculations: "href", "href/2", "step", or "bbmm". Defaults to href/2.
 #' @param iterations Numeric. Number of iterations to perform for track2KBA::repAssess. More iterations will result in a more accurate assessment, but take longer to run. Default 5.
 #' @param level_ud Numeric, from 0 to 100. Utilization distribution volume to extract from kernel densities. Defaults to 95.
@@ -121,7 +121,7 @@ render_diagnostic <- function(params,
 #' @export
 
 render_kba <- function(params,
-                       kernel_smoother = "href/2",
+                       #kernel_smoother = "href/2",
                        iterations = 5,
                        level_ud = 95,
                        save_rmd = FALSE,
@@ -151,7 +151,7 @@ render_kba <- function(params,
   #params <- params[-grep("file_name", names(params))] # remove 'file_name'
 
   # Add 4 new params to params list
-  params$kernelSmoother <- kernel_smoother
+  #params$kernelSmoother <- kernel_smoother
   params$iterations <- iterations
   params$levelUD <- level_ud
   params$saveShp <- save_shp

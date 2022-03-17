@@ -1,18 +1,18 @@
-mb_project_num,report_title,file_name,spp,breeding_pairs,minDist,maxDist,minDur,gapTime,gapDist,interpolateGaps,timestep,gridRes,gridExtend,speed,mapZoom,includeBB
-1279263376,"Cassin's auklet - Triangle Island, BC",CAAU - Triangle Island,Cassin's auklet,550000,1.5,20,1,1,12,FALSE,5 min,1,30,50,6.5,1
-1912080185,"Cassin's auklet - Frederick Island, BC",CAAU - Frederick Island,Cassin's auklet,1,1.5,10,1,1,12,FALSE,5 min,1,30,50,6.5,1
-1247096889,"Tufted puffin - Triangle Island, BC",TUPU - Triangle Island,Tufted puffin,1,1,10,1,1,18,FALSE,5 min,1,30,70,6.5,0
-1895716931,"Ancient murrelet - George Island, BC",ANMU - George Island,Ancient murrelet,17000,1.5,20,1,3,19,FALSE,20 min,1,30,75,6.5,1
-1897273090,"Ancient murrelet - Ramsay Island, BC",ANMU - Ramsay Island,Ancient murrelet,18000,1,20,1,3,19,FALSE,20 min,1,30,75,6.5,1
-1903294479,"Rhinocerous auklet - Lucy Island, BC",RHAU - Lucy Island,Rhinocerous auklet,25000,2.5,20,1,1,12,FALSE,5 min,1,30,50,6.5,1
-1904543040,"Rhinocerous auklet - Pine Island, BC",RHAU - Pine Island,Rhinocerous auklet,140000,1.5,10,1,1,12,FALSE,5 min,1,30,50,6.5,0
-1904565280,"Rhinocerous auklet - Protection Island, WA",RHAU - Protection Island,Rhinocerous auklet,34000,0.5,10,1,1,12,FALSE,5 min,1,30,50,6.5,1
-1903075528,"Rhinocerous auklet - SGang Gwaay, BC",RHAU - SGang Gwaay,Rhinocerous auklet,1,2.5,10,1,1,12,FALSE,5 min,1,30,50,6.5,1
-1901463730,"Rhinocerous auklet - Triangle Island, BC",RHAU - Triangle Island,Rhinocerous auklet,42000,3.5,10,1,1,12,FALSE,5 min,1,30,50,6.5,1
-1953033045,"Leach's storm-petrel - Copper Islands, BC",LHSP - Copper Islands,Leach's storm-petrel,1,5,60,12,6,5,FALSE,60 min,5,500,50,4,1
-1952967863,"Leach's storm-petrel - Gillam Islands, BC",LHSP - Gillam Islands,Leach's storm-petrel,1,5,60,12,6,5,FALSE,60 min,5,500,50,4.5,1
-1953016048,"Leach's storm-petrel - Hippa Island, BC",LHSP - Hippa Island,Leach's storm-petrel,1,5,60,12,6,5,FALSE,60 min,5,500,50,4.5,1
-1948459965,"Leach's storm-petrel - Storm Islands, BC",LHSP - Storm Islands,Leach's storm-petrel,1,5,60,12,6,5,FALSE,60 min,5,500,50,4,0
-1953094560,"Fork-tailed storm-petrel - Hippa Island, BC",FTSP - Hippa Island,Fork-tailed storm petrel,1,5,60,12,6,5,FALSE,60 min,2,300,50,4,1
-1953062177,"Fork-tailed storm-petrel - Copper Islands, BC",FTSP - Copper Islands,Fork-tailed storm petrel,1,5,60,12,6,5,FALSE,60 min,2,300,50,6,0
-1953086120,"Fork-tailed storm-petrel - Gillam Islands, BC",FTSP - Gillam Islands,Fork-tailed storm petrel,1,5,60,12,6,5,FALSE,60 min,2,300,50,7.5,0
+mb_project_num,report_title,file_name,spp,breeding_pairs,minDist,maxDist,minDur,gapTime,gapDist,interpolateGaps,timestep,gridRes,gridExtend,includeBB,kernelSmoother,stage
+1279263376,"Cassin's auklet - Triangle Island, BC",CAAU - Triangle Island,Cassin's auklet,550000,1.5,20,1,1,12,FALSE,5 min,1,30,1,href,Chick-rearing
+1912080185,"Cassin's auklet - Frederick Island, BC",CAAU - Frederick Island,Cassin's auklet,1,1.5,10,1,1,12,FALSE,5 min,1,30,1,href,Incubation
+1247096889,"Tufted puffin - Triangle Island, BC",TUPU - Triangle Island,Tufted puffin,1,1,10,1,1,18,FALSE,5 min,1,30,0,href,Unknown
+1895716931,"Ancient murrelet - George Island, BC",ANMU - George Island,Ancient murrelet,17000,1.5,20,1,3,19,FALSE,20 min,1,30,1,href,Incubation
+1897273090,"Ancient murrelet - Ramsay Island, BC",ANMU - Ramsay Island,Ancient murrelet,18000,1,20,1,3,19,FALSE,20 min,1,30,1,href,Incubation
+1903294479,"Rhinocerous auklet - Lucy Island, BC",RHAU - Lucy Island,Rhinocerous auklet,25000,2.5,20,1,1,12,FALSE,5 min,1,30,1,href/2,Chick-rearing
+1904543040,"Rhinocerous auklet - Pine Island, BC",RHAU - Pine Island,Rhinocerous auklet,140000,1.5,10,1,1,12,FALSE,5 min,1,30,0,href/2,Chick-rearing
+1904565280,"Rhinocerous auklet - Protection Island, WA",RHAU - Protection Island,Rhinocerous auklet,34000,0.5,10,1,1,12,FALSE,5 min,1,30,1,href,Chick-rearing
+1903075528,"Rhinocerous auklet - SGang Gwaay, BC",RHAU - SGang Gwaay,Rhinocerous auklet,1,2.5,10,1,1,12,FALSE,5 min,1,30,1,href,Unknown
+1901463730,"Rhinocerous auklet - Triangle Island, BC",RHAU - Triangle Island,Rhinocerous auklet,42000,3.5,10,1,1,12,FALSE,5 min,1,30,1,href,Chick-rearing
+1953033045,"Leach's storm-petrel - Copper Islands, BC",LHSP - Copper Islands,Leach's storm-petrel,1,5,60,12,6,5,FALSE,60 min,5,500,1,href/2,Incubation
+1952967863,"Leach's storm-petrel - Gillam Islands, BC",LHSP - Gillam Islands,Leach's storm-petrel,1,5,60,12,6,5,FALSE,60 min,5,500,1,href/2,Incubation
+1953016048,"Leach's storm-petrel - Hippa Island, BC",LHSP - Hippa Island,Leach's storm-petrel,1,5,60,12,6,5,FALSE,60 min,5,500,1,href/2,Chick-rearing
+1948459965,"Leach's storm-petrel - Storm Islands, BC",LHSP - Storm Islands,Leach's storm-petrel,1,5,60,12,6,5,FALSE,60 min,5,500,0,href/2,Incubation
+1953094560,"Fork-tailed storm-petrel - Hippa Island, BC",FTSP - Hippa Island,Fork-tailed storm petrel,1,5,60,12,6,5,FALSE,60 min,2,300,1,href/2,Chick-rearing
+1953062177,"Fork-tailed storm-petrel - Copper Islands, BC",FTSP - Copper Islands,Fork-tailed storm petrel,1,5,60,12,6,5,FALSE,60 min,2,300,0,href/2,Chick-rearing
+1953086120,"Fork-tailed storm-petrel - Gillam Islands, BC",FTSP - Gillam Islands,Fork-tailed storm petrel,1,5,60,12,6,5,FALSE,60 min,2,300,0,href/2,Incubation
