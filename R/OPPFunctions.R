@@ -1236,7 +1236,7 @@ opp_sites <- function(kernels,
 
   # Representativeness checks
   repr <- ifelse(repr > 1, repr/100, repr)
-  if (represent < 0.5) warning("UNREPRESENTATIVE SAMPLE: sample below 50% representativeness. Sites of\n        importance cannot be identified with confidence.")
+  if (repr < 0.5) warning("UNREPRESENTATIVE SAMPLE: sample below 50% representativeness. Sites of\n        importance cannot be identified with confidence.")
 
   # 2. Cumulative sum of kernel data
   k_area <- kernels@grid@cellsize[[1]]^2
@@ -1278,10 +1278,10 @@ opp_sites <- function(kernels,
   }
 
   # 4. Create sf output
-  c_mean <- function(x) ceiling(mean(x))
-  sums <- list(list("c_mean", "n_tracks"),
+  # See internalHelper.R for c_mean func
+  sums <- list(list(OPPtools:::c_mean, "n_tracks"),
                list("mean", "percent_population"),
-               list("c_mean", "n_individuals"))
+               list(OPPtools:::c_mean, "n_individuals"))
   out <- raster::aggregate(as(kernels, "SpatialPolygonsDataFrame"),
                            by = "percentile",
                            sums = sums)
