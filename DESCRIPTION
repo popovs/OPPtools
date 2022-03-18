@@ -23,7 +23,8 @@ Imports:
     data.table,
     spatialEco,
     keyring,
-    here
+    here,
+    zoo
 License: CC0
 Encoding: UTF-8
 LazyData: true
@@ -36,3 +37,4 @@ Suggests:
     mapview,
     rnaturalearth
 Roxygen: list(markdown = TRUE)
+URL: https://popovs.github.io/OPPtools/

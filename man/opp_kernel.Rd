@@ -20,7 +20,7 @@ be used for kernel calculation? Default TRUE. This parameter is ignored if the f
 
 \item{extendGrid}{Numeric. Distance (km) to expand grid beyond the bounding box of tracking data. Default 10km.}
 
-\item{smoother}{Smoother value used in kernel calculations, either a numeric value or 'href' or 'step'. By default uses
+\item{smoother}{Smoother value used in kernel calculations, either a numeric value or 'href', 'href/2', or 'step'. By default uses
 the calculated href value of the tracks. Using 'step' will use the median step length across tracks.}
 
 \item{res}{Grid resolution in sq km to use for kernel calculations.}

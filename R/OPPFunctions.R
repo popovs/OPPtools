@@ -818,7 +818,7 @@ sum_trips <- function(data) {
 #' @param extendGrid Numeric. Distance (km) to expand grid beyond the bounding box of tracking data. Default 10km.
 #' @param interpolated Logical (T/F). If provided an output from ctcrw_interpolation, should the interpolated tracks
 #' be used for kernel calculation? Default TRUE. This parameter is ignored if the function is provided data from opp_get_tracks.
-#' @param smoother Smoother value used in kernel calculations, either a numeric value or 'href' or 'step'. By default uses
+#' @param smoother Smoother value used in kernel calculations, either a numeric value or 'href', 'href/2', or 'step'. By default uses
 #' the calculated href value of the tracks. Using 'step' will use the median step length across tracks.
 #' @param res Grid resolution in sq km to use for kernel calculations.
 #'
@@ -857,13 +857,17 @@ opp_kernel <- function(data,
     s <- opp_href(data = kd_data)
   }
 
+  if (smoother == "href/2") {
+    s <- opp_href(data = kd_data) / 2
+  }
+
   if (smoother == "step") {
     s <- opp_step(data = kd_data)
   }
 
   if (is.numeric(smoother)) s <- smoother
 
-  if (is.null(s)) stop("smoother must be a numeric value, 'step', or 'href'.")
+  if (is.null(s)) stop("smoother must be a numeric value, 'step', 'href', or href/2.")
 
   my_grid <- createGrid(data = kd_data, res = res,
                         extendGrid = extendGrid)
