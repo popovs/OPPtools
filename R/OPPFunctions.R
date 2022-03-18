@@ -1177,7 +1177,7 @@ ud_vol <- function(data, lowerVol = 50, upperVol = 99) {
 #' percentile thresholds, the user can also specify their own custom percentile threshold values.
 #'
 #' @param kernels Output of class estUDm from either opp_kernels, opp_bbmm, or adehabitatHR::kernelUD.
-#' @param repr Representativeness of the sample, derived from track2KBA::repAssess.
+#' @param repr Numeric (0-100). Representativeness of the sample, derived from track2KBA::repAssess.
 #' @param population Numeric (optional). Total number of individuals at a given study site. Used to calculate the number of individuals that use a given polygon area.
 #' @param level_ud Numeric (0-100). Utilization distribution level to extract from kernels prior to calculating high-use areas. Defaults to 95.
 #' @param thresh List of percentile threshold values to calculate high use areas. By default, the function will calculate polygons for the 10th, 50th, 75th, and 95th percentile use areas (`c(10, 50, 75, 95)`)

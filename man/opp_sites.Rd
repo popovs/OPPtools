@@ -19,7 +19,7 @@ opp_sites(
 \arguments{
 \item{kernels}{Output of class estUDm from either opp_kernels, opp_bbmm, or adehabitatHR::kernelUD.}
 
-\item{repr}{Representativeness of the sample, derived from track2KBA::repAssess.}
+\item{repr}{Numeric (0-100). Representativeness of the sample, derived from track2KBA::repAssess.}
 
 \item{population}{Numeric (optional). Total number of individuals at a given study site. Used to calculate the number of individuals that use a given polygon area.}
 
