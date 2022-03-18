@@ -221,9 +221,9 @@ opp_plot_repAssess <- function(represent, plot = TRUE) {
   rep_result <- represent[[1]]
   rep_table <- represent[[2]]
 
-  rep_target <- (max(rep_table$pred)/rep_result$tar_asym) * 100
+  #rep_target <- (max(rep_table$pred)/rep_result$tar_asym) * 100
 
-  rep_label <- paste0("Estimated representativeness: ", signif(rep_target, 3),'%')
+  rep_label <- paste0("Estimated representativeness: ", signif(rep_result$out, 3),'%')
 
   p <- rep_table %>%
     dplyr::group_by(SampleSize) %>%
