@@ -213,7 +213,8 @@ bad_asymp <- (abs(ra_result$est_asym - ra_result$tar_asym) > 0.1 )
 if (bad_asymp == T) not_rep_message <- paste0(not_rep_message, "The estimated asymptote for the inclusion rate differed from the target asymptote, which is an indication that the tracking sample size is not sufficient to represent the source population. ")
 
 # Calculate representativeness based on target asymptote
-rep_target <- (max(ra_table$pred)/ra_result$tar_asym) * 100
+#rep_target <- (max(ra_table$pred)/ra_result$tar_asym) * 100
+rep_target <- ra_result$out
 if (rep_target < 70) not_rep_message <- paste0(not_rep_message, "The estimated representativeness of tracks available for this population was lower than the recommended minimum of 70% (Beal et al. 2021). ")
 
 # Check if criteria for representativeness are met
