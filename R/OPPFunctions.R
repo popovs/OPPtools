@@ -1279,9 +1279,9 @@ opp_sites <- function(kernels,
 
   # 4. Create sf output
   # See internalHelper.R for c_mean func
-  sums <- list(list(OPPtools:::c_mean, "n_tracks"),
-               list("mean", "percent_population"),
-               list(OPPtools:::c_mean, "n_individuals"))
+  sums <- list(list("min", "n_tracks"),
+               list("min", "percent_population"),
+               list("min", "n_individuals"))
   out <- raster::aggregate(as(kernels, "SpatialPolygonsDataFrame"),
                            by = "percentile",
                            sums = sums)
