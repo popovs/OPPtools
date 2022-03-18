@@ -1265,7 +1265,7 @@ opp_map_keyareas <- function(track2KBA_UD,
     core_site <- temp[temp$potentialSite == T,] %>%
       sf::st_union()
     p <- p +
-      ggplot2::geom_sf(data =core_site, fill = 'transparent', col = 'red', size = 1) +
+      ggplot2::geom_sf(data =core_site, fill = 'transparent', col = 'red', size = 0.5) +
       ggplot2::coord_sf(xlim = bb[c(1,3)],
                         ylim = bb[c(2,4)],
                         expand = T)

@@ -6,7 +6,6 @@
 \usage{
 render_kba(
   params,
-  kernel_smoother = "href/2",
   iterations = 5,
   level_ud = 95,
   save_rmd = FALSE,
@@ -17,9 +16,7 @@ render_kba(
 )
 }
 \arguments{
-\item{params}{List of 16 parameter values used to generate report.}
-
-\item{kernel_smoother}{One of four options for kernel smoothers in kernel calculations: "href", "href/2", "step", or "bbmm". Defaults to href/2.}
+\item{params}{List of 17 parameter values used to generate report.}
 
 \item{iterations}{Numeric. Number of iterations to perform for track2KBA::repAssess. More iterations will result in a more accurate assessment, but take longer to run. Default 5.}
 
@@ -28,6 +25,8 @@ render_kba(
 \item{save_rmd}{Logical (T/F). Should the .Rmd file used to generate the PDF report be saved as well?}
 
 \item{output_dir}{Output directory for generated files. Defaults to 'temp'. If the directory does not exist, the script will create the directory.}
+
+\item{kernel_smoother}{One of four options for kernel smoothers in kernel calculations: "href", "href/2", "step", or "bbmm". Defaults to href/2.}
 }
 \description{
 This function will generate a KBA report using the 'opp-kba-report' RMarkdown template in \code{OPPtools}, with options to save the generated report as an .Rmd file in addition to the output PDF.
