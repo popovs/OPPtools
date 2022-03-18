@@ -277,8 +277,7 @@ The `track2KBA` package (Beal et al. 2021) was used to quantify spatial overlap 
 opp_map_keyareas(track2KBA_UD = sites,
                  center = dat2$site,
                  zoom = NULL,
-                 show_site = ifelse(ra_result$out >=0.7 & ra_result$SampleSize >= min_samp,
-                                    T, F),
+                 show_site = T,
                  coast_scale = 10
                  )
 ```
