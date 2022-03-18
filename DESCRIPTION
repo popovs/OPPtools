@@ -25,7 +25,7 @@ Imports:
     keyring,
     here,
     zoo,
-    dtplyr,
+    dtplyr (>= 1.2.0),
     smoothr,
     tidyr,
     raster
