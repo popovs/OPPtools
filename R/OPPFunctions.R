@@ -1289,6 +1289,7 @@ opp_sites <- function(kernels,
     sf::st_union(by_feature = TRUE)
 
   # 5. Append any additional metadata columns
+  out$percentile <- 100 - out$percentile
   out$representativeness <- repr
   out$total_sample_size <- ss
 
