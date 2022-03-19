@@ -263,13 +263,30 @@ sites <- track2KBA::findSite(kernels,
                              popSize =  params$breeding_pairs * 2,
                              polyOut = TRUE)
 
-# IF saveShp == TRUE, save shapefile
+metadata <- list("ud_smooth_type" = params$kernelSmoother, 
+                 "ud_smooth_km" = smooth,
+                 "ud_level" = params$levelUD,
+                 "sample_years" = length(yy),
+                 "species" = params$spp,
+                 "site" = unique(dat$study_site),
+                 'life_stage' = params$stage
+                 )
+
+sites_opp <- opp_sites(kernels,population = params$breeding_pairs * 2,
+                   level_ud = params$levelUD,
+                   repr = ra_result$out,
+                   thresh =  c(10, 25, 50, 75, 90),
+                   metadata = metadata,
+                   save_shp = F)
+
+# If saveShp == TRUE, save shapefile
 if (params$saveShp == TRUE) {
-  sf::st_write(sites[sites$N_animals > 0, ], 
-               paste0(file.path(here::here(), params$output_dir, params$file_name), " KBA.shp"), 
+  sf::st_write(sites_opp[!is.na(sites_opp$percentile), ], 
+               paste0(file.path(here::here(), params$output_dir, params$file_name), " OPP_Areas.shp"), 
                append = FALSE,
                quiet = TRUE)
 }
+
 ```
 
 The `track2KBA` package (Beal et al. 2021) was used to quantify spatial overlap in UDs and estimate both the proportion and the total number of birds from the source population that predictably use at sea areas around the colony. These estimates is based on the proportion of overlapping home range (95% UD) areas in each raster grid cell multiplied by the calculated representativeness of the sample (`r signif(ra_result$out, 2)`) and the source population size (`r format(params$breeding_pairs * 2, scientific = F, big.mark = ',')` individuals). Results from this analysis were aggregated to show the regions where 90%, 70%, and 50% of individuals from the source population are expected to occur (Figure 3). 
