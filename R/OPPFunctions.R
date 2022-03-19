@@ -275,7 +275,8 @@ colCRS <- function(data) {
 #'
 #' @export
 
-opp_map <- function(data) {
+opp_map <- function(data,
+                    opp_sites = NA) {
 
   # Check if maps installed
   # maps is used to add simple land features to map
@@ -324,7 +325,7 @@ opp_map <- function(data) {
     ggplot2::geom_point(data = site,
                         ggplot2::aes(x = deploy_on_longitude,
                                      y = deploy_on_latitude),
-                        fill = "dark orange",
+                        fill = "tomato",
                         color = "black",
                         pch = 21,
                         size = 2.5) +
@@ -333,6 +334,30 @@ opp_map <- function(data) {
     ggplot2::guides(color = "none") +
     ggplot2::ylab("Latitude") +
     ggplot2::xlab("Longitude")
+
+  if (!missing(opp_sites)) {
+    if(class(opp_sites)[1] != "sf") {
+      warning("Could not add opp_sites to map. Are you sure you provided a polygon output from `opp_sites()`?")
+    } else {
+      opp_sites$p_contour <- 100 - opp_sites$percentile
+      trackplot <- trackplot + ggnewscale::new_scale_color() +
+        ggplot2::geom_sf(data = opp_sites[!is.na(opp_sites$p_contour),],
+                         ggplot2::aes(col = as.factor(p_contour)),
+                         size = 1,
+                         fill = NA) +
+        fishualize::scale_color_fish_d("% population contour", option = "Scarus_hoefleri", end = 0.4, direction = -1) +
+        ggplot2::geom_point(data = site,
+                            ggplot2::aes(x = deploy_on_longitude,
+                                         y = deploy_on_latitude),
+                            fill = "tomato",
+                            color = "black",
+                            pch = 21,
+                            size = 2.5) +
+        ggplot2::coord_sf(xlim = c(coordsets$xmin, coordsets$xmax),
+                          ylim = c(coordsets$ymin, coordsets$ymax),
+                          expand = TRUE)
+    }
+  }
 
   print(trackplot)
 
