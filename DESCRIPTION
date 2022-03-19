@@ -39,6 +39,8 @@ Suggests:
     knitr,
     maps,
     mapview,
-    rnaturalearth
+    rnaturalearth,
+    fishualize,
+    ggnewscale
 Roxygen: list(markdown = TRUE)
 URL: https://popovs.github.io/OPPtools/

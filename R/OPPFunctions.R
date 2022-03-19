@@ -1369,6 +1369,7 @@ getDist <- function(lon, lat, lonlat = TRUE) {
 #' track2KBA::mapSite().
 #'
 #' @param track2KBA_UD Polygon output from track2KBA::findSite()
+#' @param opp_sites Polygon output from opp_sites(). If opp_sites is provided, the map will display contours around population percentiles.
 #' @param center Data frame containing columns 'Longitude' and 'Latitude' in decimal degrees,
 #' for plotting the colony or nest locations.
 #' @param show_site Logical indicating if polygon conatining potential important sites
@@ -1383,6 +1384,7 @@ getDist <- function(lon, lat, lonlat = TRUE) {
 #' @export
 
 opp_map_keyareas <- function(track2KBA_UD,
+                             opp_sites = NA,
                              center,
                              show_site = T,
                              zoom = NULL,
@@ -1423,7 +1425,7 @@ opp_map_keyareas <- function(track2KBA_UD,
     ggplot2::theme(text = ggplot2::element_text(size = 10)) +
     ggplot2::labs(colour = scale_lab, fill = scale_lab)
 
-  if (show_site == T) {
+  if (missing(opp_sites) && show_site == T) {
     core_site <- temp[temp$potentialSite == T,] %>%
       sf::st_union()
     p <- p +
@@ -1433,6 +1435,29 @@ opp_map_keyareas <- function(track2KBA_UD,
                         expand = T)
 
   }
+
+  if (!missing(opp_sites)) {
+    if(class(opp_sites)[1] != "sf") {
+      warning("Could not add opp_sites to map. Are you sure you provided a polygon output from `opp_sites()`?")
+    } else {
+      opp_sites$p_contour <- 100 - opp_sites$percentile
+      p <- p + ggnewscale::new_scale_color() +
+        ggplot2::geom_sf(data = opp_sites[!is.na(opp_sites$p_contour),],
+                                  ggplot2::aes(col = as.factor(p_contour)),
+                                  size = 1,
+                                  fill = NA) +
+        fishualize::scale_color_fish_d("% population contour", option = "Scarus_hoefleri", end = 0.4, direction = -1) +
+        ggplot2::geom_sf(data = center, fill = "dark orange",
+                         color = "black",
+                         pch = 21,
+                         size = 2.5) +
+        ggplot2::coord_sf(xlim = bb[c(1,3)],
+                            ylim = bb[c(2,4)],
+                            expand = T)
+      }
+
+  }
+
   p
 }
 
