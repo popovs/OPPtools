@@ -3,7 +3,7 @@ title: "OPP workflow"
 subtitle: "A step-by-step tutorial on visualizing seabird foraging trips and key at-sea areas."
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{OPP-workflow}
+  %\VignetteIndexEntry{OPP workflow}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 editor_options: 
@@ -139,6 +139,7 @@ The `track2KBA` workflow has been simplified and condensed within the `OPPtools`
 
 ```{r standard kernel}
 kde <- opp_kernel(interp,
+                  smoother = "href",
                   res = 1 # grid resolution in sq km
                   )
 ```
@@ -149,6 +150,43 @@ kde <- opp_kernel(interp,
 bb_kde <- opp_bbmm(interp,
                    res = 1)
 ```
+
+# Delineating OPP sites
+
+For the context of emergency response, OPP is interested in areas of high use (and therefore at high risk in the case of an oil spill). An initial assessment of such areas comes from the `track2KBA` workflow, which first estimates how *representative* a series of tracks is (i.e., how much a few individuals' movements represent the movements of the population as a whole). Using this representativeness estimate, derived by the `track2KBA::repAssess` function, the `track2KBA::findSite` function then estimates how many individuals of the source population use the surrounding area. For more information on the `track2KBA::repAssess` and `track2KBA::findSite` functions, see the `track2KBA` documentation.
+
+```{r kba repr}
+repr <- track2KBA::repAssess(tracks = interp$interp,
+                             KDE = kde, 
+                             iteration = 50,
+                             levelUD = 95,
+                             avgMethod = "weighted")
+```
+
+Representativeness derived by the `track2KBA::repAssess` function can then be used in combination with `track2KBA::findSite` to estimate space-use by the population at large. `OPPtools` comes with functions to map the results of `track2KBA::findSite`.
+
+```{r track2kba findsites}
+t2k_sites <- track2KBA::findSite(KDE = kde,
+                                 represent = repr$out,
+                                 levelUD = 95,
+                                 polyOut = TRUE)
+
+opp_map_keyareas(track2KBA_UD = t2k_sites,
+                 center = murres$site)
+```
+
+For sites specific to the OPP context, the function `opp_sites` delineates areas of high use around the colony. Specifically, it pulls out population use contours from the stacked kernel density estimates. By default, `opp_sites` calculates areas where at least 10%, 50%, and 75% of the population are expected to occur.
+
+```{r opp sites}
+opp <- opp_sites(kernels = kde,
+                 repr = repr$out)
+
+opp_map_keyareas(track2KBA_UD = t2k_sites,
+                 opp_sites = opp,
+                 center = murres$site)
+```
+
+# Miscellanea
 
 ## More fun with kernels
 
