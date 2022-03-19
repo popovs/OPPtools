@@ -6,6 +6,11 @@
 \usage{
 opp_plot_repAssess(represent, plot = TRUE)
 }
+\arguments{
+\item{represent}{Output from track2KBA::repAssess with bootTable = TRUE}
+
+\item{plot}{Logical. Should result be plotted}
+}
 \value{
 A ggplot object showing the results of the call to repAssess
 }

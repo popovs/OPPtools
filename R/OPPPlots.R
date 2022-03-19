@@ -1,5 +1,65 @@
 # -----
 
+#' Plot tracking history by date, year, Movebank ID, and animal-reproductive-condition
+#' @description Creates a dot plot showing GPS locations for each individual over time
+#' @param data Dataframe as returned by opp_download_data()
+#' @param yearround Logical. If yearround is FALSE (default), each year is plotted as a separate facet
+#' @returns A ggplot object
+#' @examples
+#'
+#' my_data <- opp_download_data(study = c(1247096889),login = NULL, start_month = NULL,
+#'                             end_month = NULL,season = NULL)
+#'
+#' opp_logger_dotplot(data = my_data)
+#'
+#' @export
+
+opp_logger_dotplot <- function(data, yearround = F) {
+
+  if (yearround == T) {
+    data <- data %>%
+      dplyr::mutate(
+        animal_reproductive_condition = 'Year-round',
+        common_date = timestamp
+        )
+  }
+
+  if (yearround == F) {
+  data <- data %>%
+    dplyr::mutate(
+      animal_reproductive_condition = ifelse(animal_reproductive_condition %in% c('breeding, chicks', 'breeding, chick'),'Chick-rearing',
+                                             ifelse(animal_reproductive_condition %in% c('breeding, eggs', 'breeding, egg'), 'Incubation',
+                                                    'Breeding, unknown'
+                                             )),
+      common_date = as.POSIXct(paste0("2000-",format(timestamp, "%m-%d %H:%M:%S", tz = 'UTC')), "%Y-%m-%d %H:%M:%S", tz = 'UTC')
+
+    )
+  }
+
+  p <- data %>%
+    ggplot2::ggplot(ggplot2::aes(x = common_date, y = factor(deployment_id),
+                                 col = animal_reproductive_condition)) +
+    ggplot2::geom_point(size = 1.5) +
+    ggplot2::labs(x = "Date", y = "Inidividual ID", colour = 'Breeding status') +
+    ggplot2::scale_x_datetime(date_labels = ifelse(yearround == F, "%b-%d", "%d-%b-%Y")) +
+    ggplot2::scale_colour_brewer(palette = 'Dark2') +
+    ggplot2::theme_light()+
+    ggplot2::theme(
+      text = ggplot2::element_text(size = 10),
+      legend.title = ggplot2::element_text(size = 8),
+      strip.text = ggplot2::element_text(size = 10, colour = 'black'),
+      strip.background= ggplot2::element_rect(fill = 'transparent'),
+    )
+
+  if (yearround == F) p <- p + ggplot2::facet_grid(rows = 'year', scales = 'free_y', space = 'free_y')
+  if (yearround == T) p <- p + ggplot2::guides(colour = 'none')
+
+
+  return(p)
+}
+
+# -----
+
 #' Plot trips identified using opp_get_trips()
 
 #' @description Plots the results of opp_get_trips(), with DateTime on the x-axis and ColDist
@@ -148,8 +208,8 @@ plot_interp_dist <- function(data, showPlots = T, plotsPerPage = 4) {
 #' Custom plot of representativeness assessment from track2KBA::repAssess
 #'
 #' @export
-#' @represent Output from track2KBA::repAssess with bootTable = TRUE
-#' @plot Logical. Should result be plotted
+#' @param represent Output from track2KBA::repAssess with bootTable = TRUE
+#' @param plot Logical. Should result be plotted
 #' @returns A ggplot object showing the results of the call to repAssess
 
 opp_plot_repAssess <- function(represent, plot = TRUE) {
@@ -160,8 +220,8 @@ opp_plot_repAssess <- function(represent, plot = TRUE) {
 
   rep_result <- represent[[1]]
   rep_table <- represent[[2]]
-  min(rep_table$SampleSize)
-  max(rep_table$SampleSize)
+
+  #rep_target <- (max(rep_table$pred)/rep_result$tar_asym) * 100
 
   rep_label <- paste0("Estimated representativeness: ", signif(rep_result$out, 3),'%')
 

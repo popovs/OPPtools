@@ -818,7 +818,7 @@ sum_trips <- function(data) {
 #' @param extendGrid Numeric. Distance (km) to expand grid beyond the bounding box of tracking data. Default 10km.
 #' @param interpolated Logical (T/F). If provided an output from ctcrw_interpolation, should the interpolated tracks
 #' be used for kernel calculation? Default TRUE. This parameter is ignored if the function is provided data from opp_get_tracks.
-#' @param smoother Smoother value used in kernel calculations, either a numeric value or 'href' or 'step'. By default uses
+#' @param smoother Smoother value used in kernel calculations, either a numeric value or 'href', 'href/2', or 'step'. By default uses
 #' the calculated href value of the tracks. Using 'step' will use the median step length across tracks.
 #' @param res Grid resolution in sq km to use for kernel calculations.
 #'
@@ -857,13 +857,17 @@ opp_kernel <- function(data,
     s <- opp_href(data = kd_data)
   }
 
+  if (smoother == "href/2") {
+    s <- opp_href(data = kd_data) / 2
+  }
+
   if (smoother == "step") {
     s <- opp_step(data = kd_data)
   }
 
   if (is.numeric(smoother)) s <- smoother
 
-  if (is.null(s)) stop("smoother must be a numeric value, 'step', or 'href'.")
+  if (is.null(s)) stop("smoother must be a numeric value, 'step', 'href', or href/2.")
 
   my_grid <- createGrid(data = kd_data, res = res,
                         extendGrid = extendGrid)
@@ -1164,6 +1168,168 @@ ud_vol <- function(data, lowerVol = 50, upperVol = 99) {
 
 # -----
 
+#' Delineate sites of importance for OPP emergency response
+#'
+#' @description This function generates key biological areas that are usable in the context of OPP
+#' risk mitigation. By default, the function will delineate areas that are used by at least 10%, 50%,
+#' 75%, and if possible, 95% of the population. If a population number is provided, it will also
+#' calculate an estimate of the number of individuals using a given area. By providing a list of
+#' percentile thresholds, the user can also specify their own custom percentile threshold values.
+#'
+#' @param kernels Output of class estUDm from either opp_kernels, opp_bbmm, or adehabitatHR::kernelUD.
+#' @param repr Numeric (0-100). Representativeness of the sample, derived from track2KBA::repAssess.
+#' @param population Numeric (optional). Total number of individuals at a given study site. Used to calculate the number of individuals that use a given polygon area.
+#' @param level_ud Numeric (0-100). Utilization distribution level to extract from kernels prior to calculating high-use areas. Defaults to 95.
+#' @param thresh List of percentile threshold values to calculate high use areas. By default, the function will calculate polygons for the 10th, 50th, 75th, and 95th percentile use areas (`c(10, 50, 75, 95)`)
+#' @param metadata List of additional metadata you wish to append to the output. E.g., `c("smoother" = "href", "smoother_km" = 3.5)`
+#' @param save_shp Logical (T/F). Should the output be saved as a shapefile (.shp)?
+#' @param out_name Character string. Filename for output shapefile. Defaults to 'opp_sites' if none provided and save_shp = TRUE.
+#' @param out_dir Character string. Output directory for saved shapefile, relative to the current working directory. Defaults to the current working directory if no value provided.
+#'
+#' @return
+#' @export
+#'
+#' @examples
+opp_sites <- function(kernels,
+                      repr,
+                      population = NA,
+                      level_ud = 95, # Default 95
+                      thresh = c(10, 50, 75, 95), # Default list
+                      metadata = list(),
+                      save_shp = FALSE,
+                      out_name = NA,
+                      out_dir = NA) {
+  # This function is heavily modified off of track2KBA::findSite
+  # 1. Data health checks
+  # - Check kernel class
+  # - Check if representativeness is at an appropriate level
+  # - Check if thresholds & sample sizes are appropriate
+
+  # Kernel checks
+  if (class(kernels) != "estUDm") stop("Kernels should be of class 'estUDm' provided by either OPPtools::opp_kernel, \n      OPPtools::opp_bbmm, track2KBA::estSpaceUse, or adehabitatHR::kernelUD.")
+  kernels <- adehabitatHR::estUDm2spixdf(kernels) # Convert to spdf
+  if (sp::is.projected(kernels) != TRUE) stop("Please re-calculate your kernel UD after projecting the data into an equal-area projection.")
+
+  # Sample size checks
+  ss <- ncol(kernels)
+  if (ss < 20) {
+    warning("LOW SAMPLE SIZE: identifying OPP sites based on <20 tracked individuals is not recommended.\n        If you are delineating sites for species which are NOT central place foragers, you\n        can consider using unique trips (rather than individuals) to calculate your kernels.")
+    # In original track2KBA::findSites function, here the
+    # author further has:
+    # if (SampSize < 5) {
+    #   thresh <- SampSize + 1
+    # }
+    # I am not sure what behavior to do here with a list of thresholds.
+  }
+
+  # Thresholds checks
+  thresh <- as.list(thresh)
+  if (class(thresh) != 'list') {
+    stop("Threshold values must be supplied as a list of numeric values, e.g. 'c(10, 50, 95)'.")
+    if (all(sapply(thresh, is.numeric)) == FALSE) {
+      stop("Threshold values must be supplied as a list of numeric values, e.g. 'c(10, 50, 95)'.")
+    }
+  }
+
+  thresh <- lapply(thresh, function(x) x/100)
+  invisible(lapply(thresh, function(x) if (1/ss > x) message ("NOTE: Your threshold value of ", x * 100, " is lower than 1/sample size, which means an\n        area could be delineated as important although only visited by one tracked individual.")))
+
+  # Representativeness checks
+  repr <- ifelse(repr > 1, repr/100, repr)
+  if (repr < 0.5) warning("UNREPRESENTATIVE SAMPLE: sample below 50% representativeness. Sites of\n        importance cannot be identified with confidence.")
+
+  # 2. Cumulative sum of kernel data
+  k_area <- kernels@grid@cellsize[[1]]^2
+
+  kernels@data <- kernels@data %>%
+    dtplyr::lazy_dt() %>%
+    mutate(row = seq_len(nrow(.))) %>%
+    tidyr::pivot_longer(!.data$row, names_to = "ID",
+                        values_to = "UD") %>%
+    mutate(usage = UD * k_area) %>%
+    arrange(ID, desc(usage)) %>%
+    group_by(ID) %>%
+    mutate(cumulUD = cumsum(usage)) %>%
+    dplyr::select(row, ID, cumulUD) %>%
+    arrange(row) %>%
+    tidyr::pivot_wider(names_from = ID,
+                       values_from = cumulUD) %>%
+    ungroup() %>%
+    dplyr::select(-row) %>%
+    data.table::as.data.table() %>%
+    as.data.frame()
+
+  kernels@data <- as.data.frame(ifelse(kernels@data < (level_ud/100), 1, 0))
+  kernels@data$n_tracks <- rowSums(kernels@data)
+  kernels@data <- kernels@data["n_tracks"] # equivalent to `Noverlaps` in original function
+  kernels <- kernels[kernels$n_tracks > 0, ]
+
+  # 3. Calculate n individuals, % population, threshold percentiles
+  kernels@data$percent_population <- repr * (kernels@data$n_tracks / ss)
+  kernels@data$n_individuals <- kernels@data$percent_population * population
+
+  kernels@data$percentile <- NA
+  for (i in sort(unlist(thresh))) {
+    if (nrow(kernels@data[which(kernels@data$percent_population > i), ]) != 0) {
+      kernels@data[which(kernels@data$percent_population > i), ]$percentile <- i * 100
+    } else {
+      break
+    }
+  }
+
+  # 4. Create sf output
+  # See internalHelper.R for c_mean func
+  sums <- list(list("min", "n_tracks"),
+               list("min", "percent_population"),
+               list("min", "n_individuals"))
+  out <- raster::aggregate(as(kernels, "SpatialPolygonsDataFrame"),
+                           by = "percentile",
+                           sums = sums)
+  out <- sf::st_as_sf(out) %>%
+    sf::st_union(by_feature = TRUE)
+
+  # 5. Append any additional metadata columns
+  out$percentile <- 100 - out$percentile
+  out$representativeness <- repr
+  out$total_sample_size <- ss
+
+  if (length(metadata) > 0) {
+    for (i in 1:length(metadata)) {
+      out[ncol(out) + 1] <- metadata[[i]]
+      names(out)[ncol(out)] <- names(metadata)[i]
+    }
+  }
+
+  out <- out %>% dplyr::select(-geometry)
+  out <- smoothr::smooth(out, method = "ksmooth", smoothness = 2)
+
+  # 6. Save shapefile
+  if (save_shp == TRUE) {
+    if (is.na(out_dir)) {
+      message("No output directory for shapefile provided. Outputting shapefile to working directory.")
+      out_dir <- here::here()
+    } else {
+      out_dir <- file.path(here::here(), out_dir)
+    }
+
+    if (is.na(out_name)) {
+      message("No output filename for shapefile provided. Defaulting to `opp_sites.shp`.")
+      out_name <- "opp_sites"
+    }
+
+    # Now actually save the shapefile
+    sf::st_write(out,
+                 paste0(file.path(out_dir, out_name), ".shp"),
+                 append = FALSE)
+    message("Shapefile saved to: ", paste0(file.path(out_dir, out_name), ".shp"))
+  }
+
+  return(out)
+}
+
+
+# -----
+
 #' Calculate the distance between consecutive points
 #'
 #' @description Wrapper for raster::pointDistance that only requires input of a
@@ -1203,6 +1369,7 @@ getDist <- function(lon, lat, lonlat = TRUE) {
 #' track2KBA::mapSite().
 #'
 #' @param track2KBA_UD Polygon output from track2KBA::findSite()
+#' @param opp_sites Polygon output from opp_sites(). If opp_sites is provided, the map will display contours around population percentiles.
 #' @param center Data frame containing columns 'Longitude' and 'Latitude' in decimal degrees,
 #' for plotting the colony or nest locations.
 #' @param show_site Logical indicating if polygon conatining potential important sites
@@ -1217,6 +1384,7 @@ getDist <- function(lon, lat, lonlat = TRUE) {
 #' @export
 
 opp_map_keyareas <- function(track2KBA_UD,
+                             opp_sites = NA,
                              center,
                              show_site = T,
                              zoom = NULL,
@@ -1257,16 +1425,39 @@ opp_map_keyareas <- function(track2KBA_UD,
     ggplot2::theme(text = ggplot2::element_text(size = 10)) +
     ggplot2::labs(colour = scale_lab, fill = scale_lab)
 
-  if (show_site == T) {
+  if (missing(opp_sites) && show_site == T) {
     core_site <- temp[temp$potentialSite == T,] %>%
       sf::st_union()
     p <- p +
-      ggplot2::geom_sf(data =core_site, fill = 'transparent', col = 'red', size = 1) +
+      ggplot2::geom_sf(data =core_site, fill = 'transparent', col = 'red', size = 0.5) +
       ggplot2::coord_sf(xlim = bb[c(1,3)],
                         ylim = bb[c(2,4)],
                         expand = T)
 
   }
+
+  if (!missing(opp_sites)) {
+    if(class(opp_sites)[1] != "sf") {
+      warning("Could not add opp_sites to map. Are you sure you provided a polygon output from `opp_sites()`?")
+    } else {
+      opp_sites$p_contour <- 100 - opp_sites$percentile
+      p <- p + ggnewscale::new_scale_color() +
+        ggplot2::geom_sf(data = opp_sites[!is.na(opp_sites$p_contour),],
+                                  ggplot2::aes(col = as.factor(p_contour)),
+                                  size = 1,
+                                  fill = NA) +
+        fishualize::scale_color_fish_d("% population contour", option = "Scarus_hoefleri", end = 0.4, direction = -1) +
+        ggplot2::geom_sf(data = center, fill = "dark orange",
+                         color = "black",
+                         pch = 21,
+                         size = 2.5) +
+        ggplot2::coord_sf(xlim = bb[c(1,3)],
+                            ylim = bb[c(2,4)],
+                            expand = T)
+      }
+
+  }
+
   p
 }
 

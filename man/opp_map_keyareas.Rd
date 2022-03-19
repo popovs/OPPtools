@@ -6,6 +6,7 @@
 \usage{
 opp_map_keyareas(
   track2KBA_UD,
+  opp_sites = NA,
   center,
   show_site = T,
   zoom = NULL,
@@ -15,6 +16,8 @@ opp_map_keyareas(
 }
 \arguments{
 \item{track2KBA_UD}{Polygon output from track2KBA::findSite()}
+
+\item{opp_sites}{Polygon output from opp_sites(). If opp_sites is provided, the map will display contours around population percentiles.}
 
 \item{center}{Data frame containing columns 'Longitude' and 'Latitude' in decimal degrees,
 for plotting the colony or nest locations.}

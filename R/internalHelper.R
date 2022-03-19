@@ -12,3 +12,5 @@ getHome <- function(){
     }
   return(index - 1)
 }
+
+c_mean <- function(x) ceiling(mean(x))
