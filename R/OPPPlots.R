@@ -21,19 +21,19 @@ opp_logger_dotplot <- function(data, yearround = F) {
       dplyr::mutate(
         animal_reproductive_condition = 'Year-round',
         common_date = timestamp
-        )
+      )
   }
 
   if (yearround == F) {
-  data <- data %>%
-    dplyr::mutate(
-      animal_reproductive_condition = ifelse(animal_reproductive_condition %in% c('breeding, chicks', 'breeding, chick'),'Chick-rearing',
-                                             ifelse(animal_reproductive_condition %in% c('breeding, eggs', 'breeding, egg'), 'Incubation',
-                                                    'Breeding, unknown'
-                                             )),
-      common_date = as.POSIXct(paste0("2000-",format(timestamp, "%m-%d %H:%M:%S", tz = 'UTC')), "%Y-%m-%d %H:%M:%S", tz = 'UTC')
+    data <- data %>%
+      dplyr::mutate(
+        animal_reproductive_condition = ifelse(animal_reproductive_condition %in% c('breeding, chicks', 'breeding, chick'),'Chick-rearing',
+                                               ifelse(animal_reproductive_condition %in% c('breeding, eggs', 'breeding, egg'), 'Incubation',
+                                                      'Breeding, unknown'
+                                               )),
+        common_date = as.POSIXct(paste0("2000-",format(timestamp, "%m-%d %H:%M:%S", tz = 'UTC')), "%Y-%m-%d %H:%M:%S", tz = 'UTC')
 
-    )
+      )
   }
 
   p <- data %>%
@@ -244,4 +244,75 @@ opp_plot_repAssess <- function(represent, plot = TRUE) {
 
   if (plot == TRUE) print(p)
   return(p)
+}
+
+
+# -----
+
+#' Maps result from track2KBA::findSite()
+#'
+#' Produces a more attractive version of the map from track2KBA::findSite() and
+#' track2KBA::mapSite().
+#'
+#' @param opp_sites Polygon output from opp_sites(), must include a population size estimate.
+#' @param center Data frame containing columns 'Longitude' and 'Latitude' in decimal degrees,
+#' for plotting the colony or nest locations.
+#' @param coast_scale Mapping resolution for the coastline basemap. Must be one of: 10 - high resolution,
+#' 50 - medium resolution, 110 = low resolution.
+#' @param zoom Integer from 1:16, indicating the zoom level for map. If NULL the function will calculate the required zoom level.
+#' @param viridis_option A character string indicating the colormap option to
+#' use. Four options are available: "magma" (or "A"), "inferno" (or "B"), "plasma" (or "C"), "viridis" (or "D", the default option) and "cividis" (or "E").
+#' @returns A ggplot object
+#'
+#' @export
+
+opp_map_keyareas <- function(track2KBA_UD,
+                              opp_sites = NA,
+                              center,
+                              zoom = NULL,
+                              coast_scale = 50,
+                              viridis_option = "D") {
+
+  options(scipen = 100)
+
+  if(class(opp_sites)[1] != "sf" |
+     !("percent_population" %in% names(opp_sites)) |
+     !("n_individuals" %in% names(opp_sites))) stop("opp_sites must be output from OPPTools::opp_sites()")
+
+  if (is.na(opp_sites$n_individuals)[1]) stop("This function requires that a population size value was provided to OPPTools::opp_sites()")
+
+  world <- rnaturalearth::ne_countries(scale = coast_scale, returnclass = 'sf')
+  temp <- opp_sites
+
+  if (!(coast_scale %in% c(10, 50, 110))) stop('coast_scale must be one of 10, 50, or 110')
+
+  scale_lab <- 'Number of birds'
+  temp$n_individuals <- as.factor(signif(temp$n_individuals,2))
+
+  center <- sf::st_as_sf(center, coords = c('Longitude', 'Latitude'), crs = sf::st_crs(temp))
+  bb <- bbox_at_zoom(locs = temp, zoom_level = zoom)
+  temp$p_contour <- as.factor(100 - temp$percentile)
+
+  p <- ggplot2::ggplot() +
+    ggplot2::geom_sf(data =temp, ggplot2::aes(fill = n_individuals), col = 'transparent')  +
+    ggplot2::geom_sf(data = temp[!is.na(temp$p_contour),],
+                     ggplot2::aes(col = p_contour),
+                     size = 1,
+                     fill = NA) +
+    ggplot2::geom_sf(data = world, fill = grey(0.9)) +
+    ggplot2::geom_sf(data = center, fill = "dark orange",
+                     color = "black",
+                     pch = 21,
+                     size = 2.5) +
+    ggplot2::coord_sf(xlim = bb[c(1,3)],
+                      ylim = bb[c(2,4)],
+                      expand = T) +
+    ggplot2::scale_fill_viridis_d(option = viridis_option) +
+    #ggplot2::scale_color_viridis_c(option = viridis_option, lim = c(0, NA)) +
+    ggplot2::scale_color_viridis_d("Population (%)", option = "B", begin = 0.55, end = 0.9, direction = -1) +
+    ggplot2::theme_light() +
+    ggplot2::theme(text = ggplot2::element_text(size = 10)) +
+    ggplot2::labs(colour = scale_lab, fill = scale_lab)
+
+  p
 }
