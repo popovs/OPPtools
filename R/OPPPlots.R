@@ -287,7 +287,7 @@ opp_map_keyareas <- function(track2KBA_UD,
   if (!(coast_scale %in% c(10, 50, 110))) stop('coast_scale must be one of 10, 50, or 110')
 
   scale_lab <- 'Number of birds'
-  temp$n_individuals <- as.factor(signif(temp$n_individuals,2))
+  temp$n_individuals <- as.factor(format(signif(temp$n_individuals,2), big.mark = ','))
 
   center <- sf::st_as_sf(center, coords = c('Longitude', 'Latitude'), crs = sf::st_crs(temp))
   bb <- bbox_at_zoom(locs = temp, zoom_level = zoom)
@@ -309,7 +309,7 @@ opp_map_keyareas <- function(track2KBA_UD,
                       expand = T) +
     ggplot2::scale_fill_viridis_d(option = viridis_option) +
     #ggplot2::scale_color_viridis_c(option = viridis_option, lim = c(0, NA)) +
-    ggplot2::scale_color_viridis_d("Population (%)", option = "B", begin = 0.55, end = 0.9, direction = -1) +
+    ggplot2::scale_color_viridis_d("Home range\noverlap(%)", option = "B", begin = 0.55, end = 0.9, direction = -1) +
     ggplot2::theme_light() +
     ggplot2::theme(text = ggplot2::element_text(size = 10)) +
     ggplot2::labs(colour = scale_lab, fill = scale_lab)
