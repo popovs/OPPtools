@@ -169,20 +169,20 @@ Representativeness derived by the `track2KBA::repAssess` function can then be us
 t2k_sites <- track2KBA::findSite(KDE = kde,
                                  represent = repr$out,
                                  levelUD = 95,
+                                 popSize = 60000, 
                                  polyOut = TRUE)
 
-opp_map_keyareas(track2KBA_UD = t2k_sites,
-                 center = murres$site)
+
 ```
 
 For sites specific to the OPP context, the function `opp_sites` delineates areas of high use around the colony. Specifically, it pulls out population use contours from the stacked kernel density estimates. By default, `opp_sites` calculates areas where at least 10%, 50%, and 75% of the population are expected to occur.
 
 ```{r opp sites}
 opp <- opp_sites(kernels = kde,
+                 population = 60000,
                  repr = repr$out)
 
-opp_map_keyareas(track2KBA_UD = t2k_sites,
-                 opp_sites = opp,
+opp_map_keyareas(opp_sites = opp,
                  center = murres$site)
 ```
 
