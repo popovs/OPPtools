@@ -198,7 +198,7 @@ invisible(ra <- track2KBA::repAssess(tracks = interp$interp,
                                         level = params$levelUD, 
                                         iteration = params$iterations, 
                                         avgMethod = "weighted",
-                                        bootTable = T
+                                        bootTable = T,nCores = 4
                                         ))
 ra_result <- ra[[1]]
 ra_table <- ra[[2]]
@@ -230,7 +230,7 @@ $$R = \frac{y_n}{A}*100$$
 
 where *A* is the target asymptote, *y* is the inclusion rate, and *n* is the sample size. The inclusion rate should be similar to the target asymptote for a representative sample.
 
-The estimated representativeness was  `r signif(rep_target, 3)`%, (Figure 2). The inclusion rate reached an asymptote at `r signif(ra_result$est_asym, 2)` and the target asymptote was `r ra_result$tar_asym`. The non-linear regression results indicate that the minimum sample size of `r ra_result$Rep95` tracks would be required to achieve 95% representativeness.
+The estimated representativeness was  `r signif(rep_target, 3)`%, (Figure 2). The inclusion rate reached an asymptote at `r signif(ra_result$est_asym, 2)` and the target asymptote was `r ra_result$tar_asym`. The non-linear regression results indicate that a minimum sample size of `r ra_result$Rep95` tracks would be required to achieve 95% representativeness.
 
 `r if (not_rep) not_rep_message`
 
@@ -252,35 +252,50 @@ if (not_rep) knitr::knit_exit()
 ```
 
 
-## Key biological areas
+## High-use areas
 
 
 ```{r find kba & save shp}
 # track2KBA::findSite
-sites <- track2KBA::findSite(kernels,
-                             represent = ra_result$out,
-                             levelUD = params$levelUD,
-                             popSize =  params$breeding_pairs * 2,
-                             polyOut = TRUE)
 
-# IF saveShp == TRUE, save shapefile
+metadata <- list("smoother" = params$kernelSmoother, 
+                 "smoothkm" = smooth,
+                 "udlevel" = params$levelUD,
+                 "years" = length(yy),
+                 "species" = params$spp,
+                 "site" = unique(dat$study_site),
+                 'stage' = params$stage,
+                 'totpairs' = params$breeding_pairs
+                 )
+
+sites_out <- opp_sites(kernels,population = params$breeding_pairs * 2,
+                   level_ud = params$levelUD,
+                   repr = ra_result$out,
+                   thresh =  c(10, 25, 50, 75, 90),
+                   metadata = metadata,
+                   save_shp = F)
+
+# If saveShp == TRUE, save shapefile
 if (params$saveShp == TRUE) {
-  sf::st_write(sites[sites$N_animals > 0, ], 
-               paste0(file.path(here::here(), params$output_dir, params$file_name), " KBA.shp"), 
+  sf::st_write(sites_out[!is.na(sites_out$percentile), ], 
+               paste0(file.path(here::here(), params$output_dir, params$file_name), " OPP_Areas.shp"), 
                append = FALSE,
                quiet = TRUE)
 }
+
 ```
 
-The `track2KBA` package (Beal et al. 2021) was used to quantify spatial overlap in UDs and estimate both the proportion and the total number of birds from the source population that predictably use at sea areas around the colony. These estimates is based on the proportion of overlapping home range (95% UD) areas in each raster grid cell multiplied by the calculated representativeness of the sample (`r signif(ra_result$out, 2)`) and the source population size (`r format(params$breeding_pairs * 2, scientific = F, big.mark = ',')` individuals). Results from this analysis were aggregated to show the regions where 90%, 70%, and 50% of individuals from the source population are expected to occur (Figure 3). 
+The `track2KBA` package (Beal et al. 2021) was used to quantify spatial overlap in UDs and estimate both the proportion and the total number of birds from the source population that predictably use at sea areas around the colony. These estimates is based on the proportion of overlapping home range (95% UD) areas in each raster grid cell multiplied by the calculated representativeness of the sample (`r signif(ra_result$out, 2)`) and the source population size (`r format(params$breeding_pairs * 2, scientific = F, big.mark = ',')` individuals). Results from this analysis were aggregated to show the regions where individuals from the source population are expected to occur (Figure 3). 
 
-```{r plot KBA, fig.height=5, fig.cap = "Map showing the estimated distribution of birds at sea around the breeding colony."}
-opp_map_keyareas(track2KBA_UD = sites,
+```{r plot KBA, fig.height=5, fig.cap = "Map showing the estimated distribution of birds at sea around the breeding colony. Polygon shading indicates the absolute number of birds from the source population estimated to use that area. Polygon oultine indicates the estimated percent of home ranges that overlap the area."}
+
+opp_map_keyareas(
+                 opp_sites = sites_out,
                  center = dat2$site,
                  zoom = NULL,
-                 show_site = T,
                  coast_scale = 10
-                 )
+)
+
 ```
 
 \newpage

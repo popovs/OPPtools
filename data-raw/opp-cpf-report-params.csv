@@ -5,7 +5,7 @@ mb_project_num,report_title,file_name,spp,breeding_pairs,minDist,maxDist,minDur,
 1895716931,"Ancient murrelet - George Island, BC",ANMU - George Island,Ancient murrelet,17400,1.5,20,1,3,19,FALSE,20 min,1,30,1,href,Incubation
 1897273090,"Ancient murrelet - Ramsay Island, BC",ANMU - Ramsay Island,Ancient murrelet,18200,1,20,1,3,19,FALSE,20 min,1,30,1,href,Incubation
 1903294479,"Rhinocerous auklet - Lucy Island, BC",RHAU - Lucy Island,Rhinocerous auklet,25300,2.5,20,1,1,12,FALSE,5 min,1,30,1,href/2,Chick-rearing
-1904543040,"Rhinocerous auklet - Pine Island, BC",RHAU - Pine Island,Rhinocerous auklet,140000,1.5,10,1,1,12,FALSE,5 min,1,30,0,href/2,Chick-rearing
+1904543040,"Rhinocerous auklet - Pine Island, BC",RHAU - Pine Island,Rhinocerous auklet,140000,1.5,10,1,1,12,FALSE,5 min,1,30,0,href,Chick-rearing
 1904565280,"Rhinocerous auklet - Protection Island, WA",RHAU - Protection Island,Rhinocerous auklet,34000,0.5,10,1,1,12,FALSE,5 min,1,30,1,href,Chick-rearing
 1903075528,"Rhinocerous auklet - SGang Gwaay, BC",RHAU - SGang Gwaay,Rhinocerous auklet,13600,2.5,10,1,1,12,FALSE,5 min,1,30,1,href,Unknown
 1901463730,"Rhinocerous auklet - Triangle Island, BC",RHAU - Triangle Island,Rhinocerous auklet,41700,3.5,10,1,1,12,FALSE,5 min,1,30,1,href,Chick-rearing
