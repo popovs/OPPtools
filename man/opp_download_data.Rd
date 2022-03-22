@@ -9,7 +9,8 @@ opp_download_data(
   login = NULL,
   start_month = NULL,
   end_month = NULL,
-  season = NULL
+  season = NULL,
+  addl_cols = NULL
 )
 }
 \arguments{
@@ -24,6 +25,8 @@ this field will be ignored and login credentials will be automatically retrieved
 \item{end_month}{Latest month (1-12) to include in output.}
 
 \item{season}{Vector describing the season data can be applied to, eg. 'Breeding (Jun-Jul)'}
+
+\item{addl_cols}{Character vector containing comma separated list of additional Movebank columns to add to the dataset, e.g. c('argos_altitude', 'attachment_type', 'tag_readout_method')}
 }
 \description{
 This function downloads OPP tracking data from Movebank and returns a

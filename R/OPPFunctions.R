@@ -47,6 +47,7 @@ opp_movebank_key <- function(username,
 #' @param start_month Earliest month (1-12) to include in output.
 #' @param end_month Latest month (1-12) to include in output.
 #' @param season Vector describing the season data can be applied to, eg. 'Breeding (Jun-Jul)'
+#' @param addl_cols Character vector containing comma separated list of additional Movebank columns to add to the dataset, e.g. c('argos_altitude', 'attachment_type', 'tag_readout_method')
 #'
 #' @details The function can be passed a list of movebank study IDs and will append
 #'data from all studies.
@@ -89,14 +90,37 @@ opp_download_data <- function(study,
                                                       deploymentAsIndividuals = TRUE,
                                                       includeOutliers = FALSE))
 
-    # Extract fields
+    # Extract one set of cols for GPS vs. Argos tags
     if ("Argos Doppler Shift" %in% unique(mb_data@data$sensor_type)) {
-      loc_data <- as(mb_data, 'data.frame') %>%
-          dplyr::select(timestamp, location_long, location_lat, sensor_type,
-                        local_identifier, ring_id, taxon_canonical_name, sex,
-                        animal_life_stage, animal_reproductive_condition, number_of_events,
-                        study_site, deploy_on_longitude, deploy_on_latitude,
-                        deployment_id, tag_id, individual_id) %>%
+      cols <- c("timestamp", "location_long", "location_lat", "sensor_type",
+                "argos_iq", "argos_lc", "argos_lat1", "argos_lat2", "argos_lon1", "argos_lon2",
+                "local_identifier", "ring_id", "taxon_canonical_name", "sex",
+                "animal_life_stage", "animal_reproductive_condition", "number_of_events",
+                "study_site", "deploy_on_longitude", "deploy_on_latitude",
+                "deployment_id", "tag_id", "individual_id")
+    } else {
+      cols <- c("timestamp", "location_long", "location_lat", "sensor_type",
+                "local_identifier", "ring_id", "taxon_canonical_name", "sex",
+                "animal_life_stage", "animal_reproductive_condition", "number_of_events",
+                "study_site", "deploy_on_longitude", "deploy_on_latitude",
+                "deployment_id", "tag_id", "individual_id")
+    }
+
+    # Append additional columns
+    addl_cols <- as.character(addl_cols)
+    if (class(addl_cols) != "character") {
+      warning("Could not use your additional columns to subset Movebank data. Make sure the `addl_cols` parameters is a character vector, e.g. `c('column_1', 'column_2')`.")
+    } else {
+      cols <- append(cols, addl_cols)
+    }
+
+    non_cols <- cols[!(cols %in% names(mb_data@data)) & !(cols %in% names(mb_data@idData))]
+    if (length(non_cols) > 0) message(cat("The following columns do not exist in the Movebank dataset, and therefore could not be selected:\n", sprintf(non_cols)))
+    cols <- cols[cols %in% names(mb_data@data) | cols %in% names(mb_data@idData)]
+
+    # Extract fields
+    loc_data <- as(mb_data, 'data.frame') %>%
+          dplyr::select(all_of(cols)) %>% ##THE PROBLEM LINE >:(
           dplyr::mutate(
             timestamp = as.POSIXct(timestamp), # make times POSIXct for compatibility with OGR
             year = as.numeric(strftime(timestamp, '%Y')),
@@ -104,22 +128,6 @@ opp_download_data <- function(study,
             season = season,
             sex = ifelse(sex == '' | sex == ' ' | is.na(sex), 'u', sex)
           )
-    } else {
-      loc_data <- as(mb_data, 'data.frame') %>%
-        dplyr::select(timestamp, location_long, location_lat, sensor_type,
-                      argos_iq, argos_lc, argos_lat1, argos_lat2, argos_lon1, argos_lon2,
-                      local_identifier, ring_id, taxon_canonical_name, sex,
-                      animal_life_stage, animal_reproductive_condition, number_of_events,
-                      study_site, deploy_on_longitude, deploy_on_latitude,
-                      deployment_id, tag_id, individual_id) %>%
-        dplyr::mutate(
-          timestamp = as.POSIXct(timestamp), # make times POSIXct for compatibility with OGR
-          year = as.numeric(strftime(timestamp, '%Y')),
-          month = as.numeric(strftime(timestamp, '%m')), # add numeric month field
-          season = season,
-          sex = ifelse(sex == '' | sex == ' ' | is.na(sex), 'u', sex)
-        )
-    }
 
     # Subset data to months if provided
     if (is.null(start_month) == FALSE) loc_data <- subset(loc_data, loc_data$month >= start_month)
