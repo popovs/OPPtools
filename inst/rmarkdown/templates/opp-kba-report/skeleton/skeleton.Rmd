@@ -12,6 +12,7 @@ params:
   file_name: NA
   spp: NA
   breeding_pairs: NA
+  count_year: NA
   minDist: NA
   maxDist: NA
   minDur: NA
@@ -51,16 +52,16 @@ dat <- opp_download_data(study = params$movebank_id)
 # Restrict to selected breeding stage
 if (params$stage == 'Incubation') {
   dat <- dat %>% filter(animal_reproductive_condition %in% c('breeding, eggs', 'breeding, egg'))
-  stage_message <- 'This report focuses on tracking data collected during the incubation stage of the breeding season.'
+  stage_message <- 'This report focuses on tracking data collected during the incubation stage of the breeding season (Figure 2).'
 }
 
 if (params$stage == 'Chick-rearing') {
   dat <- dat %>% filter(animal_reproductive_condition %in% c('breeding, chicks', 'breeding, chick'))
-  stage_message <- 'This report focuses on tracking data collected during the chick-rearing stage the breeding season.'
+  stage_message <- 'This report focuses on tracking data collected during the chick-rearing stage of the breeding season (Figure 2).'
 }
 
 if (params$stage == 'Unknown') {
-    stage_message <- 'Breeding status could not be determined for all deployments, therefore data in this report represent both incubation and chick-rearing breeding stages.'
+    stage_message <- 'Breeding status could not be determined for all deployments, therefore data in this report represent both incubation and chick-rearing breeding stages (Figure 2).'
 }
 
 # format data for track2KBA
@@ -134,6 +135,10 @@ I., Patrício, A. R., Regalla, A., Staniland, I., Boyd, C., Catry, P., and Dias,
 \n\n
 Calenge, C. (2006) The package adehabitat for the R software: a tool for the analysis of space and habitat use by animals. Ecological Modelling, 197, 516-519
 \n\n
+Environment and Climate Change Canada. 2022. British Columbia Seabird Colony Inventory: Digital dataset. Canadian Wildlife Service, Environment and Climate Change Canada, Pacific Region.
+\n\n
+Gaston, A. J. and S. B. Dechesne (2020). Rhinoceros Auklet (Cerorhinca monocerata), version 1.0. In Birds of the World (A. F. Poole and F. B. Gill, Editors). Cornell Lab of Ornithology, Ithaca, NY, USA. 
+\n\n
 Johnson, D. S., London, J. M., Lea, M.-A. and Durban, J. W. (2008) Continuous-time correlated random walk model for animal telemetry data. Ecology, 89: 1208-1215. 
 \n\n
 Lascelles, B. G., Taylor, P. R., Miller, M. G. R., Dias, M. P., Oppel, S., Torres,
@@ -147,8 +152,7 @@ R Core Team (2021). R: A language and environment for statistical computing. R F
 
 # Data summary
 
-GPS tracking was conducted on breeding `r params$spp`s at `r unique(dat$study_site)`; a colony with 
-`r format(params$breeding_pairs * 2, scientific = F, big.mark = ',')` breeding pairs. `r track_years` Location data away from the colony were obtained from `r length(deps)` individuals (Figure 1 and Figure 2). `r stage_message` 
+GPS tracking was conducted on breeding `r params$spp`s at `r unique(dat$study_site)`. This colony has an estimated `r format(params$breeding_pairs, scientific = F, big.mark = ',')` breeding pairs, the most recent colony count data are from `r params$count_year` `r ifelse(params$movebank_id == 1904565280, '(Gaston and Dechesne 2020)', '(ECCC 2022)')`. `r track_years` Location data away from the colony were obtained from `r length(deps)` individuals (Figure 1 and Figure 2). `r stage_message` 
 
 Raw tracking data are stored on Movebank (https://www.movebank.org/) in project number `r as.character(params$movebank_id)`. All analysis were conducted with R (version 4.1.0, R Core Team 2021). Code used to generate this report is available at https://github.com/popovs/OPPtools.
 
