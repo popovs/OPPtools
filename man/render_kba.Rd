@@ -16,7 +16,7 @@ render_kba(
 )
 }
 \arguments{
-\item{params}{List of 17 parameter values used to generate report.}
+\item{params}{List of 18 parameter values used to generate report.}
 
 \item{iterations}{Numeric. Number of iterations to perform for track2KBA::repAssess. More iterations will result in a more accurate assessment, but take longer to run. Default 5.}
 
