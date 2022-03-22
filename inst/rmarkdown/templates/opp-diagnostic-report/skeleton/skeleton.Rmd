@@ -9,8 +9,10 @@ output:
 params:
   movebank_id: NA
   report_title: NA
+  file_name: NA
   spp: NA
   breeding_pairs: NA
+  count_year: NA
   minDist: NA
   maxDist: NA
   minDur: NA
@@ -20,9 +22,13 @@ params:
   timestep: NA
   gridRes: NA
   gridExtend: NA
-  speed: NA
-  mapZoom: NA
-  includeBB: 0
+  includeBB: NA
+  kernelSmoother: NA
+  stage: NA
+  iterations: interations
+  levelUD: level_ud
+  saveShp: save_shp
+  output_dir: output_dir
 editor_options: 
   chunk_output_type: console
 
@@ -49,7 +55,7 @@ Between `r min(year(dat$timestamp))` and `r max(year(dat$timestamp))`, `r length
 
 These `r length(unique(dat$individual_id))` individuals generated `r nrow(dat)` detections between `r as.Date(min(dat$timestamp))` and `r as.Date(max(dat$timestamp))`.
 
-Data are stored on Movebank in project number `r as.character(params$movebank_id)`.
+Raw tracking data are stored on Movebank (https://www.movebank.org/) in project number `r as.character(params$movebank_id)`. All analysis were conducted with R (version 4.1.0, R Core Team 2021). Code used to generate this report is available at https://github.com/popovs/OPPtools.
 
 ```{r map, fig.cap = "Map of raw GPS locations. Different colours represent trips from unique deployments. Location of the breeding colony is indicated with an orange point."}
 dat2 <- opp2KBA(dat)
@@ -64,6 +70,15 @@ opp_map_tracks(tracks = dat2$data,
 ```
 
 \newpage
+
+```{r location plot, fig.height = 6, fig.cap = 'Plot showing time of all GPS locations and breeding status for each tracked individual, including deployments that did not provide any off-colony loations.'}
+
+opp_logger_dotplot(dat)
+
+```
+
+\newpage 
+
 
 # Classifying foraging trips
 
