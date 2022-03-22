@@ -1308,8 +1308,8 @@ opp_sites <- function(kernels,
   kernels <- kernels[kernels$n_tracks > 0, ]
 
   # 3. Calculate n individuals, % population, threshold percentiles
-  kernels@data$percent_population <- repr * (kernels@data$n_tracks / ss)
-  kernels@data$n_individuals <- kernels@data$percent_population * population
+  kernels@data$perc_pop <- repr * (kernels@data$n_tracks / ss)
+  kernels@data$n_indiv <- kernels@data$percent_population * population
 
   kernels@data$percentile <- NA
   for (i in sort(unlist(thresh))) {
@@ -1323,8 +1323,8 @@ opp_sites <- function(kernels,
   # 4. Create sf output
   # See internalHelper.R for c_mean func
   sums <- list(list("min", "n_tracks"),
-               list("min", "percent_population"),
-               list("min", "n_individuals"))
+               list("min", "perc_pop"),
+               list("min", "n_indiv"))
   out <- raster::aggregate(as(kernels, "SpatialPolygonsDataFrame"),
                            by = "percentile",
                            sums = sums)
@@ -1333,8 +1333,8 @@ opp_sites <- function(kernels,
 
   # 5. Append any additional metadata columns
   out$percentile <- 100 - out$percentile
-  out$representativeness <- repr
-  out$total_sample_size <- ss
+  out$repr <- repr
+  out$total_ss <- ss
 
   if (length(metadata) > 0) {
     for (i in 1:length(metadata)) {
