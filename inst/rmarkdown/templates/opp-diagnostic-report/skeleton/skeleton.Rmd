@@ -42,7 +42,6 @@ knitr::opts_chunk$set(echo = FALSE,
 
 library(OPPtools)
 library(dplyr)
-library(data.table)
 
 dat <- opp_download_data(study = params$movebank_id)
 ```
@@ -162,16 +161,17 @@ print(ggpubr::ggarrange(p_raw, p_int,
 ```{r interpolated summary}
 my_trip_summary <- OPPtools::sum_trips(interp) %>% 
   dplyr::mutate(duration = signif(duration, 3),
-         max_dist_km = signif(max_dist_km, 3),
-         departure = as.Date(departure)) %>% 
+                max_dist_km = signif(max_dist_km, 3),
+                departure = as.Date(departure)) %>% 
   dplyr::select(tripID, raw_n_locs, interp_n_locs, departure, duration, max_dist_km, complete) %>% 
+  as.data.frame() %>% 
   dplyr::rename(`Trip ID` = tripID,
-         `GPS locations` = raw_n_locs,
-         `Interpolated locations` = interp_n_locs,
-         `Start date` = departure,
-         `Maximum distance (km)` = max_dist_km,
-         `Duration (hrs)` = duration,
-         Type = complete) %>% 
+                `GPS locations` = raw_n_locs,
+                `Interpolated locations` = interp_n_locs,
+                `Start date` = departure,
+                `Maximum distance (km)` = max_dist_km,
+                `Duration (hrs)` = duration,
+                Type = complete) %>% 
   flextable::flextable(cwidth =c(1, 0.8, 0.8, 1, 0.8, 1, 0.8)) %>% 
   flextable::align(align = 'center', part = 'all') %>%
   flextable::set_caption("Summary of individual foraging trip attributes.")
@@ -224,14 +224,14 @@ step_ud <- opp_kernel(interp,
                       extendGrid = params$gridExtend,
                       res = params$gridRes)
 
-
-if (params$includeBB == T ) {
-
-bbmm_ud <- opp_bbmm(interp,interpolated = T,
-                    extendGrid = params$gridExtend,
-                    res = params$gridRes
-                    )
-}
+# 
+# if (params$includeBB == T ) {
+# 
+# bbmm_ud <- opp_bbmm(interp,interpolated = T,
+#                     extendGrid = params$gridExtend,
+#                     res = params$gridRes
+#                     )
+# }
 
 ```
 
@@ -243,51 +243,6 @@ cat("## Low track sample size.
 The relatively small number of GPS tracks available for this breeding population is not sufficient for characterizing important at-sea areas.")
 ```
 
-<!-- ```{r abort small sample size} -->
-<!-- if (n_tracks < 20) knitr::knit_exit() -->
-<!-- ``` -->
-
-
-<!--## Population level-->
-
-```{r population level kernel, eval = FALSE}
-# Combine all tracks
-# pop_tracks <- interp$interp %>%
-#   as('sf') %>%
-#   dplyr::filter(tripID != -1) %>%
-#   dplyr::group_by(ID, tripID) %>%
-#   dplyr::mutate(ID = factor(ID),
-#                 DiffTime = as.numeric(difftime(DateTime, dplyr::lag(DateTime), units = 'hour')),
-#                 DiffDist= getDist(lon = Longitude, lat = Latitude)) %>%
-#   dplyr::arrange(DateTime) %>%
-#   dplyr::summarize(
-#     TotalTime = sum(DiffTime, na.rm = T),
-#     TotalDist = sum(DiffDist, na.rm = T),
-#     do_union = FALSE,
-#     .groups = 'drop'
-#     ) %>%
-#   sf::st_cast("LINESTRING")
-# 
-# # Unweighted stacked kernels
-# pop_href <- ud_stack(href_ud)
-# pop_step <- ud_stack(step_ud)
-# 
-# # Using a combination of aggregate and sum_trips, 
-# # let's pull out the number of locations per animal
-# n_locs <- suppressMessages(aggregate(interp_n_locs ~ ID, data = sum_trips(interp), sum)[[2]])
-# 
-# # Stack our kernels, weighted by n_locs
-# pop_hrefw <- ud_stack(href_ud, n_locs)
-# pop_stepw <- ud_stack(step_ud, n_locs)
-# 
-# pop_uds <- list()
-# 
-# pop_uds[["unweighted href"]] <- ud_vol(pop_href, lowerVol = 50, upperVol = 95)
-# pop_uds[["unweighted step"]] <- ud_vol(pop_step, lowerVol = 50, upperVol = 95)
-# pop_uds[["weighted href"]] <- ud_vol(pop_hrefw, lowerVol = 50, upperVol = 95)
-# pop_uds[["weighted step"]] <- ud_vol(pop_stepw, lowerVol = 50, upperVol = 95)
-```
-
 \newpage
 # Appendix A - Trip plots
 
@@ -295,14 +250,14 @@ Figures in this appendix show the trip classifications for each individual deplo
 
 
 ```{r plot trip-types, fig.height=3.5}
-trip_plots <- plot_trip_dist(data = trips, plotsPerPage = 2,              
+trip_plots <- plot_trip_dist(data = trips, plotsPerPage = 1,              
                              innerBuff = params$minDist,
                              returnBuff = params$maxDist,
                              showPlots = F)
 
-for (i in 1:length(trip_plots)) {
-  print(trip_plots[[i]])
-}
+# for (i in 1:length(trip_plots)) {
+#   print(trip_plots[[i]])
+# }
 ```
 
 \newpage
@@ -312,18 +267,18 @@ Figures in this appendix show the interpolated GPS locations relative to raw GPS
 
 ```{r plot trip-interpolation, fig.height=3.5}
 interp_plots <- plot_interp_dist(data = interp, 
-                                 plotsPerPage = 2,              
+                                 plotsPerPage = 1,              
                                  showPlots = F)
 
-for (i in 1:length(interp_plots)) {
-  print(interp_plots[[i]])
-}
+# for (i in 1:length(interp_plots)) {
+#   print(interp_plots[[i]])
+# }
 ```
 
 \newpage
 # Appendix C - Comparing KDE smoothers
 
-Figures in this appendix compare four different KDE smoothers. Each plot shows how the 50% and 95% utilization distribution calculated for individual tracks changes with depending on the  smoothing parameter and method.
+Figures in this appendix compare three different KDE smoothers. Each plot shows how the 50% and 95% utilization distribution calculated for individual tracks changes with depending on the  smoothing parameter and method.
 
 ```{r plot kernels, fig.height=2.5, fig.width=7}
 
@@ -348,8 +303,28 @@ pp <- opp_map_indUD(plot_uds,
                     coast_scale = 50,
                     viridis_option = "A")
 
-for (i in 1:length(pp)) {
-  print(pp[[i]])
-  cat("  \n")
-}
+# for (i in 1:length(pp)) {
+#   print(pp[[i]])
+#   cat("  \n")
+# }
 ```
+
+\newpage
+
+```{r individual plots,  fig.height=7, fig.caption = paste0('Diagnostic plots for ', names(trip_plots),'.')}
+
+for (i in 1:length(trip_plots)) {
+  
+  p1 <- (ggpubr::ggarrange(trip_plots[[i]], interp_plots[[i]],
+                           ncol = 1,
+                           labels = c("A", "B"))
+  )
+  
+  print(ggpubr::ggarrange(p1, pp[[i]],
+                          ncol = 1,nrow = 2,heights = c(1.5,1),
+                          labels = c('', 'C'))
+  )
+}
+````
+
+
