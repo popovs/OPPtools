@@ -63,8 +63,9 @@ opp_download_data <- function(study,
                               login = NULL,
                               start_month = NULL,
                               end_month = NULL,
-                              season = NULL
-) {
+                              season = NULL,
+                              addl_cols = NULL
+                              ) {
 
   # If credentials were saved using opp_movebank_key, retrieve them
   if (length(keyring::key_list(service = "OPP-Movebank")$username) == 1) {
@@ -88,20 +89,37 @@ opp_download_data <- function(study,
                                                       deploymentAsIndividuals = TRUE,
                                                       includeOutliers = FALSE))
 
-    # Extract the minimal fields required
-    loc_data <- as(mb_data, 'data.frame') %>%
-      dplyr::select(timestamp, location_long, location_lat, sensor_type,
-                    local_identifier, ring_id, taxon_canonical_name, sex,
-                    animal_life_stage, animal_reproductive_condition, number_of_events,
-                    study_site, deploy_on_longitude, deploy_on_latitude,
-                    deployment_id, tag_id, individual_id) %>%
-      dplyr::mutate(
-        timestamp = as.POSIXct(timestamp), # make times POSIXct for compatibility with OGR
-        year = as.numeric(strftime(timestamp, '%Y')),
-        month = as.numeric(strftime(timestamp, '%m')), # add numeric month field
-        season = season,
-        sex = ifelse(sex == '' | sex == ' ' | is.na(sex), 'u', sex)
-      )
+    # Extract fields
+    if ("Argos Doppler Shift" %in% unique(mb_data@data$sensor_type)) {
+      loc_data <- as(mb_data, 'data.frame') %>%
+          dplyr::select(timestamp, location_long, location_lat, sensor_type,
+                        local_identifier, ring_id, taxon_canonical_name, sex,
+                        animal_life_stage, animal_reproductive_condition, number_of_events,
+                        study_site, deploy_on_longitude, deploy_on_latitude,
+                        deployment_id, tag_id, individual_id) %>%
+          dplyr::mutate(
+            timestamp = as.POSIXct(timestamp), # make times POSIXct for compatibility with OGR
+            year = as.numeric(strftime(timestamp, '%Y')),
+            month = as.numeric(strftime(timestamp, '%m')), # add numeric month field
+            season = season,
+            sex = ifelse(sex == '' | sex == ' ' | is.na(sex), 'u', sex)
+          )
+    } else {
+      loc_data <- as(mb_data, 'data.frame') %>%
+        dplyr::select(timestamp, location_long, location_lat, sensor_type,
+                      argos_iq, argos_lc, argos_lat1, argos_lat2, argos_lon1, argos_lon2,
+                      local_identifier, ring_id, taxon_canonical_name, sex,
+                      animal_life_stage, animal_reproductive_condition, number_of_events,
+                      study_site, deploy_on_longitude, deploy_on_latitude,
+                      deployment_id, tag_id, individual_id) %>%
+        dplyr::mutate(
+          timestamp = as.POSIXct(timestamp), # make times POSIXct for compatibility with OGR
+          year = as.numeric(strftime(timestamp, '%Y')),
+          month = as.numeric(strftime(timestamp, '%m')), # add numeric month field
+          season = season,
+          sex = ifelse(sex == '' | sex == ' ' | is.na(sex), 'u', sex)
+        )
+    }
 
     # Subset data to months if provided
     if (is.null(start_month) == FALSE) loc_data <- subset(loc_data, loc_data$month >= start_month)
