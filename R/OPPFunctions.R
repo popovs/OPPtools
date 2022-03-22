@@ -90,7 +90,7 @@ opp_download_data <- function(study,
                                                       includeOutliers = FALSE))
 
     # Extract fields
-    if ("Argos Doppler Shift" %in% unique(mb_data@data$sensor_type)) {
+    if (!("Argos Doppler Shift" %in% unique(mb_data@data$sensor_type))) {
       loc_data <- as(mb_data, 'data.frame') %>%
           dplyr::select(timestamp, location_long, location_lat, sensor_type,
                         local_identifier, ring_id, taxon_canonical_name, sex,
@@ -970,6 +970,7 @@ opp_step <- function(data) {
   }
 
  out <- data@data %>%
+   data.frame() %>%
     dplyr::group_by(ID) %>%
     dplyr::summarise(
       dist = getDist(lon = Longitude, lat = Latitude),
