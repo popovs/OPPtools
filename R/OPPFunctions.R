@@ -1312,8 +1312,8 @@ opp_sites <- function(kernels,
 
   kernels@data$percentile <- NA
   for (i in sort(unlist(thresh))) {
-    if (nrow(kernels@data[which(kernels@data$percent_population > i), ]) != 0) {
-      kernels@data[which(kernels@data$percent_population > i), ]$percentile <- i * 100
+    if (nrow(kernels@data[which(kernels@data$perc_pop > i), ]) != 0) {
+      kernels@data[which(kernels@data$perc_pop > i), ]$percentile <- i * 100
     } else {
       break
     }
