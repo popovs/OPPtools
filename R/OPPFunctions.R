@@ -63,8 +63,7 @@ opp_download_data <- function(study,
                               login = NULL,
                               start_month = NULL,
                               end_month = NULL,
-                              season = NULL,
-                              addl_cols = NULL
+                              season = NULL
                               ) {
 
   # If credentials were saved using opp_movebank_key, retrieve them
@@ -1309,7 +1308,7 @@ opp_sites <- function(kernels,
 
   # 3. Calculate n individuals, % population, threshold percentiles
   kernels@data$perc_pop <- repr * (kernels@data$n_tracks / ss)
-  kernels@data$n_indiv <- kernels@data$percent_population * population
+  kernels@data$n_indiv <- kernels@data$perc_pop * population
 
   kernels@data$percentile <- NA
   for (i in sort(unlist(thresh))) {
