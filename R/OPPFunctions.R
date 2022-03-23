@@ -1331,6 +1331,7 @@ opp_sites <- function(kernels,
     sf::st_union(by_feature = TRUE)
 
   # 5. Append any additional metadata columns
+  out <- out %>% arrange(n_tracks)
   out$percentile <- 100 - out$percentile
   out$repr <- repr
   out$total_ss <- ss
