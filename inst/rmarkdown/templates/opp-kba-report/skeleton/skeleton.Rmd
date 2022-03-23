@@ -114,7 +114,7 @@ if (params$kernelSmoother != "bbmm") {
                       res = params$gridRes)
 }
 
-yy <- sort(unique(year(dat$timestamp)))
+yy <- sort(unique(format(as.Date(dat$timestamp), "%Y")))
 
 if (length(yy) == 1) {
   track_years <- paste0("GPS units were deployed in ", yy, ".")
@@ -273,12 +273,13 @@ metadata <- list("smoother" = params$kernelSmoother,
                  'meta' = "percentl = percentile of population encompassed in polygon; n_trcks = number of GPS tracks used to generated kernel distributions; perc_pop = percent of the colony population estimated to be encompassed within the polygon; n_indiv = number of individuals (population) estimated to be encompassed within the polygon; repr = representativeness (%) of the kernels compared to the total population's space use, as estimated by repAssess; total_ss = total number of tracks used to generate the kernels and subsequent polygon output; smoother = method used for smoothing tracked kernel distributions; smooth_km = value in kms of the smoother; ud_level = utilization distribution level chosen for kernels; smpl_yr = number of years of tracks; species = species; site = home colony site; lif_stf = life stage of tagged animals"
                  )
 
-sites_out <- opp_sites(kernels,population = params$breeding_pairs * 2,
-                   level_ud = params$levelUD,
-                   repr = ra_result$out,
-                   thresh =  c(10, 25, 50, 75, 90),
-                   metadata = metadata,
-                   save_shp = F)
+sites_out <- opp_sites(kernels,
+                       population = params$breeding_pairs * 2,
+                       level_ud = params$levelUD,
+                       repr = ra_result$out,
+                       thresh =  c(10, 25, 50, 75, 90),
+                       metadata = metadata,
+                       save_shp = F)
 
 # If saveShp == TRUE, save shapefile
 if (params$saveShp == TRUE) {
