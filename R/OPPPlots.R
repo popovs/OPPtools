@@ -276,10 +276,10 @@ opp_map_keyareas <- function(track2KBA_UD,
   options(scipen = 100)
 
   if(class(opp_sites)[1] != "sf" |
-     !("percent_population" %in% names(opp_sites)) |
-     !("n_individuals" %in% names(opp_sites))) stop("opp_sites must be output from OPPTools::opp_sites()")
+     !("perc_pop" %in% names(opp_sites)) |
+     !("n_indiv" %in% names(opp_sites))) stop("opp_sites must be output from OPPTools::opp_sites()")
 
-  if (is.na(opp_sites$n_individuals)[1]) stop("This function requires that a population size value was provided to OPPTools::opp_sites()")
+  if (is.na(opp_sites$n_indiv)[1]) stop("This function requires that a population size value was provided to OPPTools::opp_sites()")
 
   world <- rnaturalearth::ne_countries(scale = coast_scale, returnclass = 'sf')
   temp <- opp_sites
@@ -287,14 +287,14 @@ opp_map_keyareas <- function(track2KBA_UD,
   if (!(coast_scale %in% c(10, 50, 110))) stop('coast_scale must be one of 10, 50, or 110')
 
   scale_lab <- 'Number of birds'
-  temp$n_individuals <- as.factor(format(signif(temp$n_individuals,2), big.mark = ','))
+  temp$n_indiv <- as.factor(format(signif(temp$n_indiv,2), big.mark = ','))
 
   center <- sf::st_as_sf(center, coords = c('Longitude', 'Latitude'), crs = sf::st_crs(temp))
   bb <- bbox_at_zoom(locs = temp, zoom_level = zoom)
   temp$p_contour <- as.factor(100 - temp$percentile)
 
   p <- ggplot2::ggplot() +
-    ggplot2::geom_sf(data =temp, ggplot2::aes(fill = n_individuals), col = 'transparent')  +
+    ggplot2::geom_sf(data =temp, ggplot2::aes(fill = n_indiv), col = 'transparent')  +
     ggplot2::geom_sf(data = temp[!is.na(temp$p_contour),],
                      ggplot2::aes(col = p_contour),
                      size = 1,
