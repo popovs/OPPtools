@@ -268,9 +268,12 @@ metadata <- list("smoother" = params$kernelSmoother,
                  "years" = length(yy),
                  "species" = params$spp,
                  "site" = unique(dat$study_site),
-                 'stage' = params$stage,
-                 'tot_pairs' = params$breeding_pairs,
-                 'meta' = "percentl = percentile of population encompassed in polygon; n_trcks = number of GPS tracks used to generated kernel distributions; perc_pop = percent of the colony population estimated to be encompassed within the polygon; n_indiv = number of individuals (population) estimated to be encompassed within the polygon; repr = representativeness (%) of the kernels compared to the total population's space use, as estimated by repAssess; total_ss = total number of tracks used to generate the kernels and subsequent polygon output; smoother = method used for smoothing tracked kernel distributions; smooth_km = value in kms of the smoother; ud_level = utilization distribution level chosen for kernels; smpl_yr = number of years of tracks; species = species; site = home colony site; lif_stf = life stage of tagged animals"
+                 "stage" = params$stage,
+                 "tot_pairs" = params$breeding_pairs,
+                 "meta_shp" = "Shapefile polygon metadata | percentile = percentile of population using area; n_tracks = # of GPS tracks falling within area; perc_pop = min % of colony population using area; n_indiv = min # of individuals (population) using area",
+                 "meta_ss" = "Sample size metadata | repr = representativeness (%) of GPS kernels vs total population's space use; total_ss = total # of tracks used to generate this shapefile; years = # years of tracking data used to generate shapefile",
+                 "meta_kde" = "Kernel density estimation metadata | smoother = kernel smoothing method; smooth_km = value in kms of smoother; ud_level = utilization distribution level of the kernels",
+                 "meta_lh" = "Life history metadata | species = species; site = colony/tagging site; stage = tagged animal life stage; tot_pairs = total # of breeding pairs at colony (i.e. colony population / 2)"
                  )
 
 sites_out <- opp_sites(kernels,
@@ -283,7 +286,7 @@ sites_out <- opp_sites(kernels,
 
 # If saveShp == TRUE, save shapefile
 if (params$saveShp == TRUE) {
-  sf::st_write(sites_out[!is.na(sites_out$percentile), ], 
+  sf::st_write(sites_out, 
                paste0(file.path(here::here(), params$output_dir, params$file_name), " OPP_Areas.shp"), 
                append = FALSE,
                quiet = TRUE)
@@ -300,7 +303,7 @@ opp_map_keyareas(
                  center = dat2$site,
                  zoom = NULL,
                  coast_scale = 10
-)
+                 )
 
 ```
 
