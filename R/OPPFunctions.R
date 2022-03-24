@@ -1310,7 +1310,7 @@ opp_sites <- function(kernels,
   kernels@data$perc_pop <- repr * (kernels@data$n_tracks / ss)
   kernels@data$n_indiv <- kernels@data$perc_pop * population
 
-  kernels@data$percentile <- NA
+  kernels@data$percentile <- 100
   for (i in sort(unlist(thresh))) {
     if (nrow(kernels@data[which(kernels@data$perc_pop > i), ]) != 0) {
       kernels@data[which(kernels@data$perc_pop > i), ]$percentile <- i * 100
