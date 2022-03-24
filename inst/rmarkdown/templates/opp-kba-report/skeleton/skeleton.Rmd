@@ -265,15 +265,15 @@ if (not_rep) knitr::knit_exit()
 metadata <- list("smoother" = params$kernelSmoother, 
                  "smooth_km" = smooth,
                  "ud_level" = params$levelUD,
-                 "years" = length(yy),
+                 "n_years" = length(yy),
                  "species" = params$spp,
                  "site" = unique(dat$study_site),
                  "stage" = params$stage,
-                 "tot_pairs" = params$breeding_pairs,
+                 "col_pairs" = params$breeding_pairs,
                  "meta_shp" = "Shapefile polygon metadata | percentile = percentile of population using area; n_tracks = # of GPS tracks falling within area; perc_pop = min % of colony population using area; n_indiv = min # of individuals (population) using area",
-                 "meta_ss" = "Sample size metadata | repr = representativeness (%) of GPS kernels vs total population's space use; total_ss = total # of tracks used to generate this shapefile; years = # years of tracking data used to generate shapefile",
+                 "meta_ss" = "Sample size metadata | repr = representativeness (%) of GPS kernels vs total population's space use; total_ss = total # of tracks used to generate this shapefile; n_years = # of years of tracking data used to generate shapefile",
                  "meta_kde" = "Kernel density estimation metadata | smoother = kernel smoothing method; smooth_km = value in kms of smoother; ud_level = utilization distribution level of the kernels",
-                 "meta_lh" = "Life history metadata | species = species; site = colony/tagging site; stage = tagged animal life stage; tot_pairs = total # of breeding pairs at colony (i.e. colony population / 2)"
+                 "meta_lh" = "Life history metadata | species = species; site = colony/tagging site; stage = tagged animal life stage; col_pairs = total # of breeding pairs at colony (i.e. total colony population / 2)"
                  )
 
 sites_out <- opp_sites(kernels,
