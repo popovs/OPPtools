@@ -296,7 +296,7 @@ if (params$saveShp == TRUE) {
 
 The `track2KBA` package (Beal et al. 2021) was used to quantify spatial overlap in UDs and estimate both the proportion and the total number of birds from the source population that predictably use at sea areas around the colony. These estimates is based on the proportion of overlapping home range (95% UD) areas in each raster grid cell multiplied by the calculated representativeness of the sample (`r signif(ra_result$out, 2)`) and the source population size (`r format(params$breeding_pairs * 2, scientific = F, big.mark = ',')` individuals). Results from this analysis were aggregated to show the regions where individuals from the source population are expected to occur (Figure 3). 
 
-```{r plot KBA, fig.height=5, fig.cap = "Map showing the estimated distribution of birds at sea around the breeding colony. Polygon shading indicates the absolute number of birds from the source population estimated to use that area. Polygon oultine indicates the estimated percent of home ranges that overlap the area."}
+```{r plot KBA, fig.height=5, fig.cap = paste("Map showing the estimated distribution of birds at sea around the", unique(dat$study_site), "breeding colony. Polygon shading shows the minimum estimated number of individuals from the colony expected to use this area during", tolower(params$stage), "stage of breeding. Polygon outline indicates the minimum percent of the colony population expected to use this area during", tolower(params$stage), "stage of breeding.")}
 
 opp_map_keyareas(
                  opp_sites = sites_out,
