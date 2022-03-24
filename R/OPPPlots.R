@@ -309,7 +309,7 @@ opp_map_keyareas <- function(track2KBA_UD,
                       expand = T) +
     ggplot2::scale_fill_viridis_d(option = viridis_option) +
     #ggplot2::scale_color_viridis_c(option = viridis_option, lim = c(0, NA)) +
-    ggplot2::scale_color_viridis_d("Home range\noverlap(%)", option = "B", begin = 0.55, end = 0.9, direction = -1) +
+    ggplot2::scale_color_viridis_d("Colony population (%)", option = "B", begin = 0.55, end = 0.9, direction = -1) +
     ggplot2::theme_light() +
     ggplot2::theme(text = ggplot2::element_text(size = 10)) +
     ggplot2::labs(colour = scale_lab, fill = scale_lab)
