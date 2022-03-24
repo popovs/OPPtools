@@ -292,7 +292,7 @@ opp_map_keyareas <- function(track2KBA_UD,
   center <- sf::st_as_sf(center, coords = c('Longitude', 'Latitude'), crs = sf::st_crs(temp))
   bb <- bbox_at_zoom(locs = temp, zoom_level = zoom)
   temp$p_contour <- as.factor(100 - temp$percentile)
-  temp$p_contour[temp$p_contour == 100] <- NA
+  temp$p_contour[temp$p_contour == 0] <- NA
 
   p <- ggplot2::ggplot() +
     ggplot2::geom_sf(data =temp, ggplot2::aes(fill = n_indiv), col = 'transparent')  +
