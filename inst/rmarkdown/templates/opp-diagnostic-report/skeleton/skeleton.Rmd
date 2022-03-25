@@ -70,7 +70,7 @@ dat <- opp_download_data(study = params$movebank_id)
 
 `r if(min(year(dat$timestamp)) == max(year(dat$timestamp))) {paste("In", min(year(dat$timestamp)))} else {paste("Between", min(year(dat$timestamp)), "and",  max(year(dat$timestamp)))}`, `r length(unique(dat$individual_id))` individual `r params$spp`s at the `r unique(dat$study_site)` colony were tagged and tracked with `r as.character(unique(dat$sensor_type))` tags. These `r length(unique(dat$individual_id))` individuals generated `r nrow(dat)` detections between `r as.Date(min(dat$timestamp))` and `r as.Date(max(dat$timestamp))`. This report provides a detailed summary of the tracking data available for this population, as well as a description of how data were processed prior to analysis to identify high-use areas where birds may be at risk from marine spills.
 
-Raw tracking data are stored on Movebank (https://www.movebank.org/) in project number `r as.character(params$movebank_id)`. All analysis were conducted with R (version 4.1.0, R Core Team 2021). Code used to generate this report is available at: https://github.com/popovs/OPPtools.
+Raw tracking data are stored on Movebank (https://www.movebank.org/) in project number `r as.character(params$movebank_id)`. All analysis were conducted with `R` (version 4.1.0, R Core Team 2021). Code used to generate this report is available at: https://github.com/popovs/OPPtools.
 
 ```{r map, fig.cap = paste("Map of raw GPS locations. Different colours represent trips from unique deployments. Location of the", unique(dat$study_site), "breeding colony is indicated with an orange point.")}
 dat2 <- opp2KBA(dat)
@@ -218,7 +218,7 @@ s <- ifelse(s < 1, 1, s)
 
 Utilization distributions are sensitive to the kernel smoother; therefore it is important to choose an appropriate smoother for the species and GPS fix rate. The appendix includes plots comparing kernel smoothers for each individual track. These plots were examined to identify any potential biases associated with using a particular smoother.
 
-We considered three smoothers using a traditional kernel density estimate: `href`, `href/2`, and `step`. The `href` smoother is a data-driven method which is calculated from the variance in the X and Y directions in the data; in this case the median `href` was `r signif(h, 2)` km. Initial data exploration indicated that the `href` parameter could over-smooth tracks, such that in complex tracks areas of high use were missed in the kernel density estimate. We therefore also considered the `href/2` smoother, which was `r signif(h/2, 2)` km. Finally, we tested a `step` smoother based on the median step length between interpolated locations across all tracks. `r if(s == 1){"The step function resulted in a value of less than 1 km; therefore, 'step' kernel density estimates were calculated with a smoother value of 1 km."} else {paste("The step smoother was", signif(s, 2), "km.")}` All UDs were calculated using the the `adehabitatHR` package (version 0.4.19, Calenge 2006) in `R`.
+We considered three smoothers using a traditional kernel density estimate: `href`, `href/2`, and `step`. The `href` smoother is a data-driven method which is calculated from the variance in the X and Y directions in the data; in this case the median `href` was `r signif(h, 2)` km. Initial data exploration indicated that the `href` parameter could over-smooth tracks, such that in complex tracks areas of high use were missed in the kernel density estimate. We therefore also considered the `href/2` smoother, which was `r signif(h/2, 2)` km. Finally, we tested a `step` smoother based on the median step length between interpolated locations across all tracks. `r if(s == 1){"The step function resulted in a value of less than 1 km; therefore, \x60step\x60 kernel density estimates were calculated with a smoother value of 1 km."} else {paste("The \x60step\x60 smoother was", signif(s, 2), "km.")}` All UDs were calculated using the the `adehabitatHR` package (version 0.4.19, Calenge 2006) in `R`.
 
 ```{r calc-kernels}
 
@@ -327,6 +327,6 @@ for (i in 1:length(trip_plots)) {
   }
 }
 
-````
+```
 
 
