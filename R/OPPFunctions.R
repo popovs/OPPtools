@@ -969,6 +969,7 @@ opp_step <- function(data) {
   }
 
  out <- data@data %>%
+   data.frame() %>%
     dplyr::group_by(ID) %>%
     dplyr::summarise(
       dist = getDist(lon = Longitude, lat = Latitude),
