@@ -282,9 +282,9 @@ colCRS <- function(data) {
 #' Plot raw tracks from Movebank download
 #'
 #' @description Quickly plot Movebank data downloaded
-#' using opp_download_data to visualize tracks.
+#' using `opp_download_data` or `opp_sites` to visualize tracks or sites.
 #'
-#' @param data Movebank data as returned by opp_download_data.
+#' @param data Movebank data as returned by `opp_download_data()` or sites output from `opp_sites()`.
 #'
 #' @examples
 #' data(murres)
@@ -380,8 +380,12 @@ opp_map <- function(data) {
       #ggplot2::scale_color_viridis_c(option = viridis_option, lim = c(0, NA)) +
       ggplot2::scale_color_viridis_d("Colony population (%)", option = "B", begin = 0.55, end = 0.9, direction = -1) +
       ggplot2::theme_light() +
-      ggplot2::theme(text = ggplot2::element_text(size = 10)) +
-      ggplot2::labs(colour = 'Number of birds', fill = 'Number of birds')
+      ggplot2::theme(text = ggplot2::element_text(size = 10),
+                     legend.title = ggplot2::element_text(size = 2),
+                     legend.text = ggplot2::element_text(size = 2)) +
+      ggplot2::labs(colour = 'Number of birds', fill = 'Number of birds') +
+      ggplot2::ylab("Latitude") +
+      ggplot2::xlab("Longitude")
 
     # trackplot <- trackplot + ggnewscale::new_scale_color() +
     #   ggplot2::geom_sf(data = opp_sites[!is.na(opp_sites$p_contour),],
