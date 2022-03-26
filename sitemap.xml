@@ -112,6 +112,9 @@
     <loc>https://popovs.github.io/OPPtools/reference/opp_kernel.html</loc>
   </url>
   <url>
+    <loc>https://popovs.github.io/OPPtools/reference/opp_logger_dotplot.html</loc>
+  </url>
+  <url>
     <loc>https://popovs.github.io/OPPtools/reference/opp_map.html</loc>
   </url>
   <url>
@@ -130,7 +133,7 @@
     <loc>https://popovs.github.io/OPPtools/reference/opp_plot_repAssess.html</loc>
   </url>
   <url>
-    <loc>https://popovs.github.io/OPPtools/reference/opp_reports_cpf.html</loc>
+    <loc>https://popovs.github.io/OPPtools/reference/opp_sites.html</loc>
   </url>
   <url>
     <loc>https://popovs.github.io/OPPtools/reference/opp_step.html</loc>
