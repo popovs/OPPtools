@@ -67,9 +67,11 @@ if (params$stage == 'Unknown') {
 
 # Save raw Movebank data as shp
 if (params$save_pts == TRUE) {
-  pts <- sf::st_as_sf(dat, coords = c("location_long", "location_lat"))
+  pts <- dat
+  pts <- sf::st_as_sf(dat, coords = c("location_long", "location_lat"), crs = 4326)
+  pts$timestamp <- as.character(pts$timestamp)
   sf::st_write(pts, 
-               paste0(file.path(here::here(), params$output_dir, params$file_name), " OPP_Areas.shp"), 
+               paste0(file.path(here::here(), params$output_dir, params$file_name), " raw GPS pts.shp"), 
                append = FALSE,
                quiet = TRUE)
   rm(pts)
