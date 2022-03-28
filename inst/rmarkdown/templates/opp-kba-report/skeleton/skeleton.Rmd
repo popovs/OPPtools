@@ -284,6 +284,8 @@ sites_out <- opp_sites(kernels,
                        metadata = metadata,
                        save_shp = F)
 
+sites_out <- sf::st_transform(sites_out, crs = 4326)
+
 # If saveShp == TRUE, save shapefile
 if (params$saveShp == TRUE) {
   sf::st_write(sites_out, 
