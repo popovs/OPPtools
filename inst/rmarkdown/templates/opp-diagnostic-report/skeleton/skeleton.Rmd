@@ -254,7 +254,7 @@ step_ud <- opp_kernel(interp,
 
 
 ```{r conditional block, results = 'asis', eval = show.text}
-cat("## Low track sample size.
+cat("# Low track sample size
     
 The relatively small number of GPS tracks available for this breeding population is not sufficient for characterizing important at-sea areas (Beal et al 2021, Lascelles et al 2016).")
 ```
