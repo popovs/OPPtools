@@ -86,6 +86,7 @@ render_kba <- function(params,
                        level_ud = 95,
                        save_rmd = FALSE,
                        save_shp = TRUE,
+                       save_pts = TRUE,
                        output_dir = 'temp',
                        out_format = 'html_document',
                        ...) {
@@ -115,6 +116,7 @@ render_kba <- function(params,
   params$iterations <- iterations
   params$levelUD <- level_ud
   params$saveShp <- save_shp
+  params$savePts <- save_pts
 
   # If either Rmd or Shp file are saved, update the output_dir
   # This is so all outputs are in nice little folder together
