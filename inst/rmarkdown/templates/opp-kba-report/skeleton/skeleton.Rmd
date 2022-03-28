@@ -28,6 +28,7 @@ params:
   iterations: interations
   levelUD: level_ud
   saveShp: save_shp
+  savePts: save_pts
   output_dir: output_dir
 editor_options: 
   chunk_output_type: console
@@ -62,6 +63,16 @@ if (params$stage == 'Chick-rearing') {
 
 if (params$stage == 'Unknown') {
     stage_message <- 'Breeding status could not be determined for all deployments, therefore data in this report represent both incubation and chick-rearing breeding stages (Figure 2).'
+}
+
+# Save raw Movebank data as shp
+if (params$save_pts == TRUE) {
+  pts <- sf::st_as_sf(dat, coords = c("location_long", "location_lat"))
+  sf::st_write(pts, 
+               paste0(file.path(here::here(), params$output_dir, params$file_name), " OPP_Areas.shp"), 
+               append = FALSE,
+               quiet = TRUE)
+  rm(pts)
 }
 
 # format data for track2KBA
