@@ -169,7 +169,7 @@ opp_map_tracks(tracks = interp$data,
 
 \newpage
 
-```{r location plot, fig.height = 6, fig.cap = 'Plot showing time of all GPS locations and breeding status for each tracked individual that was recorded spending time away from the colony during the GPS deployment.'}
+```{r location plot, fig.height = 6, fig.cap = 'Plot showing time of all GPS locations and breeding status for each tracked individual that was recorded spending time away from the colony during the deployment.'}
 
 opp_logger_dotplot(dat[dat$deployment_id %in% deps,])
 
@@ -187,13 +187,13 @@ if (length(deps) < min_samp) knitr::knit_exit()
 
 ```
 
-## Individual utilization distributions
+# Individual utilization distributions
 
-To focus on at-sea distribution, we first identified periods of time when birds were away from the colony. Tracked individuals were considered away from the colony if consecutive locations were more than  `r params$minDist` km from the colony for at least `r params$minDur` hr. GPS locations at-sea may be recorded at uneven intervals if birds are diving underwater or the logger could not obtain a fix for other reasons. In order to avoid bias in the utilization distributions due to missing locations, we interpolated at-sea data to a constant time interval of `r params$timestep` using a continuous-time correlated random walk model  with the 'crawl' package (version 2.2.1, Johnson et al 2008) in R. Prior to interpolation, we identified large gaps in tracks if there were no GPS fixes for at least `r params$gapTime` hr and the bird travelled more than `r params$gapDist` km. Data were not interpolated across these larger gaps to avoid including interpolated locations with a high degree of uncertainty in kernel density estimates. For further details on how parameters for these analyses were selected, see the associated diagnostic file.
+To focus on at-sea distribution, we first identified periods of time when birds were away from the colony. Tracked individuals were considered away from the colony if consecutive locations were more than  `r params$minDist` km from the colony for at least `r params$minDur` hr. GPS locations at-sea may be recorded at uneven intervals if birds are diving underwater or the logger could not obtain a fix for other reasons. In order to avoid bias in the utilization distributions due to missing locations, we interpolated at-sea data to a constant time interval of `r params$timestep` using a continuous-time correlated random walk model  with the 'crawl' package (version 2.2.1, Johnson et al 2008) in R. Prior to interpolation, we identified large gaps in tracks if there were no GPS fixes for at least `r params$gapTime` hr and the bird travelled more than `r params$gapDist` km during that time. Data were not interpolated across these larger gaps to avoid including interpolated locations with a high degree of uncertainty in kernel density estimates. For further details on how parameters for these analyses were selected, see  diagnostic file associated with this report.
 
 A utilization distribution (UD) was calculated for each individual deployment using the *kernelUD* function in the 'adehabitatHR' package (version 0.4.19, Calenge 2006) in R. All UDs were calculated on the the same  `r paste(params$gridRes, ' x ', params$gridRes, 'km')` grid, with a smoothing parameter value of `r round(smooth, 0.1)` km. `r if(params$kernelSmoother == "href"){"The smoothing parameter was determined using the ‘href’ method, which is calculated from the variance in the X and Y dimensions of the location data (Beal et al 2021). This value was calculated for individual tracks and the median value across all tracks was used."} else if(params$kernelSmoother == "href/2"){"The smoothing parameter was based on the ‘href’ method, which is calculated from the variance in the X and Y directions in the data (Beal et al 2021). Initial data exploration showed the href smoother over-simplified resulting utilization distributions, so the median href * 0.5 was used to obtain a more precise estimate of individual distributions."} else if(params$kernelSmoother == "step"){"The smoothing function was based on the median step length between consecutive locations across all individual interpolated tracks."}``r if(params$kernelSmoother == "step" & smooth == 1){"The step function resulted in a step smoother value of less than 1 km; therefore, UDs were calculated with a smoother value of 1 km."}` See the associated diagnostic file for a comparison of different smoothing parameters.
 
-## Track representativeness
+# Track representativeness
 
 ```{r ra_result, fig.show = 'hide'}
 
@@ -238,7 +238,7 @@ The estimated representativeness was  `r signif(rep_target, 3)`%, (Figure 2). Th
 
 `r if (not_rep) not_rep_message`
 
-```{r ra_plot, fig.height = 3, fig.cap = "Inclusion rate as a function of sample size. The solid line shows the result of non-linear regression, the grey shaded area shows range of inclusion values from subsampling iterations. The dashed horizontal line shows the target asymptote, which is determined be the desired utilization distribution."}
+```{r ra_plot, fig.height = 3, fig.cap = "Inclusion rate as a function of sample size. The solid line shows the result of non-linear regression, the grey shaded area shows range of inclusion values calculated by subsampling iterations. The dashed horizontal line shows the target asymptote, which is determined be the desired utilization distribution."}
 
 ra_plot <- opp_plot_repAssess(ra, plot = F)
 ra_plot
@@ -256,7 +256,7 @@ if (not_rep) knitr::knit_exit()
 ```
 
 
-## High-use areas
+# High-use areas
 
 
 ```{r find kba & save shp}
@@ -294,7 +294,7 @@ if (params$saveShp == TRUE) {
 
 ```
 
-The `track2KBA` package (Beal et al. 2021) was used to quantify spatial overlap in UDs and estimate both the proportion and the total number of birds from the source population that predictably use at sea areas around the colony. These estimates is based on the proportion of overlapping home range (95% UD) areas in each raster grid cell multiplied by the calculated representativeness of the sample (`r signif(ra_result$out, 2)`) and the source population size (`r format(params$breeding_pairs * 2, scientific = F, big.mark = ',')` individuals). Results from this analysis were aggregated to show the regions where individuals from the source population are expected to occur (Figure 3). 
+The `track2KBA` package (Beal et al. 2021) was used to quantify spatial overlap in UDs and estimate both the proportion and the total number of birds from the source population that predictably use at sea areas around the colony. These estimates are based on the proportion of overlapping home range (95% UD) areas in each raster grid cell multiplied by the calculated representativeness of the sample (`r signif(ra_result$out, 2)`) and the source population size (`r format(params$breeding_pairs * 2, scientific = F, big.mark = ',')` individuals). Results from this analysis were aggregated to show the regions where individuals from the source population are expected to occur (Figure 3). 
 
 ```{r plot KBA, fig.height=5, fig.cap = paste("Map showing the estimated distribution of birds at sea around the", unique(dat$study_site), "breeding colony. The map shows the minimum estimated number of individuals (polygon shading) and percent of the colony population (polygon outline) from the colony expected to use this area during the", tolower(params$stage), "stage of breeding.")}
 
