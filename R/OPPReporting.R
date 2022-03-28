@@ -77,7 +77,7 @@ render_diagnostic <- function(params,
 #' @param save_rmd Logical (T/F). Should the .Rmd file used to generate the PDF report be saved as well?
 #' @param save_shp Logical (T/F). Should the final OPP key area polygon be saved as a shapefile?
 #' @param save_pts Logical (T/F). Should the raw downloaded Movebank points be saved as a shapefile?
-#' @param output_dir Output directory for generated files. Defaults to 'temp'. If the directory does not exist, the script will create the directory.
+#' @param output_dir Output directory for generated files, relative to your working directory. Defaults to 'temp'. If the directory does not exist, the script will create the directory.
 #' @param out_format Output file format for the knitted document. Defaults to 'html_document'.
 #'
 #' @export
