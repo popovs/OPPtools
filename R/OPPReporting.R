@@ -72,11 +72,13 @@ render_diagnostic <- function(params,
 #' @description This function will generate a KBA report using the 'opp-kba-report' RMarkdown template in `OPPtools`, with options to save the generated report as an .Rmd file in addition to the output PDF.
 #'
 #' @param params List of 18 parameter values used to generate report.
-#' @param kernel_smoother One of four options for kernel smoothers in kernel calculations: "href", "href/2", "step", or "bbmm". Defaults to href/2.
 #' @param iterations Numeric. Number of iterations to perform for track2KBA::repAssess. More iterations will result in a more accurate assessment, but take longer to run. Default 5.
 #' @param level_ud Numeric, from 0 to 100. Utilization distribution volume to extract from kernel densities. Defaults to 95.
 #' @param save_rmd Logical (T/F). Should the .Rmd file used to generate the PDF report be saved as well?
+#' @param save_shp Logical (T/F). Should the final OPP key area polygon be saved as a shapefile?
+#' @param save_pts Logical (T/F). Should the raw downloaded Movebank points be saved as a shapefile?
 #' @param output_dir Output directory for generated files. Defaults to 'temp'. If the directory does not exist, the script will create the directory.
+#' @param out_format Output file format for the knitted document. Defaults to 'html_document'.
 #'
 #' @export
 
