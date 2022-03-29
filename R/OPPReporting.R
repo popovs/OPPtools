@@ -82,7 +82,7 @@ render_diagnostic <- function(params,
 #'
 #' @export
 
-render_kba <- function(params,
+opp_render_report <- function(params,
                        #kernel_smoother = "href/2",
                        iterations = 5,
                        level_ud = 95,
@@ -136,7 +136,7 @@ render_kba <- function(params,
     #dir.create(rmd_dir, showWarnings = FALSE)
     rmd_out <- paste0(file.path(output_dir, filename), ".Rmd")
     rmarkdown::draft(rmd_out,
-                     template = "opp-kba-report",
+                     template = "opp-sites-report",
                      package = "OPPtools",
                      edit = FALSE)
     change_yaml_matter(rmd_out,
@@ -150,7 +150,7 @@ render_kba <- function(params,
 
   # Render the file with the modified params
   rmarkdown::render(
-    "inst/rmarkdown/templates/opp-kba-report/skeleton/skeleton.Rmd",
+    "inst/rmarkdown/templates/opp-sites-report/skeleton/skeleton.Rmd",
     params = params,
     output_dir = output_dir,
     output_file = paste0(filename, ifelse(out_format == 'pdf_document','.pdf', '.html')),
