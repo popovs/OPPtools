@@ -28,7 +28,7 @@ params:
   iterations: interations
   levelUD: level_ud
   saveShp: save_shp
-  savePts: save_pts
+  save_pts: save_pts
   output_dir: output_dir
 editor_options: 
   chunk_output_type: console

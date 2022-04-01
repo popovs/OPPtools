@@ -118,7 +118,7 @@ opp_render_report <- function(params,
   params$iterations <- iterations
   params$levelUD <- level_ud
   params$saveShp <- save_shp
-  params$savePts <- save_pts
+  params$save_pts <- save_pts
 
   # If either Rmd or Shp file are saved, update the output_dir
   # This is so all outputs are in nice little folder together
