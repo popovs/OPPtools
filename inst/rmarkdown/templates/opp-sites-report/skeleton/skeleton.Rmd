@@ -28,7 +28,7 @@ params:
   iterations: interations
   levelUD: level_ud
   saveShp: save_shp
-  savePts: save_pts
+  save_pts: save_pts
   output_dir: output_dir
 editor_options: 
   chunk_output_type: console
@@ -240,7 +240,7 @@ if (not_rep == T) not_rep_message <- paste0(not_rep_message, "Additional trackin
   
 ```
 
-We evaluated the representativeness of the available tracking data using the `repAssess` function in the `track2KBA` package (Beal et al. 2021). Subsamples of tracks were drawn from the GPS tracks, and each subsample was used to calculate a pooled `r params$levelUD`% UD weighted by the number of interpolated locations within each track. An inclusion rate was calculated as the proportion of out-of-sample tracking locations that overlapped with the pooled UD. This sampling procedure was repeated `r params$iterations` times, for sample sizes between `r min(ra_table$SampleSize)` and `r max(ra_table$SampleSize)` tracks. A non-linear regression was used to estimate the sample size where the inclusion rate reaches an asymptote. Representativeness was calculated as
+We evaluated the representativeness of the available tracking data using the `repAssess` function in the `track2KBA` package (Beal et al. 2021). Subsamples of tracks were drawn from the GPS tracks, and each subsample was used to calculate a pooled `r params$levelUD`% UD weighted by the number of interpolated locations within each track. An inclusion rate was calculated as the proportion of out-of-sample tracking locations that overlapped with the pooled UD. This sampling procedure was repeated `r params$iterations` times, for sample sizes between `r min(ra_table$SampleSize)` and `r max(ra_table$SampleSize)` tracks (the maximum sample size is n-3, to ensure an adequate proportion of out-of-sample tracking locations are available for calculating representativeness). A non-linear regression was used to estimate the sample size where the inclusion rate reaches an asymptote. Representativeness was calculated as
 
 $$R = \frac{y_n}{A}*100$$
 
