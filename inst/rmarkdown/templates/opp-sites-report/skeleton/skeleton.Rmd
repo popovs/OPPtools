@@ -25,6 +25,7 @@ params:
   includeBB: NA
   kernelSmoother: NA
   stage: NA
+  dates: NA
   iterations: interations
   levelUD: level_ud
   saveShp: save_shp
