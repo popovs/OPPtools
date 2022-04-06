@@ -41,6 +41,7 @@ Suggests:
     mapview,
     rnaturalearth,
     fishualize,
-    ggnewscale
+    ggnewscale,
+    kableExtra
 Roxygen: list(markdown = TRUE)
 URL: https://popovs.github.io/OPPtools/
