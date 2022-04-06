@@ -115,12 +115,14 @@ opp_download_data <- function(study,
     }
 
     non_cols <- cols[!(cols %in% names(mb_data@data)) & !(cols %in% names(mb_data@idData))]
-    if (length(non_cols) > 0) message(cat("The following columns do not exist in the Movebank dataset, and therefore could not be selected:\n", sprintf(non_cols)))
-    cols <- cols[cols %in% names(mb_data@data) | cols %in% names(mb_data@idData)]
+    if (length(non_cols) > 0) {
+      message(cat("The following columns do not exist in the Movebank dataset, and therefore could not be selected:\n", sprintf(non_cols)))
+      cols <- cols[cols %in% names(mb_data@data) | cols %in% names(mb_data@idData)]
+    }
 
     # Extract fields
     loc_data <- as(mb_data, 'data.frame') %>%
-          dplyr::select(all_of(cols)) %>% ##THE PROBLEM LINE >:(
+          dplyr::select(!!!rlang::syms(cols)) %>% ##THE PROBLEM LINE >:(
           dplyr::mutate(
             timestamp = as.POSIXct(timestamp), # make times POSIXct for compatibility with OGR
             year = as.numeric(strftime(timestamp, '%Y')),
