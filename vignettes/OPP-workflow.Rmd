@@ -60,7 +60,8 @@ In these examples, data for *thick-billed murres* from Coats Island are also alr
 ```{r murres data}
 data(murres) # same output as `opp_download_data(248994009)`
 
-knitr::kable(head(murres))
+knitr::kable(head(murres)) %>%
+  kableExtra::kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"))
 ```
 
 # Explore raw tracks
@@ -121,10 +122,12 @@ interp <- ctcrw_interpolation(trips,
 
 ```{r trip summary}
 # opp_get_trips output
-knitr::kable(sum_trips(trips))
+knitr::kable(sum_trips(trips)) %>%
+  kableExtra::kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"))
 
 # ctcrw_interpolation output
-knitr::kable(sum_trips(interp))
+knitr::kable(sum_trips(interp)) %>%
+  kableExtra::kable_styling(bootstrap_options = c("striped", "hover", "condensed", "responsive"))
 ```
 
 # Calculate kernels
