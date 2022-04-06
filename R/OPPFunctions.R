@@ -35,6 +35,42 @@ opp_movebank_key <- function(username,
 
 # -----
 
+#' List additional columns available for download
+#'
+#' @description This function lists additional column names you can pass to the `addl_cols` param in `opp_download_data()`.
+#'
+#' @return
+#' @export
+#'
+#' @examples
+#' mb_cols()
+
+mb_cols <- function(){
+  addl_cols <- c("animal_mass", "attachment_type", "comments.x",
+                 "comments.y", "death_comments", "deploy_off_timestamp",
+                 "deploy_on_person", "deploy_on_timestamp", "deployment_end_type",
+                 "deployment_local_identifier", "duty_cycle", "earliest_date_born",
+                 "event_id", "exact_date_of_birth", "latest_date_born",
+                 "nick_name", "number_of_deployments", "sensor_type_id",
+                 "sensor_type_ids", "tag_local_identifier", "tag_readout_method",
+                 "taxon_detail", "timestamp_end", "timestamp_start",
+                 "update_ts", "visible")
+  addl_argos <- c("algorithm_marked_outlier", "argos_altitude", "argos_best_level",
+                  "argos_calcul_freq", "argos_error_radius", "argos_gdop",
+                  "argos_nb_mes", "argos_nb_mes_120", "argos_nopc",
+                  "argos_orientation", "argos_pass_duration", "argos_semi_major",
+                  "argos_semi_minor", "argos_sensor_1", "argos_sensor_2",
+                  "argos_sensor_3", "argos_sensor_4", "argos_transmission_timestamp",
+                  "argos_valid_location_algorithm")
+
+  message("Additional columns available for download via `opp_download_data()`:\n")
+  print(addl_cols)
+  message("In addition to the above, if you are downloading ARGOS data, you can\nalso download the following additional columns:\n")
+  print(addl_argos)
+}
+
+# -----
+
 #' Download OPP tracking data from Movebank
 #'
 #' @description This function downloads OPP tracking data from Movebank and returns a
