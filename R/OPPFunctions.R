@@ -105,7 +105,8 @@ opp_download_data <- function(study,
                               login = NULL,
                               start_month = NULL,
                               end_month = NULL,
-                              season = NULL
+                              season = NULL,
+                              addl_cols = NULL
                               ) {
 
   # If credentials were saved using opp_movebank_key, retrieve them
