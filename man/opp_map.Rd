@@ -7,11 +7,11 @@
 opp_map(data, opp_sites = NA)
 }
 \arguments{
-\item{data}{Movebank data as returned by opp_download_data.}
+\item{data}{Movebank data as returned by \code{opp_download_data()} or sites output from \code{opp_sites()}.}
 }
 \description{
 Quickly plot Movebank data downloaded
-using opp_download_data to visualize tracks.
+using \code{opp_download_data} or \code{opp_sites} to visualize tracks or sites.
 }
 \examples{
 data(murres)

@@ -100,8 +100,7 @@ opp_download_data <- function(study,
                               login = NULL,
                               start_month = NULL,
                               end_month = NULL,
-                              season = NULL,
-                              addl_cols = NULL
+                              season = NULL
                               ) {
 
   # If credentials were saved using opp_movebank_key, retrieve them
@@ -158,7 +157,7 @@ opp_download_data <- function(study,
 
     # Extract fields
     loc_data <- as(mb_data, 'data.frame') %>%
-          dplyr::select(!!!rlang::syms(cols)) %>% ##THE PROBLEM LINE >:(
+          dplyr::select(!!!rlang::syms(cols)) %>%
           dplyr::mutate(
             timestamp = as.POSIXct(timestamp), # make times POSIXct for compatibility with OGR
             year = as.numeric(strftime(timestamp, '%Y')),
@@ -329,9 +328,9 @@ colCRS <- function(data) {
 #' Plot raw tracks from Movebank download
 #'
 #' @description Quickly plot Movebank data downloaded
-#' using opp_download_data to visualize tracks.
+#' using `opp_download_data` or `opp_sites` to visualize tracks or sites.
 #'
-#' @param data Movebank data as returned by opp_download_data.
+#' @param data Movebank data as returned by `opp_download_data()` or sites output from `opp_sites()`.
 #'
 #' @examples
 #' data(murres)
@@ -339,8 +338,7 @@ colCRS <- function(data) {
 #'
 #' @export
 
-opp_map <- function(data,
-                    opp_sites = NA) {
+opp_map <- function(data) {
 
   # Check if maps installed
   # maps is used to add simple land features to map
@@ -357,70 +355,103 @@ opp_map <- function(data,
   #   }
   # }
 
-  # Trim down dataset
-  site <- unique(data[,c("deploy_on_longitude", "deploy_on_latitude")])
-  data <- data[,c("deployment_id", "location_long", "location_lat")]
+  # Check if data is Movebank data or opp_sites output
 
-  # Make ID factor so it plots w appropriate color scheme
-  data$deployment_id <- as.factor(data$deployment_id)
+  if (length(class(data) == 1) & class(data) == "data.frame") {
+    # Trim down dataset
+    site <- unique(data[,c("deploy_on_longitude", "deploy_on_latitude")])
+    data <- data[,c("deployment_id", "location_long", "location_lat")]
 
-  # Convert Movebank data df to sf object
-  raw_tracks <- sf::st_as_sf(data,
-                             coords = c("location_long", "location_lat"),
-                             crs = '+proj=longlat')
+    # Make ID factor so it plots w appropriate color scheme
+    data$deployment_id <- as.factor(data$deployment_id)
 
-  # Extract bounds
-  coordsets <- sf::st_bbox(raw_tracks)
+    # Convert Movebank data df to sf object
+    raw_tracks <- sf::st_as_sf(data,
+                               coords = c("location_long", "location_lat"),
+                               crs = '+proj=longlat')
 
-  trackplot <- ggplot2::ggplot(raw_tracks) +
-    ggplot2::borders("world",
-                     colour = "black",
-                     fill = grey(0.9),
-                     size = 0.3) +
-    ggplot2::geom_sf(data = raw_tracks,
-                     ggplot2::aes(col = deployment_id),
-                     size = 0.3,
-                     alpha = 0.75,
-                     fill = NA) +
-    ggplot2::scale_colour_viridis_d() +
-    ggplot2::coord_sf(xlim = c(coordsets$xmin, coordsets$xmax),
-                      ylim = c(coordsets$ymin, coordsets$ymax),
-                      expand = TRUE) +
-    ggplot2::geom_point(data = site,
-                        ggplot2::aes(x = deploy_on_longitude,
-                                     y = deploy_on_latitude),
-                        fill = "tomato",
-                        color = "black",
-                        pch = 21,
-                        size = 2.5) +
-    ggplot2::theme_light() +
-    ggplot2::theme(text = ggplot2::element_text(size = 10)) +
-    ggplot2::guides(color = "none") +
-    ggplot2::ylab("Latitude") +
-    ggplot2::xlab("Longitude")
+    # Extract bounds
+    coordsets <- sf::st_bbox(raw_tracks)
 
-  if (!missing(opp_sites)) {
-    if(class(opp_sites)[1] != "sf") {
-      warning("Could not add opp_sites to map. Are you sure you provided a polygon output from `opp_sites()`?")
-    } else {
-      opp_sites$p_contour <- 100 - opp_sites$percentile
-      trackplot <- trackplot + ggnewscale::new_scale_color() +
-        ggplot2::geom_sf(data = opp_sites[!is.na(opp_sites$p_contour),],
-                         ggplot2::aes(col = as.factor(p_contour)),
-                         size = 1,
-                         fill = NA) +
-        fishualize::scale_color_fish_d("% population contour", option = "Scarus_hoefleri", end = 0.4, direction = -1) +
-        ggplot2::geom_point(data = site,
-                            ggplot2::aes(x = deploy_on_longitude,
-                                         y = deploy_on_latitude),
-                            fill = "tomato",
-                            color = "black",
-                            pch = 21,
-                            size = 2.5) +
-        ggplot2::coord_sf(xlim = c(coordsets$xmin, coordsets$xmax),
-                          ylim = c(coordsets$ymin, coordsets$ymax),
-                          expand = TRUE)
-    }
+    trackplot <- ggplot2::ggplot(raw_tracks) +
+      ggplot2::borders("world",
+                       colour = "black",
+                       fill = grey(0.9),
+                       size = 0.3) +
+      ggplot2::geom_sf(data = raw_tracks,
+                       ggplot2::aes(col = deployment_id),
+                       size = 0.3,
+                       alpha = 0.75,
+                       fill = NA) +
+      ggplot2::scale_colour_viridis_d() +
+      ggplot2::coord_sf(xlim = c(coordsets$xmin, coordsets$xmax),
+                        ylim = c(coordsets$ymin, coordsets$ymax),
+                        expand = TRUE) +
+      ggplot2::geom_point(data = site,
+                          ggplot2::aes(x = deploy_on_longitude,
+                                       y = deploy_on_latitude),
+                          fill = "tomato",
+                          color = "black",
+                          pch = 21,
+                          size = 2.5) +
+      ggplot2::theme_light() +
+      ggplot2::theme(text = ggplot2::element_text(size = 10)) +
+      ggplot2::guides(color = "none") +
+      ggplot2::ylab("Latitude") +
+      ggplot2::xlab("Longitude")
+
+  } else if (class(data)[1] == "sf") {
+    coordsets <- sf::st_bbox(data)
+
+    data$n_indiv <- as.factor(format(signif(data$n_indiv,2), big.mark = ','))
+    data$p_contour <- as.factor(100 - data$percentile)
+    data$p_contour[data$p_contour == 0] <- NA
+
+    trackplot <- ggplot2::ggplot() +
+      ggplot2::geom_sf(data = data,
+                       ggplot2::aes(fill = n_indiv),
+                       col = 'transparent')  +
+      ggplot2::geom_sf(data = data[!is.na(data$p_contour),],
+                       ggplot2::aes(col = p_contour),
+                       size = 1,
+                       fill = NA) +
+      ggplot2::borders("world",
+                       colour = "black",
+                       fill = grey(0.9),
+                       size = 0.3) +
+      ggplot2::coord_sf(xlim = c(coordsets$xmin, coordsets$xmax),
+                        ylim = c(coordsets$ymin, coordsets$ymax),
+                        expand = TRUE) +
+      ggplot2::scale_fill_viridis_d(option = "D") +
+      #ggplot2::scale_color_viridis_c(option = viridis_option, lim = c(0, NA)) +
+      ggplot2::scale_color_viridis_d("Colony population (%)", option = "B", begin = 0.55, end = 0.9, direction = -1) +
+      ggplot2::theme_light() +
+      ggplot2::theme(text = ggplot2::element_text(size = 10),
+                     legend.title = ggplot2::element_text(size = 2),
+                     legend.text = ggplot2::element_text(size = 2)) +
+      ggplot2::labs(colour = 'Number of birds', fill = 'Number of birds') +
+      ggplot2::ylab("Latitude") +
+      ggplot2::xlab("Longitude")
+
+    # trackplot <- trackplot + ggnewscale::new_scale_color() +
+    #   ggplot2::geom_sf(data = opp_sites[!is.na(opp_sites$p_contour),],
+    #                    ggplot2::aes(col = as.factor(p_contour)),
+    #                    size = 1,
+    #                    fill = NA) +
+    #   fishualize::scale_color_fish_d("% population contour", option = "Scarus_hoefleri", end = 0.4, direction = -1) +
+    #   ggplot2::geom_point(data = site,
+    #                       ggplot2::aes(x = deploy_on_longitude,
+    #                                    y = deploy_on_latitude),
+    #                       fill = "tomato",
+    #                       color = "black",
+    #                       pch = 21,
+    #                       size = 2.5) +
+    #   ggplot2::coord_sf(xlim = c(coordsets$xmin, coordsets$xmax),
+    #                     ylim = c(coordsets$ymin, coordsets$ymax),
+    #                     expand = TRUE)
+
+  } else {
+    warning("`opp_map()` accepts output from either `opp_download_data()` or `opp_sites()`. Are you sure you provided the correct output?")
   }
 
   print(trackplot)
@@ -1016,6 +1047,7 @@ opp_step <- function(data) {
   }
 
  out <- data@data %>%
+   data.frame() %>%
     dplyr::group_by(ID) %>%
     dplyr::summarise(
       dist = getDist(lon = Longitude, lat = Latitude),
@@ -1278,7 +1310,7 @@ ud_vol <- function(data, lowerVol = 50, upperVol = 99) {
 #' @return
 #' @export
 #'
-#' @examples
+
 opp_sites <- function(kernels,
                       repr,
                       population = NA,
@@ -1354,13 +1386,13 @@ opp_sites <- function(kernels,
   kernels <- kernels[kernels$n_tracks > 0, ]
 
   # 3. Calculate n individuals, % population, threshold percentiles
-  kernels@data$percent_population <- repr * (kernels@data$n_tracks / ss)
-  kernels@data$n_individuals <- kernels@data$percent_population * population
+  kernels@data$perc_pop <- repr * (kernels@data$n_tracks / ss)
+  kernels@data$n_indiv <- kernels@data$perc_pop * population
 
   kernels@data$percentile <- NA
   for (i in sort(unlist(thresh))) {
-    if (nrow(kernels@data[which(kernels@data$percent_population > i), ]) != 0) {
-      kernels@data[which(kernels@data$percent_population > i), ]$percentile <- i * 100
+    if (nrow(kernels@data[which(kernels@data$perc_pop > i), ]) != 0) {
+      kernels@data[which(kernels@data$perc_pop > i), ]$percentile <- i * 100
     } else {
       break
     }
@@ -1369,8 +1401,8 @@ opp_sites <- function(kernels,
   # 4. Create sf output
   # See internalHelper.R for c_mean func
   sums <- list(list("min", "n_tracks"),
-               list("min", "percent_population"),
-               list("min", "n_individuals"))
+               list("min", "perc_pop"),
+               list("min", "n_indiv"))
   out <- raster::aggregate(as(kernels, "SpatialPolygonsDataFrame"),
                            by = "percentile",
                            sums = sums)
@@ -1378,9 +1410,11 @@ opp_sites <- function(kernels,
     sf::st_union(by_feature = TRUE)
 
   # 5. Append any additional metadata columns
+  out <- out %>% arrange(n_tracks)
   out$percentile <- 100 - out$percentile
-  out$representativeness <- repr
-  out$total_sample_size <- ss
+  out$percentile[is.na(out$percentile)] <- 100
+  out$repr <- repr
+  out$total_ss <- ss
 
   if (length(metadata) > 0) {
     for (i in 1:length(metadata)) {
@@ -1447,107 +1481,6 @@ getDist <- function(lon, lat, lonlat = TRUE) {
                                    lonlat = T))
   }
   out
-}
-
-
-# -----
-
-#' Maps result from track2KBA::findSite()
-#'
-#' Produces a more attractive version of the map from track2KBA::findSite() and
-#' track2KBA::mapSite().
-#'
-#' @param track2KBA_UD Polygon output from track2KBA::findSite()
-#' @param opp_sites Polygon output from opp_sites(). If opp_sites is provided, the map will display contours around population percentiles.
-#' @param center Data frame containing columns 'Longitude' and 'Latitude' in decimal degrees,
-#' for plotting the colony or nest locations.
-#' @param show_site Logical indicating if polygon conatining potential important sites
-#' identified by track2KBA::findSite() should be plotted.
-#' @param coast_scale Mapping resolution for the coastline basemap. Must be one of: 10 - high resolution,
-#' 50 - medium resolution, 110 = low resolution.
-#' @param zoom Integer from 1:16, indicating the zoom level for map. If NULL the function will calculate the required zoom level.
-#' @param viridis_option A character string indicating the colormap option to
-#' use. Four options are available: "magma" (or "A"), "inferno" (or "B"), "plasma" (or "C"), "viridis" (or "D", the default option) and "cividis" (or "E").
-#' @returns A ggplot object
-#'
-#' @export
-
-opp_map_keyareas <- function(track2KBA_UD,
-                             opp_sites = NA,
-                             center,
-                             show_site = T,
-                             zoom = NULL,
-                             coast_scale = 50,
-                             viridis_option = "D") {
-
-  if(class(track2KBA_UD)[1] != "sf") stop("Re-run track2KBA::findSites with polyOut = TRUE.")
-
-  world <- rnaturalearth::ne_countries(scale = coast_scale, returnclass = 'sf')
-  temp <- track2KBA_UD[track2KBA_UD$N_animals > 0,]
-
-  if (!(coast_scale %in% c(10, 50, 110))) stop('coast_scale must be one of 10, 50, or 110')
-
-  if (max(temp$N_animals) < 1) {
-    temp$N_animals <- temp$N_animals * 100
-    scale_lab <- 'Percent of\npopulation (%)'
-  } else {
-    scale_lab <- 'Number of birds'
-  }
-
-  center <- sf::st_as_sf(center, coords = c('Longitude', 'Latitude'), crs = sf::st_crs(temp))
-  bb <- bbox_at_zoom(locs = track2KBA_UD, zoom_level = zoom)
-
-  p <- ggplot2::ggplot() +
-    ggplot2::geom_sf(data =temp, ggplot2::aes(fill = N_animals,
-                                              col = N_animals))  +
-    ggplot2::geom_sf(data = world, fill = grey(0.9)) +
-    ggplot2::geom_sf(data = center, fill = "dark orange",
-                     color = "black",
-                     pch = 21,
-                     size = 2.5) +
-    ggplot2::coord_sf(xlim = bb[c(1,3)],
-                      ylim = bb[c(2,4)],
-                      expand = T) +
-    ggplot2::scale_fill_viridis_c(option = viridis_option, lim = c(0, NA)) +
-    ggplot2::scale_colour_viridis_c(option = viridis_option, lim = c(0, NA)) +
-    ggplot2::theme_light() +
-    ggplot2::theme(text = ggplot2::element_text(size = 10)) +
-    ggplot2::labs(colour = scale_lab, fill = scale_lab)
-
-  if (missing(opp_sites) && show_site == T) {
-    core_site <- temp[temp$potentialSite == T,] %>%
-      sf::st_union()
-    p <- p +
-      ggplot2::geom_sf(data =core_site, fill = 'transparent', col = 'red', size = 0.5) +
-      ggplot2::coord_sf(xlim = bb[c(1,3)],
-                        ylim = bb[c(2,4)],
-                        expand = T)
-
-  }
-
-  if (!missing(opp_sites)) {
-    if(class(opp_sites)[1] != "sf") {
-      warning("Could not add opp_sites to map. Are you sure you provided a polygon output from `opp_sites()`?")
-    } else {
-      opp_sites$p_contour <- 100 - opp_sites$percentile
-      p <- p + ggnewscale::new_scale_color() +
-        ggplot2::geom_sf(data = opp_sites[!is.na(opp_sites$p_contour),],
-                                  ggplot2::aes(col = as.factor(p_contour)),
-                                  size = 1,
-                                  fill = NA) +
-        fishualize::scale_color_fish_d("% population contour", option = "Scarus_hoefleri", end = 0.4, direction = -1) +
-        ggplot2::geom_sf(data = center, fill = "dark orange",
-                         color = "black",
-                         pch = 21,
-                         size = 2.5) +
-        ggplot2::coord_sf(xlim = bb[c(1,3)],
-                            ylim = bb[c(2,4)],
-                            expand = T)
-      }
-
-  }
-
-  p
 }
 
 # -----

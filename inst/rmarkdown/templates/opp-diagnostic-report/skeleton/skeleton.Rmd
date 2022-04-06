@@ -9,8 +9,10 @@ output:
 params:
   movebank_id: NA
   report_title: NA
+  file_name: NA
   spp: NA
   breeding_pairs: NA
+  count_year: NA
   minDist: NA
   maxDist: NA
   minDur: NA
@@ -20,9 +22,13 @@ params:
   timestep: NA
   gridRes: NA
   gridExtend: NA
-  speed: NA
-  mapZoom: NA
-  includeBB: 0
+  includeBB: NA
+  kernelSmoother: NA
+  stage: NA
+  iterations: interations
+  levelUD: level_ud
+  saveShp: save_shp
+  output_dir: output_dir
 editor_options: 
   chunk_output_type: console
 
@@ -36,7 +42,24 @@ knitr::opts_chunk$set(echo = FALSE,
 
 library(OPPtools)
 library(dplyr)
-library(data.table)
+
+report_references <- 'Beal, M., Oppel, S., Handley, J., Pearmain, E. J., Morera-Pujol, V., Carneiro, A. P. B., Davies, T. E., Phillips, R. A., Taylor, P. R., Miller, M. G. R., Franco, A. M. A., Catry,
+I., Patrício, A. R., Regalla, A., Staniland, I., Boyd, C., Catry, P., and Dias, M. P. (2021). track2KBA: An R package for identifying important sites for biodiversity from tracking data. Methods in Ecology and Evolution, 12, 2372–2378.
+\n\n
+Calenge, C. (2006) The package adehabitat for the R software: a tool for the analysis of space and habitat use by animals. Ecological Modelling, 197, 516-519
+\n\n
+Environment and Climate Change Canada. 2022. British Columbia Seabird Colony Inventory: Digital dataset. Canadian Wildlife Service, Environment and Climate Change Canada, Pacific Region.
+\n\n
+Gaston, A. J. and S. B. Dechesne (2020). Rhinoceros Auklet (Cerorhinca monocerata), version 1.0. In Birds of the World (A. F. Poole and F. B. Gill, Editors). Cornell Lab of Ornithology, Ithaca, NY, USA. 
+\n\n
+Johnson, D. S., London, J. M., Lea, M.-A. and Durban, J. W. (2008) Continuous-time correlated random walk model for animal telemetry data. Ecology, 89: 1208-1215. 
+\n\n
+Lascelles, B. G., Taylor, P. R., Miller, M. G. R., Dias, M. P., Oppel, S., Torres,
+L., Hedd, A., Corre, M. L., Phillips, R. A., Shaffer, S. A., Weimerskirch, H., & Small, C. (2016). Applying global criteria to tracking data to define important areas for marine conservation. Diversity and Distributions, 22, 422–431.
+\n\n
+R Core Team (2021). R: A language and environment for statistical computing. R Foundation for Statistical Computing, Vienna, Austria. URL https://www.R-project.org/.'
+
+
 
 dat <- opp_download_data(study = params$movebank_id)
 ```
@@ -45,13 +68,11 @@ dat <- opp_download_data(study = params$movebank_id)
 
 # Data Summary
 
-Between `r min(year(dat$timestamp))` and `r max(year(dat$timestamp))`, `r length(unique(dat$individual_id))` individual `r params$spp`s at the `r unique(dat$study_site)` colony were tagged and tracked with `r as.character(unique(dat$sensor_type))` tags.
+`r if(min(year(dat$timestamp)) == max(year(dat$timestamp))) {paste("In", min(year(dat$timestamp)))} else {paste("Between", min(year(dat$timestamp)), "and",  max(year(dat$timestamp)))}`, `r length(unique(dat$individual_id))` individual `r params$spp`s at the `r unique(dat$study_site)` colony were tagged and tracked with `r as.character(unique(dat$sensor_type))` tags. These `r length(unique(dat$individual_id))` individuals generated `r nrow(dat)` detections between `r as.Date(min(dat$timestamp))` and `r as.Date(max(dat$timestamp))`. This report provides a detailed summary of the tracking data available for this population, as well as a description of how data were processed prior to analysis to identify high-use areas where birds may be at risk from marine spills.
 
-These `r length(unique(dat$individual_id))` individuals generated `r nrow(dat)` detections between `r as.Date(min(dat$timestamp))` and `r as.Date(max(dat$timestamp))`.
+Raw tracking data are stored on Movebank (https://www.movebank.org/) in project number `r as.character(params$movebank_id)`. All analysis were conducted with `R` (version 4.1.0, R Core Team 2021). Code used to generate this report is available at: https://github.com/popovs/OPPtools.
 
-Data are stored on Movebank in project number `r as.character(params$movebank_id)`.
-
-```{r map, fig.cap = "Map of raw GPS locations. Different colours represent trips from unique deployments. Location of the breeding colony is indicated with an orange point."}
+```{r map, fig.cap = paste("Map of raw GPS locations. Different colours represent trips from unique deployments. Location of the", unique(dat$study_site), "breeding colony is indicated with an orange point.")}
 dat2 <- opp2KBA(dat)
 
 # Raw trip data
@@ -61,17 +82,26 @@ opp_map_tracks(tracks = dat2$data,
                coast_scale = 10,
                viridis_option = "D",
                show_locs = T)
+
 ```
 
 \newpage
 
-# Classifying foraging trips
+```{r location plot, fig.height = 6, fig.cap = 'Plot showing time of all GPS locations and breeding status for each tracked individual, including deployments that did not provide any off-colony locations.'}
 
-Foraging trips were identified as any continuous track at least `r params$minDist` km from the colony, which lasted for a minimum of `r params$minDur` hours. Trips were considered incomplete if the trips started or ended more than `r params$maxDist` km from the colony. Trips were considered 'gappy' if there were gaps between successive locations greater than `r params$gapTime` hours, and the bird traveled farther than `r params$gapDist` km during that time. 
+opp_logger_dotplot(dat)
 
-Table 1 summarizes trip attributes for each type of trip. Appendix A includes plots showing the trip classification from each individual deployment. `r if (length(grep('storm-petrel', params$spp)) == 1) "Because of the low GPS sampling rate and long commuting distances of storm-petrels, some consecutive trips are potentially combined here. These merged trips were retained in order to include time spent close to the colony in estimated utilization distributions. For this reason, trip summary statistics in Tables 1 and 2 should be interpreted with caution."`
+```
 
-```{r get trips}
+\newpage 
+
+# Classifying trips off-colony
+
+Estimating at-sea home range areas using 95% utilization distributions (UD) requires defining periods when individuals are away from the colony and interpolating GPS locations at a consistent time-interval. We first identified trips where birds were away from the colony, and classified these trips based on how complete and consistent GPS fixes were acquired during these trips. Trips were identified as any continuous track at least **`r params$minDist` km** from the colony which lasted for a minimum of **`r params$minDur` `r ifelse(params$minDur == 1, paste("hour"), paste("hours"))`.** Trips were considered _incomplete_ if the trips started or ended more than **`r params$maxDist` km** from the colony. Trips were considered to be _gappy_ if there were gaps between successive GPS fixes greater than **`r params$gapTime` hr** and the bird traveled farther than **`r params$gapDist` km** during that time. 
+
+Table 1 summarizes trip attributes for each type of trip. The appendix includes plots showing the trip classification from each individual deployment. `r if (length(grep('storm-petrel', params$spp)) == 1) "Because of the low GPS sampling rate and long commuting distances of storm-petrels, some consecutive trips are potentially combined here. These merged trips were retained in order to include time spent close to the colony in estimated utilization distributions. For this reason, trip summary statistics in Tables 1 and 2 should be interpreted with caution."` Because this analysis is primarily concerned with identifying at-sea areas where birds may be vulnerable to marine spills, no effort was made to distinguish between foraging trips and non-foraging trips. 
+
+```{r get-trips}
 trips <- opp_get_trips(dat2,
               innerBuff = params$minDist,
               returnBuff = params$maxDist,
@@ -84,7 +114,7 @@ trips <- opp_get_trips(dat2,
 ```
 
 
-```{r trip summary}
+```{r trip-summary}
 ft <- trips@data %>%
   filter(Type != 'Non-trip') %>%
   group_by(ID, tripID, Type) %>%
@@ -94,7 +124,7 @@ ft <- trips@data %>%
   group_by(Type) %>%
   summarize(
     `Number of trips` = length(unique(tripID)),
-    `Number of locations` = n(),
+    `Number of raw GPS fixes` = n(),
     `Median duration (hrs)` = round(median(duration), 1),
     `Median trip distance (km)` = round(median(max(ColDist))/1000, 1)
     ) %>%
@@ -107,7 +137,7 @@ ft
 
 # Track interpolation
 
-Locations collected during complete, incomplete, and gappy trips were interpolated at a `r params$timestep` interval using a continuous time correlated random walk model. Gaps in tracks during a trip, as defined above, were `r ifelse(params$interpolateGaps == F, 'not','')` interpolated. Figure 2 shows maps comparing the raw and interpolated locations within trips for all deployments. Table 2 provides a summary of the number of raw and interpolated locations, trip duration, maximum trip distance and trip type for each identified foraging trip. Plots comparing the raw and interpolated data for each individual deployment are provided in Appendix B.
+Locations collected during complete, incomplete, and gappy trips were interpolated at a **`r params$timestep`** interval using a continuous time correlated random walk model using the `crawl` package (version 2.2.1, Johnson et al. 2008) in `R`. Gaps in tracks during a trip, as defined above, were `r ifelse(params$interpolateGaps == F, '**not**','')` interpolated. Figure 2 shows maps comparing the raw and interpolated locations within trips for all deployments. Table 2 provides a summary of the number of raw and interpolated locations, trip duration, maximum trip distance and trip type for each identified foraging trip. Plots comparing the raw and interpolated data for each individual deployment are provided in the appendix.
 
 ```{r interpolation}
 interp <- ctcrw_interpolation(trips,
@@ -119,7 +149,8 @@ interp <- ctcrw_interpolation(trips,
 ```
 
 \newpage
-```{r interpolated map, fig.height=7, fig.cap = "Maps comparing trips with raw GPS locations (A) and trips using interpolated locations (B). Different colours represent trips from unique deployments. Location of the breeding colony is indicated with an orange point."}
+
+```{r interpolated-map, fig.height=7, fig.cap = "Maps comparing trips with raw GPS locations (A) and trips using interpolated locations (B). Different colours represent trips from unique deployments. Location of the breeding colony is indicated with an orange point."}
 # Raw trip data
 p_raw <- opp_map_tracks(tracks = interp$data,
                center = dat2$site,
@@ -144,19 +175,21 @@ print(ggpubr::ggarrange(p_raw, p_int,
 ```
 
 \newpage
-```{r interpolated summary}
+
+```{r interpolated-summary}
 my_trip_summary <- OPPtools::sum_trips(interp) %>% 
   dplyr::mutate(duration = signif(duration, 3),
-         max_dist_km = signif(max_dist_km, 3),
-         departure = as.Date(departure)) %>% 
+                max_dist_km = signif(max_dist_km, 3),
+                departure = as.Date(departure)) %>% 
   dplyr::select(tripID, raw_n_locs, interp_n_locs, departure, duration, max_dist_km, complete) %>% 
+  as.data.frame() %>% 
   dplyr::rename(`Trip ID` = tripID,
-         `GPS locations` = raw_n_locs,
-         `Interpolated locations` = interp_n_locs,
-         `Start date` = departure,
-         `Maximum distance (km)` = max_dist_km,
-         `Duration (hrs)` = duration,
-         Type = complete) %>% 
+                `GPS locations` = raw_n_locs,
+                `Interpolated locations` = interp_n_locs,
+                `Start date` = departure,
+                `Maximum distance (km)` = max_dist_km,
+                `Duration (hrs)` = duration,
+                Type = complete) %>% 
   flextable::flextable(cwidth =c(1, 0.8, 0.8, 1, 0.8, 1, 0.8)) %>% 
   flextable::align(align = 'center', part = 'all') %>%
   flextable::set_caption("Summary of individual foraging trip attributes.")
@@ -166,7 +199,7 @@ my_trip_summary
 ```
 
 
-```{r short report}
+```{r short-report}
 # Report will end here if there are fewer than 20 tracks in the dataset
 n_tracks <- length(unique(interp$interp$ID))
 
@@ -177,19 +210,17 @@ calc.kernels <- n_tracks >= 20
 \newpage
 # Kernel density estimates
 
-```{r get smoothers}
+```{r get-smoothers}
 h <- opp_href(interp$interp)
 s <- opp_step(interp$interp)
 s <- ifelse(s < 1, 1, s)
 ```
 
-Given the sensitivity of kernel density estimates to the kernel smoother, it is important to choose the appropriate kernel smoother for a given species. Appendix C includes plots comparing kernel smoothers for each individual track parameters. These plots should be examined to identify any potential biases associated with using a particular smoother.
+Utilization distributions are sensitive to the kernel smoother; therefore it is important to choose an appropriate smoother for the species and GPS fix rate. The appendix includes plots comparing kernel smoothers for each individual track. These plots were examined to identify any potential biases associated with using a particular smoother.
 
-We considered three smoothers using a traditional kernel density estimate. The 'href' smoother is a data-driven method which is calculated from the variance in the X and Y directions in the data, in this case the median href was `r signif(h, 2)` km. Initial data exploration indicated that the href parameter could over smooth tracks, so that in complex tracks areas of high use were missed in the kernel density estimate, therefore we also considered the href/2, which was `r signif(h/2, 2)` km. Finally, we used a step smoother based on the median step length between interpolated locations across all tracks. `r if(s == 1){"The step function resulted in a value of less than 1 km; therefore, 'step' kernel density estimates were calculated with a smoother value of 1 km."} else {paste("The step smoother was", signif(s, 2), "km.")}`
+We considered three smoothers using a traditional kernel density estimate: `href`, `href/2`, and `step`. The `href` smoother is a data-driven method which is calculated from the variance in the X and Y directions in the data; in this case the median `href` was `r signif(h, 2)` km. Initial data exploration indicated that the `href` parameter could over-smooth tracks, such that in complex tracks areas of high use were missed in the kernel density estimate. We therefore also considered the `href/2` smoother, which was `r signif(h/2, 2)` km. Finally, we tested a `step` smoother based on the median step length between interpolated locations across all tracks. `r if(s == 1){"The step function resulted in a value of less than 1 km; therefore, \x60step\x60 kernel density estimates were calculated with a smoother value of 1 km."} else {paste("The \x60step\x60 smoother was", signif(s, 2), "km.")}` All UDs were calculated using the the `adehabitatHR` package (version 0.4.19, Calenge 2006) in `R`.
 
-`r if (params$includeBB == T) {"In addition to the traditional kernel density estimates, we considered a Brownian kernel estimate. This method uses two smoothers: sig1 is  based on the speed of the animal and was calculated independently for each track and sig2 is based on the logger accuracy (20 m)."}`
-
-```{r calc kernels}
+```{r calc-kernels}
 
 href_ud <- opp_kernel(interp,
                       interpolated = TRUE,
@@ -209,121 +240,53 @@ step_ud <- opp_kernel(interp,
                       extendGrid = params$gridExtend,
                       res = params$gridRes)
 
-
-if (params$includeBB == T ) {
-
-bbmm_ud <- opp_bbmm(interp,interpolated = T,
-                    extendGrid = params$gridExtend,
-                    res = params$gridRes
-                    )
-}
+# 
+# if (params$includeBB == T ) {
+# 
+# bbmm_ud <- opp_bbmm(interp,interpolated = T,
+#                     extendGrid = params$gridExtend,
+#                     res = params$gridRes
+#                     )
+# }
 
 ```
 
 
 
 ```{r conditional block, results = 'asis', eval = show.text}
-cat("## Low track sample size.
+cat("# Low track sample size
     
-The relatively small number of GPS tracks available for this breeding population is not sufficient for characterizing important at-sea areas.")
-```
-
-<!-- ```{r abort small sample size} -->
-<!-- if (n_tracks < 20) knitr::knit_exit() -->
-<!-- ``` -->
-
-
-<!--## Population level-->
-
-```{r population level kernel, eval = FALSE}
-# Combine all tracks
-# pop_tracks <- interp$interp %>%
-#   as('sf') %>%
-#   dplyr::filter(tripID != -1) %>%
-#   dplyr::group_by(ID, tripID) %>%
-#   dplyr::mutate(ID = factor(ID),
-#                 DiffTime = as.numeric(difftime(DateTime, dplyr::lag(DateTime), units = 'hour')),
-#                 DiffDist= getDist(lon = Longitude, lat = Latitude)) %>%
-#   dplyr::arrange(DateTime) %>%
-#   dplyr::summarize(
-#     TotalTime = sum(DiffTime, na.rm = T),
-#     TotalDist = sum(DiffDist, na.rm = T),
-#     do_union = FALSE,
-#     .groups = 'drop'
-#     ) %>%
-#   sf::st_cast("LINESTRING")
-# 
-# # Unweighted stacked kernels
-# pop_href <- ud_stack(href_ud)
-# pop_step <- ud_stack(step_ud)
-# 
-# # Using a combination of aggregate and sum_trips, 
-# # let's pull out the number of locations per animal
-# n_locs <- suppressMessages(aggregate(interp_n_locs ~ ID, data = sum_trips(interp), sum)[[2]])
-# 
-# # Stack our kernels, weighted by n_locs
-# pop_hrefw <- ud_stack(href_ud, n_locs)
-# pop_stepw <- ud_stack(step_ud, n_locs)
-# 
-# pop_uds <- list()
-# 
-# pop_uds[["unweighted href"]] <- ud_vol(pop_href, lowerVol = 50, upperVol = 95)
-# pop_uds[["unweighted step"]] <- ud_vol(pop_step, lowerVol = 50, upperVol = 95)
-# pop_uds[["weighted href"]] <- ud_vol(pop_hrefw, lowerVol = 50, upperVol = 95)
-# pop_uds[["weighted step"]] <- ud_vol(pop_stepw, lowerVol = 50, upperVol = 95)
+The relatively small number of GPS tracks available for this breeding population is not sufficient for characterizing important at-sea areas (Beal et al 2021, Lascelles et al 2016).")
 ```
 
 \newpage
-# Appendix A - Trip plots
 
-Figures in this appendix show the trip classifications for each individual deployment. Locations are plotted as distance from colony over time, with points coloured according to trip type. Complete trips start and end close to the colony, and do not contain any large gaps in GPS locations. Incomplete trips do not contain any large gaps in GPS locations during the trips, but either start or end far away from the colony. 
+# References
 
+`r report_references`
 
-```{r plot trip-types, fig.height=3.5}
-trip_plots <- plot_trip_dist(data = trips, plotsPerPage = 2,              
+\newpage
+
+# Appendix - Diagnostic plots for individual tracks
+
+This appendix includes plots showing the analysis steps described above for each individual track in the dataset for this population. On each page, the top plot (A) shows the trip classifications. Locations are plotted as distance from colony over time, with points coloured according to trip type. Complete trips start and end close to the colony, and do not contain any large gaps in GPS locations. Incomplete trips do not contain any large gaps in GPS locations during the trips, but either start or end far away from the colony. Gappy plots contain a prolonged period of missing locations where the bird also travelled a long distance. The middle plot (B) shows the interpolated GPS locations relative to raw GPS locations. Locations are plotted as distance from colony over time. Gaps in the interpolated (teal) tracks, where no dashed line is plotted, were times when the bird movement was classified as a 'non-trip'. Times where the interpolated track is shown with a dashed line, but no points are plotted, are large gaps in GPS tracking during a trip where no interpolation was performed over gaps in the GPS locations. The bottom plot (C) compares three different kernel density estimation (KDE) smoothers; each plot shows how the 50% and 95% utilization distribution changes  depending on the smoothing parameter and method.
+
+\newpage
+
+```{r individual plots,  fig.height=8}
+
+trip_plots <- plot_trip_dist(data = trips, plotsPerPage = 1,              
                              innerBuff = params$minDist,
                              returnBuff = params$maxDist,
                              showPlots = F)
 
-for (i in 1:length(trip_plots)) {
-  print(trip_plots[[i]])
-}
-```
-
-\newpage
-# Appendix B - Interpolation plots
-
-Figures in this appendix show the interpolated GPS locations relative to raw GPS locations for each individual deployment. Locations are plotted as distance from colony over time. Gaps in the interploted (teal) tracks, where no dashed line is plotted were times when the bird was not classified as in a foraging trip. Times where the interpolated track is shown with a dashed line, but no points were large gaps in GPS tracking during a foraging trip where no interpolation was performed.
-
-```{r plot trip-interpolation, fig.height=3.5}
 interp_plots <- plot_interp_dist(data = interp, 
-                                 plotsPerPage = 2,              
+                                 plotsPerPage = 1,              
                                  showPlots = F)
 
-for (i in 1:length(interp_plots)) {
-  print(interp_plots[[i]])
-}
-```
-
-\newpage
-# Appendix C - Comparing KDE smoothers
-
-Figures in this appendix compare four different KDE smoothers. Each plot shows how the 50% and 95% utilization distribution calculated for individual tracks changes with depending on the  smoothing parameter and method.
-
-```{r plot kernels, fig.height=2.5, fig.width=7}
-
-
-#if (params$includeBB == F ) {
-
-  plot_uds <- list(Step = step_ud,
-                         Href = href_ud,
-                         `Href/2` = href0.5_ud)
-#} else {
-#   plot_uds <- list(Step = step_ud,
-#                          Href = href_ud,
-#                          `Href/2` = href0.5_ud,
-#                          BBMM = bbmm_ud)
-# } 
+plot_uds <- list(Step = step_ud,
+                 Href = href_ud,
+                 `Href/2` = href0.5_ud)
 
 pp <- opp_map_indUD(plot_uds,
                     tracks = interp$interp,
@@ -333,8 +296,37 @@ pp <- opp_map_indUD(plot_uds,
                     coast_scale = 50,
                     viridis_option = "A")
 
-for (i in 1:length(pp)) {
-  print(pp[[i]])
-  cat("  \n")
+for (i in 1:length(trip_plots)) {
+  
+  nn<- names(trip_plots)[i]
+  
+  if (nn %in% names(interp_plots) & nn %in% names(pp)) {
+  
+  p1 <- trip_plots[[nn]] +
+    ggplot2::labs(title = paste0('Diagnostic plots for ', names(trip_plots),'.'))
+  
+  p2 <- interp_plots[[nn]]+
+    ggplot2::labs(title = '')
+  
+  p3 <- pp[[nn]]+
+    ggplot2::labs(title = '')
+  
+  ptop <- (ggpubr::ggarrange(p1, p2,
+                           ncol = 1,
+                           labels = c("A", "B"))
+  )
+  
+  print(ggpubr::ggarrange(ptop, p3,
+                          ncol = 1,nrow = 2,heights = c(1.5,1),
+                          labels = c('', 'C'))
+  )
+  } else {
+      p1 <- trip_plots[[nn]] +
+    ggplot2::labs(title = paste0('Diagnostic plots for ', names(trip_plots),'.'),
+                  caption = 'Interpolation and kernel density plots were not run because there were no off-colony trips.')
+  }
 }
+
 ```
+
+
