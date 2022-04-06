@@ -37,7 +37,7 @@ opp_movebank_key <- function(username,
 
 #' List additional columns available for download
 #'
-#' @description This function lists additional column names you can pass to the `addl_cols` param in `opp_download_data()`.
+#' @description This function lists additional column names you can pass to the `addl_cols` param in `opp_download_data()`. Note that `opp_download_data()` will fail if you pass columns that don't exist in the particular study dataset you are downloading.
 #'
 #' @return
 #' @export
@@ -54,7 +54,12 @@ mb_cols <- function(){
                  "nick_name", "number_of_deployments", "sensor_type_id",
                  "sensor_type_ids", "tag_local_identifier", "tag_readout_method",
                  "taxon_detail", "timestamp_end", "timestamp_start",
-                 "update_ts", "visible")
+                 "update_ts", "visible", "tag_id", "gps_hdop", "gps_satellite_count",
+                 "gps_time_to_fix", "gps_vdop",
+                 "internal_temperature", "location_lat", "location_long", "provider_update_ts", "tag_voltage",
+                 "timestamp", "acceleration_raw_x", "acceleration_raw_y", "acceleration_raw_z", "acceleration_x",
+                 "acceleration_y", "acceleration_z", "external_temperature", "mw_activity_count", "sensor_type",
+                 "local_identifier")
   addl_argos <- c("algorithm_marked_outlier", "argos_altitude", "argos_best_level",
                   "argos_calcul_freq", "argos_error_radius", "argos_gdop",
                   "argos_nb_mes", "argos_nb_mes_120", "argos_nopc",
@@ -64,7 +69,7 @@ mb_cols <- function(){
                   "argos_valid_location_algorithm")
 
   message("Additional columns available for download via `opp_download_data()`:\n")
-  print(addl_cols)
+  print(sort(addl_cols))
   message("In addition to the above, if you are downloading ARGOS data, you can\nalso download the following additional columns:\n")
   print(addl_argos)
 }
