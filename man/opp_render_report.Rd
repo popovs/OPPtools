@@ -10,13 +10,14 @@ opp_render_report(
   level_ud = 95,
   save_rmd = FALSE,
   save_shp = TRUE,
+  save_pts = TRUE,
   output_dir = "temp",
   out_format = "html_document",
   ...
 )
 }
 \arguments{
-\item{params}{List of 18 parameter values used to generate report.}
+\item{params}{List of 19 parameter values used to generate report.}
 
 \item{iterations}{Numeric. Number of iterations to perform for track2KBA::repAssess. More iterations will result in a more accurate assessment, but take longer to run. Default 5.}
 
@@ -24,9 +25,13 @@ opp_render_report(
 
 \item{save_rmd}{Logical (T/F). Should the .Rmd file used to generate the PDF report be saved as well?}
 
-\item{output_dir}{Output directory for generated files. Defaults to 'temp'. If the directory does not exist, the script will create the directory.}
+\item{save_shp}{Logical (T/F). Should the final OPP key area polygon be saved as a shapefile?}
 
-\item{kernel_smoother}{One of four options for kernel smoothers in kernel calculations: "href", "href/2", "step", or "bbmm". Defaults to href/2.}
+\item{save_pts}{Logical (T/F). Should the raw downloaded Movebank points be saved as a shapefile?}
+
+\item{output_dir}{Output directory for generated files, relative to your working directory. Defaults to 'temp'. If the directory does not exist, the script will create the directory.}
+
+\item{out_format}{Output file format for the knitted document. Defaults to 'html_document'.}
 }
 \description{
 This function will generate a KBA report using the 'opp-kba-report' RMarkdown template in \code{OPPtools}, with options to save the generated report as an .Rmd file in addition to the output PDF.

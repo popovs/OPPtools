@@ -4,7 +4,7 @@
 #'
 #' @description This function will generate a diagnostic report using the 'opp-diagnostic-report' RMarkdown template in `OPPtools`, with options to save the generated report as an .Rmd file in addition to the output PDF.
 #'
-#' @param params List of 18 parameter values used to generate report.
+#' @param params List of 19 parameter values used to generate report.
 #' @param save_rmd Logical (T/F). Should the .Rmd file used to generate the PDF report be saved as well?
 #' @param output_dir Output directory for generated files. Defaults to 'temp'. If the directory does not exist, the script will create the directory.
 #'
@@ -21,7 +21,7 @@ render_diagnostic <- function(params,
   if (class(params) != 'list') {
     stop("Your passed params must be class 'list'.")
   }
-  if (length(params) != 18) {
+  if (length(params) != 19) {
     stop("Your passed params list is the incorrect length. Ensure you provide the 18 necessary params.")
   }
 
@@ -71,7 +71,7 @@ render_diagnostic <- function(params,
 #'
 #' @description This function will generate a KBA report using the 'opp-kba-report' RMarkdown template in `OPPtools`, with options to save the generated report as an .Rmd file in addition to the output PDF.
 #'
-#' @param params List of 18 parameter values used to generate report.
+#' @param params List of 19 parameter values used to generate report.
 #' @param iterations Numeric. Number of iterations to perform for track2KBA::repAssess. More iterations will result in a more accurate assessment, but take longer to run. Default 5.
 #' @param level_ud Numeric, from 0 to 100. Utilization distribution volume to extract from kernel densities. Defaults to 95.
 #' @param save_rmd Logical (T/F). Should the .Rmd file used to generate the PDF report be saved as well?
@@ -98,7 +98,7 @@ opp_render_report <- function(params,
   if (class(params) != 'list') {
     stop("Your passed params must be class 'list'.")
   }
-  if (length(params) != 18) {
+  if (length(params) != 19) {
     stop("Your passed params list is the incorrect length. Ensure you provide the 18 necessary params.")
   }
 
@@ -118,7 +118,7 @@ opp_render_report <- function(params,
   params$iterations <- iterations
   params$levelUD <- level_ud
   params$saveShp <- save_shp
-  params$savePts <- save_pts
+  params$save_pts <- save_pts
 
   # If either Rmd or Shp file are saved, update the output_dir
   # This is so all outputs are in nice little folder together
