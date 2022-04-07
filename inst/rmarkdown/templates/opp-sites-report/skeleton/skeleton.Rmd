@@ -1,6 +1,6 @@
 ---
 title: "`r paste(params$report_title)`"
-subtitle: "OPP Report"
+subtitle: "OPP High Use Areas"
 author: "Allison Patterson & Sarah Popov"
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output: 
@@ -48,30 +48,45 @@ library(track2KBA)
 min_samp <- 20
 
 # Pull data and calculate necessary interim analysis steps
-dat <- opp_download_data(study = params$movebank_id)
+dat <- opp_download_data(study = params$movebank_id, season = params$stage)
 
 # Restrict to selected breeding stage
 if (params$stage == 'Incubation') {
   dat <- dat %>% filter(animal_reproductive_condition %in% c('breeding, eggs', 'breeding, egg'))
-  stage_message <- 'This report focuses on tracking data collected during the incubation stage of the breeding season (Figure 2).'
+  stage_message <- paste0('This report focuses on tracking data collected during the incubation stage of the breeding season (',params$dates,').')
 }
 
 if (params$stage == 'Chick-rearing') {
   dat <- dat %>% filter(animal_reproductive_condition %in% c('breeding, chicks', 'breeding, chick'))
-  stage_message <- 'This report focuses on tracking data collected during the chick-rearing stage of the breeding season (Figure 2).'
+  stage_message <- paste0('This report focuses on tracking data collected during the chick-rearing stage of the breeding season (',params$dates,').')
 }
 
 if (params$stage == 'Unknown') {
-    stage_message <- 'Breeding status could not be determined for all deployments, therefore data in this report represent both incubation and chick-rearing breeding stages (Figure 2).'
+    stage_message <- paste0('Breeding status could not be determined for all deployments, therefore data in this report represent both incubation and chick-rearing breeding stages (',params$dates,').')
 }
 
 # Save raw Movebank data as shp
 if (params$save_pts == TRUE) {
-  pts <- dat
-  pts <- sf::st_as_sf(dat, coords = c("location_long", "location_lat"), crs = 4326)
+  pts <- dat %>% 
+    select(-local_identifier) %>% 
+    mutate(dates = params$dates,
+           com_name = params$spp) %>% 
+    rename(sensor = sensor_type, band_id = ring_id, lat_name = taxon_canonical_name,
+           age = animal_life_stage, stage = animal_reproductive_condition, 
+           n_locs = number_of_events, site = study_site, site_lon =deploy_on_longitude,
+           site_lat = deploy_on_latitude, dep_id = deployment_id, ind_id = individual_id) %>% 
+    select(location_long,location_lat,
+           site,site_lon,site_lat,lat_name,com_name,age,stage,dates,year,month,timestamp,
+           sensor,n_locs,band_id,dep_id, ind_id, tag_id)
+  pts <- sf::st_as_sf(pts, coords = c("location_long", "location_lat"), crs = 4326)
   pts$timestamp <- as.character(pts$timestamp)
+  
+  pp <- gsub(' - ','_',params$file_name)
+  pp <- gsub(' ','_',pp)
+  
   sf::st_write(pts, 
-               paste0(file.path(here::here(), params$output_dir, params$file_name), " raw GPS pts.shp"), 
+               paste0(file.path(here::here(), params$output_dir, pp), 
+                      "_GPS_Tracking.shp"), 
                append = FALSE,
                quiet = TRUE)
   rm(pts)
@@ -203,7 +218,7 @@ if (length(deps) < min_samp) knitr::knit_exit()
 
 To focus on at-sea distribution, we first identified periods of time when birds were away from the colony. Tracked individuals were considered away from the colony if consecutive locations were more than  **`r params$minDist` km** from the colony for at least **`r params$minDur` hr**. GPS locations at-sea may be recorded at uneven intervals if birds are diving underwater or the logger could not obtain a fix for other reasons. In order to avoid bias in the utilization distributions due to missing locations, we interpolated at-sea data to a constant time interval of **`r params$timestep`** using a continuous-time correlated random walk model  with the `crawl` package (version 2.2.1, Johnson et al. 2008) in `R`. Prior to interpolation, we identified large gaps in tracks if there were no GPS fixes for at least **`r params$gapTime` hr** and the bird travelled more than **`r params$gapDist` km** during that time. Data were not interpolated across these larger gaps to avoid including interpolated locations with a high degree of uncertainty in kernel density estimates. For further details on how parameters for these analyses were selected, see the diagnostic file associated with this report.
 
-A utilization distribution (UD) was calculated for each individual deployment using the *kernelUD* function in the `adehabitatHR` package (version 0.4.19, Calenge 2006) in `R`. All UDs were calculated on the the same  `r paste(params$gridRes, ' x ', params$gridRes, 'km')` grid, with a smoothing parameter value of `r round(smooth, 0.1)` km. `r if(params$kernelSmoother == "href"){"The smoothing parameter was determined using the \x60href\x60 method, which is calculated from the variance in the X and Y dimensions of the location data (Beal et al 2021). This value was calculated for individual tracks and the median value across all tracks was used."} else if(params$kernelSmoother == "href/2"){"The smoothing parameter was based on the \x60href\x60 method, which is calculated from the variance in the X and Y directions in the data (Beal et al 2021). Initial data exploration showed the href smoother over-simplified resulting utilization distributions, so the median \x60href * 0.5\x60 was used to obtain a more precise estimate of individual distributions."} else if(params$kernelSmoother == "step"){"The smoothing function was based on the median step length between consecutive locations across all individual interpolated tracks."}``r if(params$kernelSmoother == "step" & smooth == 1){"The step function resulted in a \x60step\x60 smoother value of less than 1 km; therefore, UDs were calculated with a smoother value of 1 km."}` See the diagnostic file for a comparison of different smoothing parameters.
+A utilization distribution (UD) was calculated for each individual deployment using the *kernelUD* function in the `adehabitatHR` package (version 0.4.19, Calenge 2006) in `R`. All UDs were calculated on the the same  `r paste(params$gridRes, ' x ', params$gridRes, 'km')` grid, with a smoothing parameter value of `r round(smooth, 0.1)` km. `r if(params$kernelSmoother == "href"){"The smoothing parameter was determined using the href method, which is calculated from the variance in the X and Y dimensions of the location data (Beal et al 2021). This value was calculated for individual tracks and the median value across all tracks was used."} else if(params$kernelSmoother == "href/2"){"The smoothing parameter was based on the href method, which is calculated from the variance in the X and Y directions in the data (Beal et al 2021). Initial data exploration showed the href smoother over-simplified resulting utilization distributions, so the median href * 0.5 was used to obtain a more precise estimate of individual distributions."} else if(params$kernelSmoother == "step"){"The smoothing function was based on the median step length between consecutive locations across all individual interpolated tracks."}``r if(params$kernelSmoother == "step" & smooth == 1){"The step function resulted in a step smoother value of less than 1 km; therefore, UDs were calculated with a smoother value of 1 km."}` See the diagnostic file for a comparison of different smoothing parameters.
 
 # Track representativeness
 
@@ -282,11 +297,12 @@ metadata <- list("smoother" = params$kernelSmoother,
                  "species" = params$spp,
                  "site" = unique(dat$study_site),
                  "stage" = params$stage,
+                 "dates" = params$dates,
                  "col_pairs" = params$breeding_pairs,
                  "meta_shp" = "Shapefile polygon metadata | percentile = percentile of population using area; n_tracks = # of GPS tracks falling within area; perc_pop = min % of colony population using area; n_indiv = min # of individuals (population) using area",
                  "meta_ss" = "Sample size metadata | repr = representativeness (%) of GPS kernels vs total population's space use; total_ss = total # of tracks used to generate this shapefile; n_years = # of years of tracking data used to generate shapefile",
                  "meta_kde" = "Kernel density estimation metadata | smoother = kernel smoothing method; smooth_km = value in kms of smoother; ud_level = utilization distribution level of the kernels",
-                 "meta_lh" = "Life history metadata | species = species; site = colony/tagging site; stage = tagged animal life stage; col_pairs = total # of breeding pairs at colony (i.e. total colony population / 2)"
+                 "meta_lh" = "Life history metadata | species = species; site = colony/tagging site; stage = tagged animal life stage; stage = start/end dates of stage; col_pairs = total # of breeding pairs at colony"
                  )
 
 sites_out <- opp_sites(kernels,
@@ -301,8 +317,11 @@ sites_out <- sf::st_transform(sites_out, crs = 4326)
 
 # If saveShp == TRUE, save shapefile
 if (params$saveShp == TRUE) {
+  
+  pp <- sub(' - ','_',params$file_name)
+  pp <- gsub(' ','_',pp)
   sf::st_write(sites_out, 
-               paste0(file.path(here::here(), params$output_dir, params$file_name), " OPP_Areas.shp"), 
+               paste0(file.path(here::here(), params$output_dir, pp), "_OPP_Areas.shp"), 
                append = FALSE,
                quiet = TRUE)
 }
