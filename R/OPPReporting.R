@@ -29,7 +29,7 @@ render_diagnostic <- function(params,
 
   # Create output dir & file
   dir.create(output_dir, showWarnings = FALSE, recursive = TRUE)
-  filename <- paste(params$file_name, '- OPP GPS Data Processing')
+  filename <- params$file_name
 
   # Modify params list
   names(params)[grep("mb", names(params))] <- "movebank_id" # rename 'mb_project_num' to 'movebank_id', if exists
@@ -58,7 +58,7 @@ render_diagnostic <- function(params,
     "inst/rmarkdown/templates/opp-diagnostic-report/skeleton/skeleton.Rmd",
     params = params,
     output_dir = output_dir,
-    output_file = paste0(filename, ifelse(out_format == 'pdf_document','.pdf', '.html')),
+    output_file = paste0(filename, ' - OPP Supporting Methods', ifelse(out_format == 'pdf_document','.pdf', '.html')),
     output_format = out_format,
     envir = new.env()
   )

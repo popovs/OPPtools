@@ -4,7 +4,7 @@
 \alias{opp_map}
 \title{Plot raw tracks from Movebank download}
 \usage{
-opp_map(data, opp_sites = NA)
+opp_map(data)
 }
 \arguments{
 \item{data}{Movebank data as returned by \code{opp_download_data()} or sites output from \code{opp_sites()}.}

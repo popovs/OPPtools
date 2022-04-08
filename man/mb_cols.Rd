@@ -10,7 +10,7 @@ mb_cols()
 
 }
 \description{
-This function lists additional column names you can pass to the \code{addl_cols} param in \code{opp_download_data()}.
+This function lists additional column names you can pass to the \code{addl_cols} param in \code{opp_download_data()}. Note that \code{opp_download_data()} will fail if you pass columns that don't exist in the particular study dataset you are downloading.
 }
 \examples{
 mb_cols()
