@@ -35,6 +35,47 @@ opp_movebank_key <- function(username,
 
 # -----
 
+#' List additional columns available for download
+#'
+#' @description This function lists additional column names you can pass to the `addl_cols` param in `opp_download_data()`. Note that `opp_download_data()` will fail if you pass columns that don't exist in the particular study dataset you are downloading.
+#'
+#' @return
+#' @export
+#'
+#' @examples
+#' mb_cols()
+
+mb_cols <- function(){
+  addl_cols <- c("animal_mass", "attachment_type", "comments.x",
+                 "comments.y", "death_comments", "deploy_off_timestamp",
+                 "deploy_on_person", "deploy_on_timestamp", "deployment_end_type",
+                 "deployment_local_identifier", "duty_cycle", "earliest_date_born",
+                 "event_id", "exact_date_of_birth", "latest_date_born",
+                 "nick_name", "number_of_deployments", "sensor_type_id",
+                 "sensor_type_ids", "tag_local_identifier", "tag_readout_method",
+                 "taxon_detail", "timestamp_end", "timestamp_start",
+                 "update_ts", "visible", "tag_id", "gps_hdop", "gps_satellite_count",
+                 "gps_time_to_fix", "gps_vdop",
+                 "internal_temperature", "location_lat", "location_long", "provider_update_ts", "tag_voltage",
+                 "timestamp", "acceleration_raw_x", "acceleration_raw_y", "acceleration_raw_z", "acceleration_x",
+                 "acceleration_y", "acceleration_z", "external_temperature", "mw_activity_count", "sensor_type",
+                 "local_identifier")
+  addl_argos <- c("algorithm_marked_outlier", "argos_altitude", "argos_best_level",
+                  "argos_calcul_freq", "argos_error_radius", "argos_gdop",
+                  "argos_nb_mes", "argos_nb_mes_120", "argos_nopc",
+                  "argos_orientation", "argos_pass_duration", "argos_semi_major",
+                  "argos_semi_minor", "argos_sensor_1", "argos_sensor_2",
+                  "argos_sensor_3", "argos_sensor_4", "argos_transmission_timestamp",
+                  "argos_valid_location_algorithm")
+
+  message("Additional columns available for download via `opp_download_data()`:\n")
+  print(sort(addl_cols))
+  message("In addition to the above, if you are downloading ARGOS data, you can\nalso download the following additional columns:\n")
+  print(addl_argos)
+}
+
+# -----
+
 #' Download OPP tracking data from Movebank
 #'
 #' @description This function downloads OPP tracking data from Movebank and returns a
@@ -47,6 +88,7 @@ opp_movebank_key <- function(username,
 #' @param start_month Earliest month (1-12) to include in output.
 #' @param end_month Latest month (1-12) to include in output.
 #' @param season Vector describing the season data can be applied to, eg. 'Breeding (Jun-Jul)'
+#' @param addl_cols Character vector containing comma separated list of additional Movebank columns to add to the dataset, e.g. c('argos_altitude', 'attachment_type', 'tag_readout_method')
 #'
 #' @details The function can be passed a list of movebank study IDs and will append
 #'data from all studies.
@@ -63,7 +105,8 @@ opp_download_data <- function(study,
                               login = NULL,
                               start_month = NULL,
                               end_month = NULL,
-                              season = NULL
+                              season = NULL,
+                              addl_cols = NULL
                               ) {
 
   # If credentials were saved using opp_movebank_key, retrieve them
@@ -88,14 +131,39 @@ opp_download_data <- function(study,
                                                       deploymentAsIndividuals = TRUE,
                                                       includeOutliers = FALSE))
 
+    # Extract one set of cols for GPS vs. Argos tags
+    if ("Argos Doppler Shift" %in% unique(mb_data@data$sensor_type)) {
+      cols <- c("timestamp", "location_long", "location_lat", "sensor_type",
+                "argos_iq", "argos_lc", "argos_lat1", "argos_lat2", "argos_lon1", "argos_lon2",
+                "local_identifier", "ring_id", "taxon_canonical_name", "sex",
+                "animal_life_stage", "animal_reproductive_condition", "number_of_events",
+                "study_site", "deploy_on_longitude", "deploy_on_latitude",
+                "deployment_id", "tag_id", "individual_id")
+    } else {
+      cols <- c("timestamp", "location_long", "location_lat", "sensor_type",
+                "local_identifier", "ring_id", "taxon_canonical_name", "sex",
+                "animal_life_stage", "animal_reproductive_condition", "number_of_events",
+                "study_site", "deploy_on_longitude", "deploy_on_latitude",
+                "deployment_id", "tag_id", "individual_id")
+    }
+
+    # Append additional columns
+    addl_cols <- as.character(addl_cols)
+    if (class(addl_cols) != "character") {
+      warning("Could not use your additional columns to subset Movebank data. Make sure the `addl_cols` parameters is a character vector, e.g. `c('column_1', 'column_2')`.")
+    } else {
+      cols <- append(cols, addl_cols)
+    }
+
+    non_cols <- cols[!(cols %in% names(mb_data@data)) & !(cols %in% names(mb_data@idData))]
+    if (length(non_cols) > 0) {
+      message(cat("The following columns do not exist in the Movebank dataset, and therefore could not be selected:\n", sprintf(non_cols)))
+      cols <- cols[cols %in% names(mb_data@data) | cols %in% names(mb_data@idData)]
+    }
+
     # Extract fields
-    if (!("Argos Doppler Shift" %in% unique(mb_data@data$sensor_type))) {
-      loc_data <- as(mb_data, 'data.frame') %>%
-          dplyr::select(timestamp, location_long, location_lat, sensor_type,
-                        local_identifier, ring_id, taxon_canonical_name, sex,
-                        animal_life_stage, animal_reproductive_condition, number_of_events,
-                        study_site, deploy_on_longitude, deploy_on_latitude,
-                        deployment_id, tag_id, individual_id) %>%
+    loc_data <- as(mb_data, 'data.frame') %>%
+          dplyr::select(!!!rlang::syms(cols)) %>%
           dplyr::mutate(
             timestamp = as.POSIXct(timestamp), # make times POSIXct for compatibility with OGR
             year = as.numeric(strftime(timestamp, '%Y')),
@@ -103,22 +171,6 @@ opp_download_data <- function(study,
             season = season,
             sex = ifelse(sex == '' | sex == ' ' | is.na(sex), 'u', sex)
           )
-    } else {
-      loc_data <- as(mb_data, 'data.frame') %>%
-        dplyr::select(timestamp, location_long, location_lat, sensor_type,
-                      argos_iq, argos_lc, argos_lat1, argos_lat2, argos_lon1, argos_lon2,
-                      local_identifier, ring_id, taxon_canonical_name, sex,
-                      animal_life_stage, animal_reproductive_condition, number_of_events,
-                      study_site, deploy_on_longitude, deploy_on_latitude,
-                      deployment_id, tag_id, individual_id) %>%
-        dplyr::mutate(
-          timestamp = as.POSIXct(timestamp), # make times POSIXct for compatibility with OGR
-          year = as.numeric(strftime(timestamp, '%Y')),
-          month = as.numeric(strftime(timestamp, '%m')), # add numeric month field
-          season = season,
-          sex = ifelse(sex == '' | sex == ' ' | is.na(sex), 'u', sex)
-        )
-    }
 
     # Subset data to months if provided
     if (is.null(start_month) == FALSE) loc_data <- subset(loc_data, loc_data$month >= start_month)

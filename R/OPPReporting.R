@@ -29,7 +29,7 @@ render_diagnostic <- function(params,
 
   # Create output dir & file
   dir.create(output_dir, showWarnings = FALSE, recursive = TRUE)
-  filename <- params$file_name # set filename
+  filename <- params$file_name
 
   # Modify params list
   names(params)[grep("mb", names(params))] <- "movebank_id" # rename 'mb_project_num' to 'movebank_id', if exists
@@ -58,7 +58,7 @@ render_diagnostic <- function(params,
     "inst/rmarkdown/templates/opp-diagnostic-report/skeleton/skeleton.Rmd",
     params = params,
     output_dir = output_dir,
-    output_file = paste0(filename, ifelse(out_format == 'pdf_document','.pdf', '.html')),
+    output_file = paste0(filename, ' - OPP Supporting Methods', ifelse(out_format == 'pdf_document','.pdf', '.html')),
     output_format = out_format,
     envir = new.env()
   )
@@ -105,7 +105,7 @@ opp_render_report <- function(params,
   if (any(is.na(params))) warning("There are NA values in your passed params list. This may cause unexpected errors when rendering the document.")
 
   # Create output dir & filename
-  output_dir <- file.path(output_dir, "KBA")
+  output_dir <- file.path(output_dir, "OPP_Report")
   dir.create(file.path(output_dir), showWarnings = FALSE, recursive = TRUE)
   filename <- params$file_name # set filename
 
@@ -134,7 +134,7 @@ opp_render_report <- function(params,
   if (save_rmd == TRUE) {
     #rmd_dir <- paste0(file.path(output_dir, filename))
     #dir.create(rmd_dir, showWarnings = FALSE)
-    rmd_out <- paste0(file.path(output_dir, filename), ".Rmd")
+    rmd_out <- paste0(file.path(output_dir, filename), " - OPP High Use Areas.Rmd")
     rmarkdown::draft(rmd_out,
                      template = "opp-sites-report",
                      package = "OPPtools",
@@ -153,7 +153,7 @@ opp_render_report <- function(params,
     "inst/rmarkdown/templates/opp-sites-report/skeleton/skeleton.Rmd",
     params = params,
     output_dir = output_dir,
-    output_file = paste0(filename, ifelse(out_format == 'pdf_document','.pdf', '.html')),
+    output_file = paste0(filename,' - OPP High Use Areas', ifelse(out_format == 'pdf_document','.pdf', '.html')),
     output_format = out_format,
     envir = new.env()
   )
