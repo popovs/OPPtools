@@ -13,7 +13,7 @@ render_diagnostic(
 )
 }
 \arguments{
-\item{params}{List of 18 parameter values used to generate report.}
+\item{params}{List of 19 parameter values used to generate report.}
 
 \item{save_rmd}{Logical (T/F). Should the .Rmd file used to generate the PDF report be saved as well?}
 
