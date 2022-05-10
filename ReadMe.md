@@ -7,15 +7,13 @@
 
 ## Overview
 
-This package is a fork of [CIDAtools](https://github.com/CIDA-CSPH/CIDAtools), and allows you to setup a standardized .Rproj directory with the following preset subdirectories:
+This package provides functions and Rmarkdown templates for analyzing marine bird tracking data collected for the Oceans Protection Plan. The package implements a workflow for identifying high-use areas around colonial breeding seabird colonies on he coast of British Columbia, using GPS tracking data strewed on the Movebank animal tracking data repository.
 
-1. 01_Raw_data
-2. 02_Analysis
-3. 03_Working_files
-4. 04_Processed
-5. 05_Admin
+The package provides functions for data formatting, trip identification, track interpolation, calculating utilization distributions, and identifying high-use areas where multiple individual tracks overlap. The work flow draws on existing functions in the 'move', 'adehabitatHR', and 'track2KBA' R packages. The package includes two Rmarkdown templates to produce (1) a diagnostic report summarizing tracking data within a project and (2) a final report on high-use areas with accompanying shapefile exports.
 
-In addition, a README.md file will be generated for all newly created directories to describe which files are contained within.
+The package is designed so that reports can be esaily updated as new tracking data and projects are added to Movebank.
+
+## Installing package
 
 To install `OPPtools` on your local machine:
 
@@ -34,7 +32,18 @@ navigate to the main project directory, and run:
 
 ```
 CreateProject()
+
 ```
+
+New projects will have a standardized .Rproj directory with the following preset subdirectories:
+
+1. 01_Raw_data
+2. 02_Analysis
+3. 03_Working_files
+4. 04_Processed
+5. 05_Admin
+
+In addition, a README.md file will be generated for all newly created directories to describe which files are contained within.
 
 Feel free to set the project name, PI, and analyst via the `ProjectName`, `PI`, or `analyst`
 arguments respectively, and see `?CreateProject` for more details. If any of these are
@@ -42,22 +51,5 @@ specified, they are stored as text in a hidden subdirectory called .ProjData, an
 be called in subsequent R code anywhere in the project using `ProjectName()`, `ProjectPI()`, and
 `ProjectAnalyst()`. 
 
-## Documentation
-
-The package website of the original project, `CIDAtools`, is available [here](https://cida-csph.github.io/CIDAtools). 
-Further documentation on the original `CIDAtools` functions can be found there. 
-
-## Using snippets
-
-`OPPtools` functions can be used in snippets (if you have a header snippet already in your Rstudio options):
-
-Example of a header snippet using Project Data:
-```
-snippet header
-	###########################################
-	# Project: `r OPPtools::ProjectName()`
-	# Author: `r OPPtools::ProjectAnalyst()`
-	# Date: `r paste(format(Sys.Date(), '%m/%d/%Y'))`
-	# #########################################
 ```
 
