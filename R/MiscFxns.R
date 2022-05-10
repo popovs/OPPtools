@@ -419,3 +419,36 @@ change_yaml_matter <- function(input_file, ..., output_file) {
     return(invisible(output_lines))
   }
 }
+
+# ------
+
+#' Retrieve stored Movebank credentials
+#'
+#' @details Looks for OPP-Movebank credentials on keyring. If no credentials are
+#' are found, user is prompted to enter credentials.
+#' @return Returns an object of class "MovebankLogin" which can be passed to
+#' functions in the move package when dowloading data from Movebank.
+#' @export
+#'
+#' @examples
+#'
+#' mb_login <- opp_retrieve_mb_cred()
+#' mb_login
+
+opp_retrieve_mb_cred <- function() {
+
+  login <- NULL
+
+  # If credentials were saved using opp_movebank_key, retrieve them
+  if (length(keyring::key_list(service = "OPP-Movebank")$username) == 1) {
+    mb_user <- keyring::key_list(service = "OPP-Movebank")$username
+    mb_pass <- keyring::key_get("OPP-Movebank", username = mb_user)
+    login <- move::movebankLogin(username = mb_user, password = mb_pass)
+  }
+
+  # Ask for movebank credentials if not provided
+  if (is.null(login)) login <- move::movebankLogin()
+
+  return(login)
+
+}

@@ -1801,3 +1801,76 @@ opp_map_indUD <- function(
 
   return(out)
 }
+
+# -----
+
+#' Get summary of Movebank studies associated with OPP
+#'
+#' @param project_id List of Movebank project numbers, defaults to projects included in opp_mb_projects
+#'
+#' @details Users must have a Movebank account and permissions to access specific Movebank projects for this function to work.
+#' If you do now have access to the project, then you can request access through Movebank. If
+#' project data are visible to the publis, you may still need to go to Movebank first to
+#' accept the study license before data are available to your user name.
+#'
+#' @return A data frame with the following fields:
+#' \describe{
+#'   \item{Movebank project}{Movebank project number}
+#'   \item{Latin name}{Species latin name}
+#'   \item{Common name}{Species common name}
+#'   \item{Study latitude}{Main study latitude, decimal degrees}
+#'   \item{Study longitude}{Main study longitude, decimal degrees}
+#'   \item{Sensor type}{Sensors available in Movebank}
+#'   \item{Tags}{Number of tags in the study}
+#'   \item{Individuals}{Number of individuals in the study}
+#'   \item{Deployments}{Number of deployments in the study}
+#'   \item{First location}{Date of earliest location}
+#'   \item{Last location}{Date of latest location}
+#' }
+#' @export
+#'
+#' @example
+#'
+#' opp_study_summary()
+#'
+
+opp_study_summary <- function(project_id = opp_mb_projects$mb_project_num) {
+
+  mb_login <- OPPtools::opp_retrieve_mb_cred()
+
+  study_dat <- lapply(project_id, FUN = function(x) move::getMovebankStudy(x, login = mb_login ))
+  study_dat <- do.call(rbind, study_dat)
+
+  out <- study_dat %>%
+    dplyr::select(taxon_ids, id, main_location_lat, main_location_long,
+                  sensor_type_ids,
+                  number_of_tags, number_of_individuals, number_of_deployments,
+                  timestamp_first_deployed_location,
+                  timestamp_last_deployed_location) %>%
+    dplyr::rename(species = taxon_ids) %>%
+    dplyr::inner_join(aou_species[,c('species', 'common_name')]) %>%
+    dplyr::mutate(
+      main_location_lat = round(main_location_lat, 2),
+      main_location_long = round(main_location_long, 2),
+      timestamp_first_deployed_location = as.Date(timestamp_first_deployed_location),
+      timestamp_last_deployed_location = as.Date(timestamp_last_deployed_location),
+      sensor_type_ids = gsub(',', ', ',sensor_type_ids)
+    ) %>%
+    dplyr::rename(`Latin name` = species,
+                  `Common name` = common_name,
+                  `Movebank project` = id,
+                  `Study latitude` = main_location_lat,
+                  `Study longitude` = main_location_long,
+                  `Sensor type` = sensor_type_ids,
+                  `Tags` = number_of_tags,
+                  `Individuals` = number_of_individuals,
+                  `Deployments` = number_of_deployments,
+                  `First location` = timestamp_first_deployed_location,
+                  `Last location` = timestamp_last_deployed_location) %>%
+    dplyr::select(`Movebank project`, `Latin name`,`Common name`,
+                  `Study latitude`:`Last location`) %>%
+    dplyr::arrange(`Common name`)
+
+  return(out)
+
+}
