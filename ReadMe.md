@@ -20,6 +20,17 @@ To install `OPPtools` on your local machine:
 ```
 # install.packages("devtools")
 devtools::install_github('popovs/OPPtools')
+
+```
+
+## Projects on Movebank
+
+Currently, there are 15 OPP projects on Movebank. Data collected on colonial breeding marine birds are organized by species and colony. Data from non-colonial species and from non-breeding birds are organized by species. A list of Movebank project IDs can be called as a dataset within the package using:
+
+```
+# List of Movebank project IDs
+opp_mb_projects
+
 ```
 
 ## Creating a new project
