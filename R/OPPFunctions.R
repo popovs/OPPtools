@@ -1828,11 +1828,9 @@ opp_map_indUD <- function(
 #'   \item{Last location}{Date of latest location}
 #' }
 #' @export
-#'
-#' @example
-#'
+#' @examples
 #' opp_study_summary()
-#'
+
 
 opp_study_summary <- function(project_id = opp_mb_projects$mb_project_num) {
 

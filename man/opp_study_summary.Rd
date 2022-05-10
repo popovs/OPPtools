@@ -34,3 +34,6 @@ If you do now have access to the project, then you can request access through Mo
 project data are visible to the publis, you may still need to go to Movebank first to
 accept the study license before data are available to your user name.
 }
+\examples{
+opp_study_summary()
+}
