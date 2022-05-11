@@ -30,8 +30,21 @@ Currently, there are 15 OPP projects on Movebank. Data collected on colonial bre
 ```
 # List of Movebank project IDs
 opp_mb_projects
+```
+
+## Importing data from Movebank
+
+Before importing data from Movebank, you will need to create a Movebank user account at https://www.movebank.org/cms/movebank-login and be added as a Data collaborator or Data manager by the Project Owner or Project Contact. You may initiate a request to be added to a project through Movebank or by contacting the data owner directly.
+
+Within OPPtools the function `opp_movebank_key()` uses the keyring package to add your Movebank credentials to your keychain. This will allow any functions that call Movebank data to link to Movebank without having to re-enter your credentials.
+
+Functions within OPPtools that call Movebank data are wrappers to the `move` package. If you want to pass your credentials directly to functions from the move package, you can use:
 
 ```
+mb_login <- opp_retrieve_mb_cred()
+```
+
+
 
 ## Creating a new project
 
