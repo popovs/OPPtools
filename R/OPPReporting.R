@@ -149,7 +149,7 @@ opp_render_report <- function(params,
 
   # If either Rmd or Shp file are saved, update the output_dir
   # This is so all outputs are in nice little folder together
-  if (save_rmd == TRUE | save_shp == TRUE) {
+  if (save_rmd == TRUE | save_shp == TRUE| save_pts == TRUE) {
     output_dir <- paste0(file.path(output_dir, filename))
     dir.create(output_dir, showWarnings = FALSE, recursive = TRUE)
 
