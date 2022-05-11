@@ -11,10 +11,10 @@
 #' @export
 
 opp_render_diagnostic <- function(params,
-                              save_rmd = FALSE,
-                              output_dir = 'temp',
-                              out_format = 'pdf_document',
-                              ...) {
+                                  save_rmd = FALSE,
+                                  output_dir = 'temp',
+                                  out_format = 'pdf_document',
+                                  ...) {
 
   # Data health checks
   params <- as.list(params)
@@ -55,7 +55,9 @@ opp_render_diagnostic <- function(params,
 
   # Render the file with the modified params
   rmarkdown::render(
-    "rmarkdown/templates/opp-diagnostic-report/skeleton/skeleton.Rmd",
+    system.file('rmarkdown/templates/opp-diagnostic-report/skeleton', 'skeleton.Rmd',
+                package = 'OPPtools'),
+    #"rmarkdown/templates/opp-diagnostic-report/skeleton/skeleton.Rmd",
     params = params,
     output_dir = output_dir,
     output_file = paste0(filename, ' - OPP Supporting Methods', ifelse(out_format == 'pdf_document','.pdf', '.html')),
@@ -83,14 +85,14 @@ opp_render_diagnostic <- function(params,
 #' @export
 
 opp_render_report <- function(params,
-                       iterations = 5,
-                       level_ud = 95,
-                       save_rmd = FALSE,
-                       save_shp = TRUE,
-                       save_pts = TRUE,
-                       output_dir = 'temp',
-                       out_format = 'pdf_document',
-                       ...) {
+                              iterations = 5,
+                              level_ud = 95,
+                              save_rmd = FALSE,
+                              save_shp = TRUE,
+                              save_pts = TRUE,
+                              output_dir = 'temp',
+                              out_format = 'pdf_document',
+                              ...) {
 
   # Data health checks
   params <- as.list(params)
@@ -149,7 +151,9 @@ opp_render_report <- function(params,
 
   # Render the file with the modified params
   rmarkdown::render(
-    "rmarkdown/templates/opp-sites-report/skeleton/skeleton.Rmd",
+    system.file('rmarkdown/templates/opp-sites-report/skeleton', 'skeleton.Rmd',
+                package = 'OPPtools'),
+    #"rmarkdown/templates/opp-sites-report/skeleton/skeleton.Rmd",
     params = params,
     output_dir = output_dir,
     output_file = paste0(filename,' - OPP High Use Areas', ifelse(out_format == 'pdf_document','.pdf', '.html')),
