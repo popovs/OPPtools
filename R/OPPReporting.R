@@ -10,7 +10,7 @@
 #'
 #' @export
 
-render_diagnostic <- function(params,
+opp_render_diagnostic <- function(params,
                               save_rmd = FALSE,
                               output_dir = 'temp',
                               out_format = 'pdf_document',
@@ -55,7 +55,7 @@ render_diagnostic <- function(params,
 
   # Render the file with the modified params
   rmarkdown::render(
-    "inst/rmarkdown/templates/opp-diagnostic-report/skeleton/skeleton.Rmd",
+    "rmarkdown/templates/opp-diagnostic-report/skeleton/skeleton.Rmd",
     params = params,
     output_dir = output_dir,
     output_file = paste0(filename, ' - OPP Supporting Methods', ifelse(out_format == 'pdf_document','.pdf', '.html')),
@@ -78,19 +78,18 @@ render_diagnostic <- function(params,
 #' @param save_shp Logical (T/F). Should the final OPP key area polygon be saved as a shapefile?
 #' @param save_pts Logical (T/F). Should the raw downloaded Movebank points be saved as a shapefile?
 #' @param output_dir Output directory for generated files, relative to your working directory. Defaults to 'temp'. If the directory does not exist, the script will create the directory.
-#' @param out_format Output file format for the knitted document. Defaults to 'html_document'.
+#' @param out_format Output file format for the knitted document. Defaults to 'pdf_document'.
 #'
 #' @export
 
 opp_render_report <- function(params,
-                       #kernel_smoother = "href/2",
                        iterations = 5,
                        level_ud = 95,
                        save_rmd = FALSE,
                        save_shp = TRUE,
                        save_pts = TRUE,
                        output_dir = 'temp',
-                       out_format = 'html_document',
+                       out_format = 'pdf_document',
                        ...) {
 
   # Data health checks
@@ -150,7 +149,7 @@ opp_render_report <- function(params,
 
   # Render the file with the modified params
   rmarkdown::render(
-    "inst/rmarkdown/templates/opp-sites-report/skeleton/skeleton.Rmd",
+    "rmarkdown/templates/opp-sites-report/skeleton/skeleton.Rmd",
     params = params,
     output_dir = output_dir,
     output_file = paste0(filename,' - OPP High Use Areas', ifelse(out_format == 'pdf_document','.pdf', '.html')),

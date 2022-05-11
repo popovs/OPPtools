@@ -12,7 +12,7 @@ opp_render_report(
   save_shp = TRUE,
   save_pts = TRUE,
   output_dir = "temp",
-  out_format = "html_document",
+  out_format = "pdf_document",
   ...
 )
 }
@@ -31,7 +31,7 @@ opp_render_report(
 
 \item{output_dir}{Output directory for generated files, relative to your working directory. Defaults to 'temp'. If the directory does not exist, the script will create the directory.}
 
-\item{out_format}{Output file format for the knitted document. Defaults to 'html_document'.}
+\item{out_format}{Output file format for the knitted document. Defaults to 'pdf_document'.}
 }
 \description{
 This function will generate a KBA report using the 'opp-kba-report' RMarkdown template in \code{OPPtools}, with options to save the generated report as an .Rmd file in addition to the output PDF.
