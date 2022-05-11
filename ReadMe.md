@@ -41,7 +41,7 @@ Within OPPtools the function `opp_movebank_key()` uses the keyring package to ad
 Functions within OPPtools that call Movebank data are wrappers to the `move` package. If you want to pass your credentials directly to functions from the move package, you can use:
 
 ```
-# Retrive Movebank credentials from keyring
+# Retrieve Movebank credentials from keyring
 mb_login <- opp_retrieve_mb_cred()
 ```
 
@@ -54,35 +54,4 @@ cpf_report_params
 ```
 The package documentation includes a description of these parameters, which can be viewed with '?cpf_report_params'. If these parameters need to be modified to generate additional of updated reports, load the 'cpf_report_params' object into your environment and add or modify parameters. To make permanent changes to the object in the package, submit a pull request to the repo on Github.
 
-
-## Creating a new project
-
-After `OPPtools` is installed, a new OPP project can be created using the
-Rstudio GUI (File>New Project>New Directory>New OPP Project).
-
-Or, to create a new project folder structure from the R console, 
-navigate to the main project directory, and run: 
-
-```
-CreateProject()
-
-```
-
-New projects will have a standardized .Rproj directory with the following preset subdirectories:
-
-1. 01_Raw_data
-2. 02_Analysis
-3. 03_Working_files
-4. 04_Processed
-5. 05_Admin
-
-In addition, a README.md file will be generated for all newly created directories to describe which files are contained within.
-
-Feel free to set the project name, PI, and analyst via the `ProjectName`, `PI`, or `analyst`
-arguments respectively, and see `?CreateProject` for more details. If any of these are
-specified, they are stored as text in a hidden subdirectory called .ProjData, and can
-be called in subsequent R code anywhere in the project using `ProjectName()`, `ProjectPI()`, and
-`ProjectAnalyst()`. 
-
-```
 
