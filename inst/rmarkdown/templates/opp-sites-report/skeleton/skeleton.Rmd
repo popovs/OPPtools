@@ -86,6 +86,7 @@ if (params$save_pts == TRUE) {
   
   sf::st_write(pts,
                paste0(file.path(here::here(), params$output_dir, pp),
+               #paste0(file.path(params$output_dir, pp),
                       "_GPS_Tracking.shp"),
                append = FALSE,
                quiet = TRUE)
