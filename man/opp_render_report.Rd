@@ -36,3 +36,17 @@ opp_render_report(
 \description{
 This function will generate a KBA report using the 'opp-kba-report' RMarkdown template in \code{OPPtools}, with options to save the generated report as an .Rmd file in addition to the output PDF.
 }
+\examples{
+
+for (i in 1:nrow(cpf_report_params)) {
+  opp_render_report(params = cpf_report_params[i,],
+                    kernel_smoother = cpf_report_params$smoother[i],
+                    iterations = 10,
+                    level_ud = 95,
+                    save_rmd = FALSE,
+                    save_pts = TRUE,
+                    output_dir = 'temp',
+                    out_format = 'pdf_document')
+                    }
+
+}
