@@ -84,9 +84,9 @@ if (params$save_pts == TRUE) {
   pp <- gsub(' - ','_',params$file_name)
   pp <- gsub(' ','_',pp)
   
-  sf::st_write(pts, 
-               paste0(file.path(here::here(), params$output_dir, pp), 
-                      "_GPS_Tracking.shp"), 
+  sf::st_write(pts,
+               paste0(file.path(here::here(), params$output_dir, pp),
+                      "_GPS_Tracking.shp"),
                append = FALSE,
                quiet = TRUE)
   rm(pts)
@@ -320,8 +320,8 @@ if (params$saveShp == TRUE) {
   
   pp <- sub(' - ','_',params$file_name)
   pp <- gsub(' ','_',pp)
-  sf::st_write(sites_out, 
-               paste0(file.path(here::here(), params$output_dir, pp), "_OPP_Areas.shp"), 
+  sf::st_write(sites_out,
+               paste0(file.path(here::here(), params$output_dir, pp), "_OPP_Areas.shp"),
                append = FALSE,
                quiet = TRUE)
 }

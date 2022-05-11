@@ -9,6 +9,15 @@
 #' @param output_dir Output directory for generated files. Defaults to 'temp'. If the directory does not exist, the script will create the directory.
 #'
 #' @export
+#'
+#' @examples
+#' for (i in 1:nrow(cpf_report_params)) {
+#'    opp_render_diagnostic(cpf_report_params[i,],
+#'                       out_format = 'pdf_document',
+#'                       save_rmd = F,
+#'                       output_dir = paste0('temp/OPP_report/',cpf_report_params$file_name[i]))
+#'
+#' }
 
 opp_render_diagnostic <- function(params,
                                   save_rmd = FALSE,
@@ -62,6 +71,8 @@ opp_render_diagnostic <- function(params,
     output_dir = output_dir,
     output_file = paste0(filename, ' - OPP Supporting Methods', ifelse(out_format == 'pdf_document','.pdf', '.html')),
     output_format = out_format,
+    output_yaml = system.file('rmarkdown/templates/opp-diagnostic-report/', 'template.yaml',
+                              package = 'OPPtools'),
     envir = new.env()
   )
 }
@@ -83,6 +94,21 @@ opp_render_diagnostic <- function(params,
 #' @param out_format Output file format for the knitted document. Defaults to 'pdf_document'.
 #'
 #' @export
+#'
+#' @examples
+#'
+#' for (i in 1:nrow(cpf_report_params)) {
+#
+#'   opp_render_report(params = cpf_report_params[i,],
+#'                     kernel_smoother = cpf_report_params$smoother[i],
+#'                     iterations = 10,
+#'                     level_ud = 95,
+#'                     save_rmd = FALSE,
+#'                     save_pts = TRUE,
+#'                     output_dir = 'temp',
+#'                     out_format = 'pdf_document')
+#'                     }
+#'
 
 opp_render_report <- function(params,
                               iterations = 5,
@@ -158,6 +184,8 @@ opp_render_report <- function(params,
     output_dir = output_dir,
     output_file = paste0(filename,' - OPP High Use Areas', ifelse(out_format == 'pdf_document','.pdf', '.html')),
     output_format = out_format,
+    output_yaml = system.file('rmarkdown/templates/opp-sites-report/skeleton', 'template.yaml',
+                              package = 'OPPtools'),
     envir = new.env()
   )
 }
