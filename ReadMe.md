@@ -41,9 +41,18 @@ Within OPPtools the function `opp_movebank_key()` uses the keyring package to ad
 Functions within OPPtools that call Movebank data are wrappers to the `move` package. If you want to pass your credentials directly to functions from the move package, you can use:
 
 ```
+# Retrive Movebank credentials from keyring
 mb_login <- opp_retrieve_mb_cred()
 ```
 
+## OPP Report Templates
+
+The package includes two RMarkdown templates that run analysis to identify high-use areas from GPS tracking data collected on colonial breeding seabirds. These reports require a set of input parameters which are stored as a dataset within the package
+
+```
+cpf_report_params
+```
+The package documentation includes a description of these parameters, which can be viewed with '?cpf_report_params'. If these parameters need to be modified to generate additional of updated reports, load the 'cpf_report_params' object into your environment and add or modify parameters. To make permanent changes to the object in the package, submit a pull request to the repo on Github.
 
 
 ## Creating a new project
