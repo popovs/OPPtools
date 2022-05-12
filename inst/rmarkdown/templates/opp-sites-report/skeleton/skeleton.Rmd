@@ -26,11 +26,12 @@ params:
   kernelSmoother: NA
   stage: NA
   dates: NA
-  iterations: interations
+  iterations: iterations
   levelUD: level_ud
   saveShp: save_shp
   save_pts: save_pts
   output_dir: output_dir
+  proj_dir: NA
 editor_options: 
   chunk_output_type: console
 ---
@@ -62,7 +63,7 @@ if (params$stage == 'Chick-rearing') {
 }
 
 if (params$stage == 'Unknown') {
-    stage_message <- paste0('Breeding status could not be determined for all deployments, therefore data in this report represent both incubation and chick-rearing breeding stages (',params$dates,').')
+  stage_message <- paste0('Breeding status could not be determined for all deployments, therefore data in this report represent both incubation and chick-rearing breeding stages (',params$dates,').')
 }
 
 # Save raw Movebank data as shp
@@ -84,12 +85,12 @@ if (params$save_pts == TRUE) {
   pp <- gsub(' - ','_',params$file_name)
   pp <- gsub(' ','_',pp)
   
+
   sf::st_write(pts,
-               #paste0(file.path(here::here(), params$output_dir, pp),
-               paste0(file.path(params$output_dir, pp),
-                      "_GPS_Tracking.shp"),
+               paste0(file.path(params$proj_dir, params$output_dir, pp), "_GPS_Tracking.shp"),
                append = FALSE,
                quiet = TRUE)
+
   rm(pts)
 }
 
@@ -98,14 +99,14 @@ dat2 <- opp2KBA(dat)
 
 # Get trips
 trips <- opp_get_trips(dat2,
-              innerBuff = params$minDist,
-              returnBuff = params$maxDist,
-              duration = params$minDur,
-              gapTime = params$gapTime,
-              gapDist = params$gapDist,
-              gapLimit = params$gapLimit,
-              showPlots = F
-              )
+                       innerBuff = params$minDist,
+                       returnBuff = params$maxDist,
+                       duration = params$minDur,
+                       gapTime = params$gapTime,
+                       gapDist = params$gapDist,
+                       gapLimit = params$gapLimit,
+                       showPlots = F
+)
 
 trip_summary <- OPPtools::sum_trips(trips)
 
@@ -114,11 +115,11 @@ deps <- unique(trips$ID[trips$Type != "Non-trip"])
 
 # Interpolate trips
 interp <- ctcrw_interpolation(trips,
-                    site = dat2$site,
-                    type = c('Complete', 'Incomplete', 'Gappy'),
-                    timestep = params$timestep,
-                    interpolateGaps = params$interpolateGaps,
-                    showPlots = F)
+                              site = dat2$site,
+                              type = c('Complete', 'Incomplete', 'Gappy'),
+                              timestep = params$timestep,
+                              interpolateGaps = params$interpolateGaps,
+                              showPlots = F)
 
 # Get smoothers
 if (params$kernelSmoother == "href") {
@@ -253,8 +254,8 @@ if (rep_target < 70) not_rep_message <- paste0(not_rep_message, "The estimated r
 # Check if criteria for representativeness are met
 not_rep <- ifelse(small_sample == T | bad_asymp == T | rep_target < 70 , T, F)
 if (not_rep == T) not_rep_message <- paste0(not_rep_message, "Additional tracking data should be collected in order to infer key at-sea area use during the breeding season for this population. ")
-  
-  
+
+
 ```
 
 We evaluated the representativeness of the available tracking data using the `repAssess` function in the `track2KBA` package (Beal et al. 2021). Subsamples of tracks were drawn from the GPS tracks, and each subsample was used to calculate a pooled `r params$levelUD`% UD weighted by the number of interpolated locations within each track. An inclusion rate was calculated as the proportion of out-of-sample tracking locations that overlapped with the pooled UD. This sampling procedure was repeated `r params$iterations` times, for sample sizes between `r min(ra_table$SampleSize)` and `r max(ra_table$SampleSize)` tracks (the maximum sample size is n-3, to ensure an adequate proportion of out-of-sample tracking locations are available for calculating representativeness). A non-linear regression was used to estimate the sample size where the inclusion rate reaches an asymptote. Representativeness was calculated as
@@ -304,7 +305,7 @@ metadata <- list("smoother" = params$kernelSmoother,
                  "meta_ss" = "Sample size metadata | repr = representativeness (%) of GPS kernels vs total population's space use; total_ss = total # of tracks used to generate this shapefile; n_years = # of years of tracking data used to generate shapefile",
                  "meta_kde" = "Kernel density estimation metadata | smoother = kernel smoothing method; smooth_km = value in kms of smoother; ud_level = utilization distribution level of the kernels",
                  "meta_lh" = "Life history metadata | species = species; site = colony/tagging site; stage = tagged animal life stage; stage = start/end dates of stage; col_pairs = total # of breeding pairs at colony"
-                 )
+)
 
 sites_out <- opp_sites(kernels,
                        population = params$breeding_pairs * 2,
@@ -319,12 +320,16 @@ sites_out <- sf::st_transform(sites_out, crs = 4326)
 # If saveShp == TRUE, save shapefile
 if (params$saveShp == TRUE) {
   
+  
+  
   pp <- sub(' - ','_',params$file_name)
   pp <- gsub(' ','_',pp)
+  
   sf::st_write(sites_out,
-               paste0(params$output_dir, pp), "_OPP_Areas.shp"),
+               paste0(file.path(params$proj_dir, params$output_dir, pp), "_OPP_Areas.shp"),
                append = FALSE,
                quiet = TRUE)
+  
 }
 
 ```
@@ -334,11 +339,11 @@ The `track2KBA` package (Beal et al. 2021) was used to quantify spatial overlap 
 ```{r plot KBA, fig.height=5, fig.cap = paste0("Map showing the estimated distribution of birds at sea around the ",(params$spp)," colony at ", unique(dat$study_site), ". The map shows the minimum estimated number of individuals (polygon shading) and percent of the population (polygon outline) from the colony expected to use this area during the ", tolower(params$stage), " stage of breeding.")}
 
 opp_map_keyareas(
-                 opp_sites = sites_out,
-                 center = dat2$site,
-                 zoom = NULL,
-                 coast_scale = 10
-                 )
+  opp_sites = sites_out,
+  center = dat2$site,
+  zoom = NULL,
+  coast_scale = 10
+)
 
 ```
 

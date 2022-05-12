@@ -62,6 +62,7 @@ opp_render_diagnostic <- function(params,
     output_dir <- rmd_dir
   }
 
+
   # Render the file with the modified params
   rmarkdown::render(
     system.file('rmarkdown/templates/opp-diagnostic-report/skeleton', 'skeleton.Rmd',
@@ -146,10 +147,11 @@ opp_render_report <- function(params,
   params$levelUD <- level_ud
   params$saveShp <- save_shp
   params$save_pts <- save_pts
+  params$proj_dir <- here::here()
 
   # If either Rmd or Shp file are saved, update the output_dir
   # This is so all outputs are in nice little folder together
-  if (save_rmd == TRUE | save_shp == TRUE| save_pts == TRUE) {
+  if (save_rmd == TRUE | save_shp == TRUE | save_pts == TRUE) {
     output_dir <- paste0(file.path(output_dir, filename))
     dir.create(output_dir, showWarnings = FALSE, recursive = TRUE)
 
