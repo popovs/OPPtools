@@ -94,6 +94,14 @@ opp_render_diagnostic <- function(params,
 #' @param output_dir Output directory for generated files, relative to your working directory. Defaults to 'temp'. If the directory does not exist, the script will create the directory.
 #' @param out_format Output file format for the knitted document. Defaults to 'pdf_document'.
 #'
+#' @details The analysis run using the Rmarkdown template expects reporting parameters available in cpf_report_params.
+#' See the help for this dataset for a description of each parameter. If you would like to permanently modify or add to these
+#' parameters within the package, open an issue or make a pull request to the Github repo at: https://github.com/popovs/OPPtools
+#'
+#' Saving shapefiles from this template may only work when run within an R Project. If you are getting errors
+#' using save_shp == TRUE or save_pts == TRUE, try working from an R project. Within RStudio go to File>>NewProject or use
+#' OPPtools::CreateProject() to create a new project.
+#'
 #' @export
 #'
 #' @examples
@@ -158,6 +166,8 @@ opp_render_report <- function(params,
     # Add the output_dir to the params passed to skeleton.Rmd
     params$output_dir <- output_dir
   }
+
+  if (save_shp == TRUE | save_pts == TRUE) warning('Saving shapefiles from the Rmd reporting template may cause an error if you are not working within an R Project')
 
   # If saving Rmd file, generate and save it
   if (save_rmd == TRUE) {
