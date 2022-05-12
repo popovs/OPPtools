@@ -85,6 +85,8 @@ if (params$save_pts == TRUE) {
   pp <- gsub(' - ','_',params$file_name)
   pp <- gsub(' ','_',pp)
   
+  
+  shp_out <- paste0(file.path(params$proj_dir, params$output_dir, pp), "_GPS_Tracking.shp")
 
   sf::st_write(pts,
                paste0(file.path(params$proj_dir, params$output_dir, pp), "_GPS_Tracking.shp"),
@@ -181,6 +183,9 @@ R Core Team (2021). R: A language and environment for statistical computing. R F
 \newpage
 
 # Data summary
+
+`r shp_out`
+`r params$proj_dir`
 
 GPS tracking was conducted on breeding `r params$spp`s at `r unique(dat$study_site)`. This colony has an estimated `r format(params$breeding_pairs, scientific = F, big.mark = ',')` breeding pairs, with the most recent colony count data from `r params$count_year` `r ifelse(params$movebank_id == 1904565280, '(Gaston and Dechesne 2020)', '(ECCC 2022)')`. `r track_years` Location data away from the colony were obtained from `r length(deps)` individuals (Figure 1 and Figure 2). `r stage_message` 
 Raw tracking data are stored on Movebank (https://www.movebank.org/) in project number `r as.character(params$movebank_id)`. All analysis were conducted with `R` (version 4.1.0, R Core Team 2021). Code used to run analysis and generate this report is available at https://github.com/popovs/OPPtools.
