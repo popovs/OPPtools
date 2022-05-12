@@ -36,6 +36,15 @@ opp_render_report(
 \description{
 This function will generate a KBA report using the 'opp-kba-report' RMarkdown template in \code{OPPtools}, with options to save the generated report as an .Rmd file in addition to the output PDF.
 }
+\details{
+The analysis run using the Rmarkdown template expects reporting parameters available in cpf_report_params.
+See the help for this dataset for a description of each parameter. If you would like to permanently modify or add to these
+parameters within the package, open an issue or make a pull request to the Github repo at: https://github.com/popovs/OPPtools
+
+Saving shapefiles from this template may only work when run within an R Project. If you are getting errors
+using save_shp == TRUE or save_pts == TRUE, try working from an R project. Within RStudio go to File>>NewProject or use
+OPPtools::CreateProject() to create a new project.
+}
 \examples{
 
 for (i in 1:nrow(cpf_report_params)) {
