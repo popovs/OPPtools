@@ -167,7 +167,7 @@ opp_render_report <- function(params,
     params$output_dir <- output_dir
   }
 
-  if (save_shp == TRUE | save_pts == TRUE) warning('Saving shapefiles from the Rmd reporting template may cause an error if you are not working within an R Project')
+  if (save_shp == TRUE | save_pts == TRUE) warning('Saving shapefiles from the Rmd reporting template may cause an error if you are not working within an R Project', call. = FALSE, immediate. = TRUE)
 
   # If saving Rmd file, generate and save it
   if (save_rmd == TRUE) {
