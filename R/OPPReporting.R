@@ -30,7 +30,7 @@ opp_render_diagnostic <- function(params,
   if (class(params) != 'list') {
     stop("Your passed params must be class 'list'.")
   }
-  if (length(params) != 19) {
+  if (length(params) != 18) {
     stop("Your passed params list is the incorrect length. Ensure you provide the 18 necessary params.")
   }
 
@@ -134,7 +134,7 @@ opp_render_report <- function(params,
   if (class(params) != 'list') {
     stop("Your passed params must be class 'list'.")
   }
-  if (length(params) != 19) {
+  if (length(params) != 18) {
     stop("Your passed params list is the incorrect length. Ensure you provide the 18 necessary params.")
   }
 

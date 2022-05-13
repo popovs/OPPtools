@@ -18,13 +18,13 @@ A data frame:
 \item{minDur}{Numeric. Time, in hours, a bird must be away from the colony to be considered in a complete trip. Passed to OPPtools::opp_get_trips in analysis.}
 \item{gapTime}{Numeric. Time, in hours, between consecutive locations to be considered a gap in tracking. Passed to OPPtools::opp_get_trips in analysis.}
 \item{gapDist}{Numeric. Distance, in kilometers, between consecutive locations to be considered a gap in tracking. Passed to OPPtools::opp_get_trips in analysis.}
-\item{interpolateGaps}{Logical (TRUE/FALSE). Should gaps in location data be interpolated? Passed to OPPtools::opp_get_trips in analysis.}
+\item{interpolateGaps}{Logical. Should gaps in location data be interpolated? Passed to OPPtools::opp_get_trips in analysis.}
 \item{timestep}{Timestep used for interpolating GPS locations, as text (e.g. 5 min, 1 hour). Passed to OPPtools::opp_get_trips in analysis.}
 \item{gridRes}{Numeric. Grid resultion, in kilometers, used in calculating utilizations disributions.}
 \item{gridExtend}{Numeric. Distance, in kilometers, used to extend grid used in calculating utilizations disributions.}
-\item{kernelSmoother}{Type of kernel smoother used in analysis to calculate utilization distributions. Acceptable values are: href, href/2, and step}
-\item{stage}{Text indicating the breeding stage data apply to. Used in text of report.}
-\item{dates}{Text indicating the date range of the breeding stage for this population. Used in text of report.}
+\item{kernelSmoother}{Text. Type of kernel smoother used in analysis to calculate utilization distributions. Acceptable values are: href, href/2, and step}
+\item{stage}{Text. Describing the breeding stage data apply to. Used in text of report.}
+\item{dates}{Text. Describing the date range of the breeding stage for this population. Used in text of report.}
 }
 }
 \usage{

@@ -22,7 +22,6 @@ params:
   timestep: NA
   gridRes: NA
   gridExtend: NA
-  includeBB: NA
   kernelSmoother: NA
   stage: NA
   dates: NA
