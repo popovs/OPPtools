@@ -9,19 +9,28 @@
 #' @param output_dir Output directory for generated files. Defaults to 'temp'. If the directory does not exist, the script will create the directory.
 #'
 #' @export
+#'
+#' @examples
+#' for (i in 1:nrow(cpf_report_params)) {
+#'    opp_render_diagnostic(cpf_report_params[i,],
+#'                       out_format = 'pdf_document',
+#'                       save_rmd = F,
+#'                       output_dir = paste0('temp/OPP_report/',cpf_report_params$file_name[i]))
+#'
+#' }
 
-render_diagnostic <- function(params,
-                              save_rmd = FALSE,
-                              output_dir = 'temp',
-                              out_format = 'pdf_document',
-                              ...) {
+opp_render_diagnostic <- function(params,
+                                  save_rmd = FALSE,
+                                  output_dir = 'temp',
+                                  out_format = 'pdf_document',
+                                  ...) {
 
   # Data health checks
   params <- as.list(params)
   if (class(params) != 'list') {
     stop("Your passed params must be class 'list'.")
   }
-  if (length(params) != 19) {
+  if (length(params) != 18) {
     stop("Your passed params list is the incorrect length. Ensure you provide the 18 necessary params.")
   }
 
@@ -53,13 +62,18 @@ render_diagnostic <- function(params,
     output_dir <- rmd_dir
   }
 
+
   # Render the file with the modified params
   rmarkdown::render(
-    "inst/rmarkdown/templates/opp-diagnostic-report/skeleton/skeleton.Rmd",
+    system.file('rmarkdown/templates/opp-diagnostic-report/skeleton', 'skeleton.Rmd',
+                package = 'OPPtools'),
+    #"rmarkdown/templates/opp-diagnostic-report/skeleton/skeleton.Rmd",
     params = params,
     output_dir = output_dir,
     output_file = paste0(filename, ' - OPP Supporting Methods', ifelse(out_format == 'pdf_document','.pdf', '.html')),
     output_format = out_format,
+    output_yaml = system.file('rmarkdown/templates/opp-diagnostic-report/', 'template.yaml',
+                              package = 'OPPtools'),
     envir = new.env()
   )
 }
@@ -78,27 +92,49 @@ render_diagnostic <- function(params,
 #' @param save_shp Logical (T/F). Should the final OPP key area polygon be saved as a shapefile?
 #' @param save_pts Logical (T/F). Should the raw downloaded Movebank points be saved as a shapefile?
 #' @param output_dir Output directory for generated files, relative to your working directory. Defaults to 'temp'. If the directory does not exist, the script will create the directory.
-#' @param out_format Output file format for the knitted document. Defaults to 'html_document'.
+#' @param out_format Output file format for the knitted document. Defaults to 'pdf_document'.
+#'
+#' @details The analysis run using the Rmarkdown template expects reporting parameters available in cpf_report_params.
+#' See the help for this dataset for a description of each parameter. If you would like to permanently modify or add to these
+#' parameters within the package, open an issue or make a pull request to the Github repo at: https://github.com/popovs/OPPtools
+#'
+#' Saving shapefiles from this template may only work when run within an R Project. If you are getting errors
+#' using save_shp == TRUE or save_pts == TRUE, try working from an R project. Within RStudio go to File>>NewProject or use
+#' OPPtools::CreateProject() to create a new project.
 #'
 #' @export
+#'
+#' @examples
+#'
+#' for (i in 1:nrow(cpf_report_params)) {
+#
+#'   opp_render_report(params = cpf_report_params[i,],
+#'                     kernel_smoother = cpf_report_params$smoother[i],
+#'                     iterations = 10,
+#'                     level_ud = 95,
+#'                     save_rmd = FALSE,
+#'                     save_pts = TRUE,
+#'                     output_dir = 'temp',
+#'                     out_format = 'pdf_document')
+#'                     }
+#'
 
 opp_render_report <- function(params,
-                       #kernel_smoother = "href/2",
-                       iterations = 5,
-                       level_ud = 95,
-                       save_rmd = FALSE,
-                       save_shp = TRUE,
-                       save_pts = TRUE,
-                       output_dir = 'temp',
-                       out_format = 'html_document',
-                       ...) {
+                              iterations = 5,
+                              level_ud = 95,
+                              save_rmd = FALSE,
+                              save_shp = TRUE,
+                              save_pts = TRUE,
+                              output_dir = 'temp',
+                              out_format = 'pdf_document',
+                              ...) {
 
   # Data health checks
   params <- as.list(params)
   if (class(params) != 'list') {
     stop("Your passed params must be class 'list'.")
   }
-  if (length(params) != 19) {
+  if (length(params) != 18) {
     stop("Your passed params list is the incorrect length. Ensure you provide the 18 necessary params.")
   }
 
@@ -119,16 +155,19 @@ opp_render_report <- function(params,
   params$levelUD <- level_ud
   params$saveShp <- save_shp
   params$save_pts <- save_pts
+  params$proj_dir <- here::here()
 
   # If either Rmd or Shp file are saved, update the output_dir
   # This is so all outputs are in nice little folder together
-  if (save_rmd == TRUE | save_shp == TRUE) {
+  if (save_rmd == TRUE | save_shp == TRUE | save_pts == TRUE) {
     output_dir <- paste0(file.path(output_dir, filename))
     dir.create(output_dir, showWarnings = FALSE, recursive = TRUE)
 
     # Add the output_dir to the params passed to skeleton.Rmd
     params$output_dir <- output_dir
   }
+
+  if (save_shp == TRUE | save_pts == TRUE) warning('Saving shapefiles from the Rmd reporting template may cause an error if you are not working within an R Project', call. = FALSE, immediate. = TRUE)
 
   # If saving Rmd file, generate and save it
   if (save_rmd == TRUE) {
@@ -150,11 +189,15 @@ opp_render_report <- function(params,
 
   # Render the file with the modified params
   rmarkdown::render(
-    "inst/rmarkdown/templates/opp-sites-report/skeleton/skeleton.Rmd",
+    system.file('rmarkdown/templates/opp-sites-report/skeleton', 'skeleton.Rmd',
+                package = 'OPPtools'),
+    #"rmarkdown/templates/opp-sites-report/skeleton/skeleton.Rmd",
     params = params,
     output_dir = output_dir,
     output_file = paste0(filename,' - OPP High Use Areas', ifelse(out_format == 'pdf_document','.pdf', '.html')),
     output_format = out_format,
+    output_yaml = system.file('rmarkdown/templates/opp-sites-report/skeleton', 'template.yaml',
+                              package = 'OPPtools'),
     envir = new.env()
   )
 }
