@@ -22,7 +22,6 @@ params:
   timestep: NA
   gridRes: NA
   gridExtend: NA
-  includeBB: NA
   kernelSmoother: NA
   stage: NA
   dates: NA
@@ -241,15 +240,6 @@ step_ud <- opp_kernel(interp,
                       smoother = s,
                       extendGrid = params$gridExtend,
                       res = params$gridRes)
-
-#
-# if (params$includeBB == T ) {
-#
-# bbmm_ud <- opp_bbmm(interp,interpolated = T,
-#                     extendGrid = params$gridExtend,
-#                     res = params$gridRes
-#                     )
-# }
 
 ```
 
