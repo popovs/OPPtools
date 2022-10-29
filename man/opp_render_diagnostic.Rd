@@ -23,11 +23,13 @@ opp_render_diagnostic(
 This function will generate a diagnostic report using the 'opp-diagnostic-report' RMarkdown template in \code{OPPtools}, with options to save the generated report as an .Rmd file in addition to the output PDF.
 }
 \examples{
+ \dontrun{
 for (i in 1:nrow(cpf_report_params)) {
    opp_render_diagnostic(cpf_report_params[i,],
                       out_format = 'pdf_document',
                       save_rmd = F,
                       output_dir = paste0('temp/OPP_report/',cpf_report_params$file_name[i]))
 
+}
 }
 }

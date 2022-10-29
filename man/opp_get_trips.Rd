@@ -64,6 +64,7 @@ Gaps in trips are defined as any pair of locations that are farther apart in tim
 farther apart in space than gapDist.
 }
 \examples{
+\dontrun{
 my_data <- opp_download_data(study = c(1247096889),login = NULL, start_month = NULL,
                             end_month = NULL,season = NULL)
 
@@ -72,4 +73,5 @@ my_track2kba <- opp2KBA(data = my_data)
 my_trips <- opp_get_trips(data = my_track2kba, innerBuff  = 5, returnBuff = 20,
                          duration  = 2, gapLimit = 100, gapTime = 2, gapDist = 5,
                          showPlots = TRUE)
+}
 }

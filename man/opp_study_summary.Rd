@@ -35,5 +35,7 @@ project data are visible to the publis, you may still need to go to Movebank fir
 accept the study license before data are available to your user name.
 }
 \examples{
+ \dontrun{
 opp_study_summary()
+}
 }

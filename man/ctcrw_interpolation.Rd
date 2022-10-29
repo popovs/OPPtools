@@ -47,6 +47,7 @@ a list of CRAWL fits for each trip. All spatial objects are in the same custom
 Lambert equal area projection centered on the colony.
 }
 \examples{
+\dontrun{
 my_data <- opp_download_data(study = c(1247096889),login = NULL, start_month = NULL,
                             end_month = NULL,season = NULL)
 
@@ -67,5 +68,5 @@ my_interp <- ctcrw_interpolation(data = my_trips,
                    plotsPerPage = 2,
                    theta = c(8,2)
 )
-
+}
 }

@@ -18,7 +18,8 @@ estimates for minimum and maximum trip duration and distance
 for the opp_get_trips function.
 }
 \examples{
+ \dontrun{
 data(murres)
 opp_explore_trips(murres)
-
+}
 }

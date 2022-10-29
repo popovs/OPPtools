@@ -18,10 +18,10 @@ A ggplot object
 Creates a dot plot showing GPS locations for each individual over time
 }
 \examples{
-
+\dontrun{
 my_data <- opp_download_data(study = c(1247096889),login = NULL, start_month = NULL,
                             end_month = NULL,season = NULL)
 
 opp_logger_dotplot(data = my_data)
-
+}
 }

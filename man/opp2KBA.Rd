@@ -25,9 +25,11 @@ This is useful if the user wants to filter the data downloaded from movebank bas
 fields contained within the reference data (e.g. sex, animal_reproductive_condition)
 }
 \examples{
+\dontrun{
 my_data <- opp_download_data(study = c(1247096889),login = NULL, start_month = NULL,
                             end_month = NULL,season = NULL)
 
 my_track2kba <- opp2KBA(data = my_data)
 
+}
 }

@@ -46,7 +46,7 @@ using save_shp == TRUE or save_pts == TRUE, try working from an R project. Withi
 OPPtools::CreateProject() to create a new project.
 }
 \examples{
-
+\dontrun{
 for (i in 1:nrow(cpf_report_params)) {
   opp_render_report(params = cpf_report_params[i,],
                     kernel_smoother = cpf_report_params$smoother[i],
@@ -57,5 +57,5 @@ for (i in 1:nrow(cpf_report_params)) {
                     output_dir = 'temp',
                     out_format = 'pdf_document')
                     }
-
+}
 }

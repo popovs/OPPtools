@@ -18,6 +18,7 @@ The function accepts outputs from either \code{opp_get_trips} or
 output provides a summary of interpolated trips.
 }
 \examples{
+\dontrun{
 my_data <- opp_download_data(study = c(1247096889),login = NULL, start_month = NULL,
                             end_month = NULL,season = NULL)
 
@@ -38,5 +39,5 @@ my_interp <- ctcrw_interpolation(data = my_trips,
 
 sum_trips(my_trips)
 sum_trips(my_interp)
-
+}
 }

@@ -19,6 +19,8 @@ are found, user is prompted to enter credentials.
 }
 \examples{
 
+\dontrun{
 mb_login <- opp_retrieve_mb_cred()
 mb_login
+}
 }

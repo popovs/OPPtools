@@ -14,7 +14,8 @@ Quickly plot Movebank data downloaded
 using \code{opp_download_data} or \code{opp_sites} to visualize tracks or sites.
 }
 \examples{
+ \dontrun{
 data(murres)
 opp_map(murres)
-
+}
 }

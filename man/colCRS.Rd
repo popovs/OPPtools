@@ -20,7 +20,8 @@ the mean latitude and longitude of all deployment locations.
 The function returns a proj4 string.
 }
 \examples{
+ \dontrun{
 data(murres)
 colCRS(murres)
-
+}
 }

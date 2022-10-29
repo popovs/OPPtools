@@ -38,52 +38,53 @@ use. Four options are available: "magma" (or "A"), "inferno" (or "B"), "plasma" 
 A named list of ggplot objects, with one slot for each individual in uds.
 
 #'@examples
-
+\dontrun{
 my_data <- opp_download_data(study = c(1247096889),
-login = NULL, start_month = NULL,
-end_month = NULL,season = NULL)
+                             login = NULL, start_month = NULL,
+                             end_month = NULL,season = NULL)
 
 my_track2kba <- opp2KBA(data = my_data)
 
 my_trips <- opp_get_trips(data = my_track2kba, innerBuff  = 1, returnBuff = 10,
-duration  = 1, gapLimit = 100, gapTime = 1, gapDist = 12,
-showPlots = F)
+                          duration  = 1, gapLimit = 100, gapTime = 1, gapDist = 12,
+                          showPlots = F)
 
 my_interp <- ctcrw_interpolation(data = my_trips,
-site = my_track2kba$site,
-type = c('Complete','Incomplete','Gappy'),
-timestep = '10 min',
-interpolateGaps = F,
-showPlots = T,
-theta = c(8,2),
-quiet = F
+                                 site = my_track2kba$site,
+                                 type = c('Complete','Incomplete','Gappy'),
+                                 timestep = '10 min',
+                                 interpolateGaps = F,
+                                 showPlots = T,
+                                 theta = c(8,2),
+                                 quiet = F
 )
 
 (hh <- opp_href(my_interp$interp))
 
 my_ud_href1 <- opp_kernel(data = my_interp,
-interpolated = TRUE,
-smoother = hh/1,
-extendGrid = 30,
-res = 1)
+                          interpolated = TRUE,
+                          smoother = hh/1,
+                          extendGrid = 30,
+                          res = 1)
 
 my_ud_href2 <- opp_kernel(data = my_interp,
-interpolated = TRUE,
-smoother = hh/2,
-extendGrid = 30,
-res = 1)
+                          interpolated = TRUE,
+                          smoother = hh/2,
+                          extendGrid = 30,
+                          res = 1)
 
 my_plots_step <- opp_map_indUD(
-uds = list(Href1 = my_ud_href1,Href2 = my_ud_href2),
-tracks = my_interp$interp,
-center = my_track2kba$site,
-ud_levels = c(50,75,90),
-coast_scale = 50,
-viridis_option = 'A'
+  uds = list(Href1 = my_ud_href1,Href2 = my_ud_href2),
+  tracks = my_interp$interp,
+  center = my_track2kba$site,
+  ud_levels = c(50,75,90),
+  coast_scale = 50,
+  viridis_option = 'A'
 )
 
-my_plots_step[\link{1}]
-my_plots_step[\link{2}]
+my_plots_step[[1]]
+my_plots_step[[2]]
+}
 }
 \description{
 Map and compare different UD smoothers for individual tracks
