@@ -1,0 +1,10 @@
+pandoc: 2.17.1.1
+pkgdown: 2.0.2
+pkgdown_sha: ~
+articles:
+  OPP-workflow: OPP-workflow.html
+last_built: 2022-03-12T01:15Z
+urls:
+  reference: https://popovs.github.io/OPPtools/reference
+  article: https://popovs.github.io/OPPtools/articles
+
