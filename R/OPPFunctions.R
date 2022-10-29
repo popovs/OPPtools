@@ -43,7 +43,9 @@ opp_movebank_key <- function(username,
 #' @export
 #'
 #' @examples
+#'  \dontrun{
 #' mb_cols()
+#' }
 
 mb_cols <- function(){
   addl_cols <- c("animal_mass", "attachment_type", "comments.x",
@@ -95,10 +97,11 @@ mb_cols <- function(){
 #'
 #' @examples
 #'# download ANMU project data from two studies, for May only
+#' \dontrun{
 #'my_data <- opp_download_data(study = c(1895716931, 1897273090),
 #'                             login = NULL, start_month = 5, end_month = 5,
 #'                             season = 'Incubation')
-#'
+#'}
 #'@export
 
 opp_download_data <- function(study,
@@ -206,11 +209,13 @@ opp_download_data <- function(study,
 #' (accessed using: dataset$data) and study site location information
 #' (accessed using: dataset$site).
 #' @examples
+#' \dontrun{
 #'my_data <- opp_download_data(study = c(1247096889),login = NULL, start_month = NULL,
 #'                             end_month = NULL,season = NULL)
 #'
 #'my_track2kba <- opp2KBA(data = my_data)
 #'
+#'}
 #' @export
 
 opp2KBA <- function(data
@@ -316,9 +321,10 @@ prep_pathtrack <- function(data) {
 #' @param data Movebank data as returned by opp_download_data.
 #'
 #' @examples
+#'  \dontrun{
 #' data(murres)
 #' colCRS(murres)
-#'
+#'}
 #' @export
 
 colCRS <- function(data) {
@@ -339,9 +345,10 @@ colCRS <- function(data) {
 #' @param data Movebank data as returned by `opp_download_data()` or sites output from `opp_sites()`.
 #'
 #' @examples
+#'  \dontrun{
 #' data(murres)
 #' opp_map(murres)
-#'
+#'}
 #' @export
 
 opp_map <- function(data) {
@@ -484,9 +491,10 @@ opp_map <- function(data) {
 #' @param data Movebank data as returned by opp_download_data.
 #'
 #' @examples
+#'  \dontrun{
 #' data(murres)
 #' opp_explore_trips(murres)
-#'
+#'}
 #' @export
 
 opp_explore_trips <- function(data) {
@@ -616,6 +624,7 @@ opp_explore_trips <- function(data) {
 #'
 #'
 #' @examples
+#' \dontrun{
 #'my_data <- opp_download_data(study = c(1247096889),login = NULL, start_month = NULL,
 #'                             end_month = NULL,season = NULL)
 #'
@@ -624,6 +633,7 @@ opp_explore_trips <- function(data) {
 #'my_trips <- opp_get_trips(data = my_track2kba, innerBuff  = 5, returnBuff = 20,
 #'                          duration  = 2, gapLimit = 100, gapTime = 2, gapDist = 5,
 #'                          showPlots = TRUE)
+#' }
 #' @export
 
 
@@ -724,6 +734,7 @@ opp_get_trips <- function(data,
 #'@param theta starting values for ctcrw parameter optimization, see ?crawl::crwMLE for details
 #'
 #'@examples
+#' \dontrun{
 #'my_data <- opp_download_data(study = c(1247096889),login = NULL, start_month = NULL,
 #'                             end_month = NULL,season = NULL)
 #'
@@ -744,7 +755,7 @@ opp_get_trips <- function(data,
 #'                    plotsPerPage = 2,
 #'                    theta = c(8,2)
 #')
-#'
+#' }
 #'@export
 
 ctcrw_interpolation <- function(data,
@@ -864,6 +875,7 @@ ctcrw_interpolation <- function(data,
 #'@param data Trip data output from opp_get_trips() or ctcrw_interpolation().
 #'
 #'@examples
+#' \dontrun{
 #'my_data <- opp_download_data(study = c(1247096889),login = NULL, start_month = NULL,
 #'                             end_month = NULL,season = NULL)
 #'
@@ -884,7 +896,7 @@ ctcrw_interpolation <- function(data,
 #'
 #'sum_trips(my_trips)
 #'sum_trips(my_interp)
-#'
+#'}
 #'@import data.table
 #'@export
 
@@ -1656,7 +1668,7 @@ opp_map_tracks <- function(tracks,
 #' @returns A named list of ggplot objects, with one slot for each individual in uds.
 #'
 #' #'@examples
-#'
+#' \dontrun{
 #' my_data <- opp_download_data(study = c(1247096889),
 #'                              login = NULL, start_month = NULL,
 #'                              end_month = NULL,season = NULL)
@@ -1702,6 +1714,7 @@ opp_map_tracks <- function(tracks,
 #'
 #' my_plots_step[[1]]
 #' my_plots_step[[2]]
+#' }
 #' @export
 #'
 opp_map_indUD <- function(
@@ -1829,7 +1842,9 @@ opp_map_indUD <- function(
 #' }
 #' @export
 #' @examples
+#'  \dontrun{
 #' opp_study_summary()
+#' }
 
 
 opp_study_summary <- function(project_id = opp_mb_projects$mb_project_num) {

@@ -6,12 +6,12 @@
 #' @param yearround Logical. If yearround is FALSE (default), each year is plotted as a separate facet
 #' @returns A ggplot object
 #' @examples
-#'
+#' \dontrun{
 #' my_data <- opp_download_data(study = c(1247096889),login = NULL, start_month = NULL,
 #'                             end_month = NULL,season = NULL)
 #'
 #' opp_logger_dotplot(data = my_data)
-#'
+#'}
 #' @export
 
 opp_logger_dotplot <- function(data, yearround = F) {
@@ -145,8 +145,6 @@ plot_trip_dist <- function(data, plotsPerPage = 1, showPlots = T,
 #' named after the corresponding deployment ID in data. If plotsPerPage > 1 then
 #' the function returns an unnnamed list of ggplot objects.
 #'
-#' @export
-
 #' @export
 
 plot_interp_dist <- function(data, showPlots = T, plotsPerPage = 4) {

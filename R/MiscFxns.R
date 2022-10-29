@@ -432,8 +432,10 @@ change_yaml_matter <- function(input_file, ..., output_file) {
 #'
 #' @examples
 #'
+#' \dontrun{
 #' mb_login <- opp_retrieve_mb_cred()
 #' mb_login
+#' }
 
 opp_retrieve_mb_cred <- function() {
 
