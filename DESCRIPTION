@@ -25,7 +25,10 @@ Imports:
     dtplyr (>= 1.2.0),
     smoothr,
     tidyr,
-    raster
+    raster,
+    adehabitatHR,
+    adehabitatLT,
+    git2r
 License: CC0
 Encoding: UTF-8
 LazyData: true
